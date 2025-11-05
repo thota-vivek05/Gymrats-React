@@ -1,0 +1,150 @@
+/* Note: The @import url('...') for the font and the global * and body rules 
+   MUST be moved to a single global CSS file (e.g., src/index.css) 
+   and removed from all module files to prevent duplication and conflicts. */
+
+/* Core Container */
+.mainNavbar {
+    margin: 0;
+    background-color: #000;
+    border-bottom: 1px solid #333;
+}
+
+/* Header Tag - Using a class for the <header> element in JSX (className={styles.headerTag}) */
+.headerTag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.headerTag a { /* Targeting <a> tags inside the header */
+    text-decoration: none;
+    color: #f1f1f1;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Branding */
+.brandLogo {
+    color: #f1f1f1;
+    font-weight: bold;
+    transition: 0.3s all ease;
+}
+
+.brandLogo:hover {
+    transform: scale(1.1);
+}
+
+.brandName {
+    font-size: 1.5rem;
+}
+
+/* Nav Menu */
+.navMenu {
+    display: flex;
+    gap: 2rem;
+}
+
+.navMenu a {
+    cursor: pointer;
+    position: relative;
+    transition: 0.1s all ease;
+}
+
+.mainNavbar .navMenu a:hover {
+    color: #8A2BE2;
+}
+
+/* Right Container (Login) */
+.rightContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+
+.loginButton a {
+    background-color: #8A2BE2;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: 0.3s all ease;
+}
+
+.loginButton a:hover {
+    background-color: #7020a0;
+}
+
+/* Mobile Menu Icon */
+.mobileMenuIcon {
+    display: none;
+    cursor: pointer;
+}
+
+/* Side Navbar */
+.mobileSidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    background-color: #8A2BE2;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.mobileSidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: #ffffff;
+    display: block;
+    transition: 0.3s;
+}
+
+.mobileSidebar .closeButton {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+.mobileSidebar.open {
+    width: 250px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1016px) {
+    .headerTag {
+        padding: 0.8rem 1.5rem;
+    }
+
+    .navMenu {
+        display: none !important;
+    }
+
+    .rightContainer {
+        margin-left: auto;
+    }
+
+    .mobileMenuIcon {
+        display: block;
+        margin-left: 1rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .rightContainer {
+        display: none;
+    }
+
+    .brandLogo {
+        margin-right: auto;
+    }
+}

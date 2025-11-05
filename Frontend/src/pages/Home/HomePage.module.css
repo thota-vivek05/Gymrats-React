@@ -1,0 +1,522 @@
+.aboutSection {
+    display: flex;
+    gap: 50px;
+    margin: 200px 75px 50px 75px;
+}
+
+.aboutContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 2;
+}
+
+.aboutSection h2 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #f1f1f1;
+    margin-bottom: 30px;
+}
+
+.aboutSection p {
+    font-size: 1.2rem;
+    color: #cccccc;
+    margin-bottom: 30px;
+}
+
+.aboutSection img {
+    width: 500px;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+}
+
+.autoshow {
+    animation: autoShow both;
+    animation-timeline: view(95% 5%);
+}
+
+@keyframes autoShow {
+    from {
+        opacity: 0;
+        transform: translateY(200px) scale(0.3);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+    .aboutSection {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .aboutSection img {
+        width: 90%;
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+}
+
+@media screen and (max-width: 1016px) {
+    .aboutSection {
+        margin: 50px 20px;
+        padding: 40px 10px;
+    }
+}
+
+/* ---------------------------------------------- */
+
+.heroSection {
+    position: relative;
+    height: 800px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1740&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 60px;
+}
+
+.heroText {
+    position: absolute;
+    width: 100%;
+    top: 66%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    text-align: center;
+    margin-top: 35px;
+}
+
+.heroText h1 {
+    font-size: 5rem;
+    font-weight: bold;
+    color: #f1f1f1;
+    margin-bottom: 20px;
+}
+
+.heroText p {
+    font-size: 1.5rem;
+    color: #f1f1f1;
+    margin-bottom: 30px;
+}
+
+.heroText button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: lighter;
+    color: #ffffff;
+    background-color: #8A2BE2;
+    border: 1px solid #8A2BE2;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s all ease;
+}
+
+.heroText button:hover {
+    background-color: transparent;
+    color: #8A2BE2;
+}
+
+.startAnimation {
+    animation: startAnimation 3s ease;
+}
+
+@keyframes startAnimation {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1016px) {
+    .heroText h1 {
+        font-size: 3rem;
+    }
+    
+    .heroText p {
+        font-size: 1.2rem;
+    }
+}
+
+/* --------------------------------------------- */
+
+.membershipSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 80px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sectionHeader {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.sectionHeader h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #f1f1f1;
+    margin-bottom: 15px;
+}
+
+.sectionHeader p {
+    font-size: 1.1rem;
+    color: #cccccc;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.planCards {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.planCard {
+    background-color: rgba(30, 30, 30, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
+    width: 300px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.planCard:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(138, 43, 226, 0.4);
+}
+
+.planPopular {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #8A2BE2;
+    color: white;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-bottom-left-radius: 10px;
+}
+
+.planHeader {
+    padding: 30px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.planHeader h3 {
+    font-size: 1.8rem;
+    color: #f1f1f1;
+    margin-bottom: 10px;
+}
+
+.planPrice {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #8A2BE2;
+    margin-bottom: 10px;
+}
+
+.planPrice span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #aaa;
+}
+
+.planHeader p {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.planFeatures {
+    padding: 30px 20px;
+}
+
+.planFeatures ul {
+    list-style: none;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.planFeatures ul li {
+    padding: 12px 0;
+    color: #f1f1f1;
+    position: relative;
+    padding-left: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.planFeatures ul li.included:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #8A2BE2;
+    font-weight: bold;
+}
+
+.planFeatures ul li.excluded {
+    color: #777;
+}
+
+.planFeatures ul li.excluded:before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    color: #777;
+}
+
+.btn {
+    display: inline-block;
+    background-color: #8A2BE2;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: 2px solid #8A2BE2;
+}
+
+.btn:hover {
+    background-color: transparent;
+    color: #8A2BE2;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1016px) {
+    .membershipSection {
+        margin: 50px 20px;
+        padding: 40px 10px;
+    }
+}
+
+/* --------------------------------------------- */
+
+.servicesSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 150px 75px;
+}
+
+.servicesSection h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #f1f1f1;
+}
+
+.servicesContainer {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+    width: 100%;
+}
+
+.serviceCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: transparent;
+    padding: 20px;
+    border: 1px solid #8A2BE2;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+    width: 350px;
+}
+
+.serviceCard img {
+    height: 100px;
+    margin-bottom: 15px;
+    outline: none;
+}
+
+.serviceCard a {
+    text-decoration: none;
+}
+
+.serviceCard h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f1f1f1;
+    margin-bottom: 10px;
+}
+
+.serviceCard p {
+    font-size: 1rem;
+    color: #cccccc;
+    line-height: 1.5;
+}
+
+.serviceImage {
+    zoom: 1.8;
+}
+
+.servicesSection button {
+    margin-top: 40px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: lighter;
+    color: #ffffff;
+    background-color: #8A2BE2;
+    border: 1px solid #8A2BE2;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s all ease;
+}
+
+.servicesSection button:hover {
+    background-color: transparent;
+    color: #8A2BE2;
+}
+
+.autoshow {
+    animation: autoShow both;
+    animation-timeline: view(95% 5%);
+}
+
+@keyframes autoShow {
+    from {
+        opacity: 0;
+        transform: translateY(200px) scale(0.3);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+    .servicesContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .serviceCard {
+        width: 80%;
+        max-width: 450px;
+        margin-bottom: 30px;
+    }
+}
+
+@media screen and (max-width: 1016px) {
+    .servicesSection {
+        margin: 50px 20px;
+        padding: 40px 10px;
+    }
+}
+
+/* --------------------------------------------- */
+
+.testimonialsSection {
+    background-color: #0A0A0A;
+    padding: 80px 20px;
+    margin-top: 40px;
+}
+
+.testimonialsContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.testimonialCard {
+    background-color: rgba(30, 30, 30, 0.6);
+    border-radius: 10px;
+    padding: 30px;
+    width: 500px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.testimonialContent {
+    margin-bottom: 25px;
+}
+
+.testimonialContent p {
+    color: #f1f1f1;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    font-style: italic;
+    position: relative;
+}
+
+.testimonialContent p:before {
+    content: "“";
+    font-size: 3rem;
+    position: absolute;
+    left: -15px;
+    top: -20px;
+    color: rgba(138, 43, 226, 0.3);
+}
+
+.testimonialAuthor {
+    display: flex;
+    align-items: center;
+}
+
+.testimonialAuthorImage {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    border: 2px solid #8A2BE2;
+}
+
+.testimonialAuthorImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.testimonialAuthorInfo h4 {
+    color: #f1f1f1;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.testimonialAuthorInfo p {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+    .testimonialCard {
+        width: 90%;
+        max-width: 500px;
+        margin-bottom: 30px;
+    }
+}
+
+@media screen and (max-width: 1016px) {
+    .testimonialsSection {
+        margin: 50px 20px;
+        padding: 40px 10px;
+    }
+}
