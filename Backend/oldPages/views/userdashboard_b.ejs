@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymRats - User Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="/userdashboard/userdashboard.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+</head>
+
+<body>
+    <div class="main-navbar">
+        <header>
+            <div class="brand-logo">
+                <a href="/userdashboard_<%= user && user.membershipType ? user.membershipType.charAt(0).toLowerCase() : 'b' %>"
+                    class="brand-name">GymRats</a>
+            </div>
+
+            <div class="nav-menu">
+                <a href="/userdashboard_<%= user && user.membershipType ? user.membershipType.charAt(0).toLowerCase() : 'b' %>"
+                    class="active">Home</a>
+                <a href="/user_exercises">Exercises</a>
+                <a href="/user_nutrition">Nutrition</a>
+            </div>
+
+            <div class="right-container">
+                
+
+                <div class="user-profile">
+                    <a href="/userprofile">
+                        <% if (user && user.full_name) { %>
+                        <span><%= user.full_name %></span>
+                        <% } else { %>
+                        <span>User</span>
+                        <% } %>
+                    </a>
+                </div>
+            </div>
+            <div class="mobile-menu-icon" id="menuIcon">
+                <img src="/userdashboard/menu.jpg" alt="Menu" height="25px" />
+            </div>
+            <div class="mobile-sidebar" id="sideNavbar">
+                <a href="javascript:void(0)" class="close-button" id="closeBtn">&times;</a>
+                <a href="/userdashboard_<%= user && user.membershipType ? user.membershipType.charAt(0).toLowerCase() : 'b' %>"
+                    class="active">Home</a>
+                <a href="/user_exercises">Exercises</a>
+                <a href="/user_nutrition">Nutrition</a>
+
+                <div class="sidebar-profile">
+                    <a href="/userprofile">
+                        <% if (user && user.full_name) { %>
+                        <span><%= user.full_name %></span>
+                        <% } else { %>
+                        <span>User</span>
+                        <% } %>
+                    </a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-content">
+            <h1>Welcome back,
+                <% if (user && user.name) { %>
+                <%= user.name %>
+                <% } else if (user && user.full_name) { %>
+                <%= user.full_name.split(' ')[0] %>
+                <% } else { %>
+                User
+                <% } %>
+            </h1>
+            <p>Track your progress and stay on top of your fitness goals</p>
+        </div>
+    </section>
+
+    <div class="dashboard-container">
+        <div class="dashboard-overview">
+            <div class="overview-card">
+                <div class="overview-icon">
+                    <i class="fas fa-ruler-vertical"></i>
+                </div>
+                <div class="overview-details">
+                    <h3>Current Height</h3>
+                    <p class="overview-value"><%= user.height || 170 %> cm</p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="overview-details">
+                    <h3>Workouts Completed</h3>
+                    <p class="overview-value"><%= weeklyWorkouts.completed %> / <%= weeklyWorkouts.total %> this week
+                    </p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-icon">
+                    <i class="fas fa-weight"></i>
+                </div>
+                <div class="overview-details">
+                    <h3>Current Weight</h3>
+                    <p class="overview-value"><%= user.weight || 75 %> kg</p>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-icon">
+                    <i class="fas fa-running"></i>
+                </div>
+                <div class="overview-details">
+                    <h3>Weight Goal</h3>
+                    <p class="overview-value"><%= user.fitness_goals.weight_goal || 70 %> kg</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>Today's Workout: <%= todayWorkout.name || 'No Workout Scheduled' %></h2>
+                    <span class="badge"><%= todayWorkout.duration || 60 %> min</span>
+                </div>
+                <div class="workout-content">
+                    <% if (todayWorkout.exercises && todayWorkout.exercises.length > 0) { %>
+                    <div class="workout-progress">
+                        <div class="progress-circle">
+                            <svg viewBox="0 0 36 36" class="circular-chart">
+                                <path class="circle-bg"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle" stroke-dasharray="<%= todayWorkout.progress || 0 %>, 100"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <text x="18" y="20.35" class="percentage"><%= todayWorkout.progress || 0 %>%</text>
+                            </svg>
+                        </div>
+                        <p><span id="completedExercisesCount"><%= todayWorkout.completedExercises || 0 %></span> of
+                            <span id="totalExercisesCount"><%= todayWorkout.totalExercises || 0 %></span> exercises
+                            completed</p>
+                    </div>
+
+                    <h3>Exercises:</h3>
+                    <div class="exercises-container">
+                        <% todayWorkout.exercises.forEach((exercise, index) => { %>
+                        <div class="exercise-item <%= exercise.completed ? 'completed' : '' %>"
+                            data-exercise-name="<%= exercise.name %>">
+                            <div class="exercise-info">
+                                <strong class="exercise-name"><%= exercise.name %></strong>
+                                <div class="exercise-details">
+                                    <%= exercise.sets %> sets *
+                                    <%= exercise.reps ? `${exercise.reps} reps` : `${exercise.duration} seconds` %>
+                                    <% if (exercise.weight) { %> (<%= exercise.weight %> kg) <% } %>
+                                </div>
+                            </div>
+                            <button class="exercise-complete-btn <%= exercise.completed ? 'completed' : '' %>"
+                                data-workout-id="<%= todayWorkout.workoutPlanId %>"
+                                data-exercise-name="<%= exercise.name %>" <%= exercise.completed ? 'disabled' : '' %>>
+                                <% if (exercise.completed) { %>
+                                <i class="fas fa-check-circle"></i> Completed
+                                <% } else { %>
+                                <i class="fas fa-check"></i> Mark as Done
+                                <% } %>
+                            </button>
+                        </div>
+
+                        <% }); %>
+                    </div>
+                    <% } else { %>
+                    <p>No exercises scheduled for today. Check your workout plan!</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>Upcoming Class</h2>
+                    <span class="badge">Upgrade to Platinum</span>
+                </div>
+                <div class="class-content" style="text-align: center;">
+                    <p>Stay hydrated! Water is key to performance and recovery.</p>
+                    <p class="subtext">Upgrade to Platinum for live classes and more!</p>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>Nutrition Tracking</h2>
+                    <span class="badge">Upgrade To Gold</span>
+                </div>
+                <div class="class-content" style="text-align: center;">
+                    <p>Staying hydrated boosts energy and focus. Water is key to performance and recovery.</p>
+                    <p class="subtext">Upgrade to Gold for daily macro tracking!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-wide-card">
+            <div class="card-header">
+                <h2>Progress Tracking</h2>
+                <div class="card-actions">
+                    <select id="exerciseSelect" class="select-dropdown">
+                        <option value="all">All Exercises</option>
+                        <% exerciseProgress.forEach(exercise => { %>
+                        <option value="<%= exercise.name %>"><%= exercise.name %></option>
+                        <% }); %>
+                    </select>
+                    <select id="timeframeSelect" class="select-dropdown">
+                        <option value="month">Last Month</option>
+                        <option value="3months">Last 3 Months</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stats-content">
+                <div class="stats-container">
+                    <% exerciseProgress.forEach(exercise => { %>
+                    <div class="stat-item">
+                        <div class="stat-label"><%= exercise.name %></div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: <%= exercise.progress %>%"></div>
+                            </div>
+                            <div class="stat-values">
+                                <span class="current-value"><%= exercise.currentWeight %> kg</span>
+                                <span class="goal-value"><%= exercise.goalWeight %> kg goal</span>
+                            </div>
+                        </div>
+                    </div>
+                    <% }); %>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="exerciseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exercise and Chart functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🏋️ Basic Dashboard initialized');
+
+            // Debug workout data
+            console.log('🔍 Today Workout Data:', {
+                name: '<%= todayWorkout.name %>',
+                workoutPlanId: '<%= todayWorkout.workoutPlanId %>',
+                exercisesCount: <%= todayWorkout.exercises ? todayWorkout.exercises.length : 0 %>,
+                hasWorkoutPlanId: !!'<%= todayWorkout.workoutPlanId %>'
+            });
+
+            // Mobile menu toggle
+            document.getElementById('menuIcon').addEventListener('click', function () {
+                document.getElementById('sideNavbar').classList.add('open');
+                document.getElementById('sideNavbar').style.width = '250px';
+            });
+
+            document.getElementById('closeBtn').addEventListener('click', function () {
+                document.getElementById('sideNavbar').classList.remove('open');
+                document.getElementById('sideNavbar').style.width = '0';
+            });
+
+            // Exercise completion functionality (Individual)
+            const exerciseCompleteButtons = document.querySelectorAll('.exercise-complete-btn:not(.completed)');
+            console.log('🎯 Found individual exercise buttons:', exerciseCompleteButtons.length);
+
+            exerciseCompleteButtons.forEach((button, index) => {
+                const workoutId = button.getAttribute('data-workout-id');
+                const exerciseName = button.getAttribute('data-exercise-name');
+
+                console.log(`Button ${index + 1}:`, {
+                    workoutId: workoutId,
+                    exerciseName: exerciseName,
+                    hasWorkoutId: !!workoutId && workoutId !== 'null'
+                });
+
+                button.addEventListener('click', function () {
+                    const workoutId = this.getAttribute('data-workout-id');
+                    const exerciseName = this.getAttribute('data-exercise-name');
+
+                    console.log('🖱️ Individual exercise button clicked:', {
+                        workoutId,
+                        exerciseName,
+                        isValid: workoutId && workoutId !== 'null' && workoutId !== '' });
+                    if (!workoutId || workoutId === 'null' || workoutId === '') {
+                        console.error(
+                            '❌ Missing or invalid workout ID for individual exercise');
+                        showNotification(
+                            'Error: Workout plan not found. Please try again later.',
+                            'error');
+                        return;
+                    }
+
+                    markExerciseAsDone(workoutId, exerciseName, this);
+                });
+            });
+
+            // Initialize charts
+            initializeCharts();
+        });
+
+        // Exercise completion function
+        function markExerciseAsDone(workoutId, exerciseName, buttonElement) {
+            console.log('🎯 Sending request to mark exercise as done:', {
+                workoutId,
+                exerciseName
+            });
+
+            // Show loading state
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            buttonElement.disabled = true;
+
+            fetch('/api/exercise/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        workoutPlanId: workoutId,
+                        exerciseName: exerciseName
+                    })
+                })
+                .then(response => {
+                    console.log('📥 Response status:', response.status);
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            console.error('❌ Response not OK:', text);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📥 Full API response:', data);
+                    if (data.success) {
+                        // Update button state
+                        buttonElement.innerHTML = '<i class="fas fa-check-circle"></i> Completed';
+                        buttonElement.classList.add('completed');
+                        buttonElement.disabled = true;
+
+                        // Update exercise item
+                        const exerciseItem = buttonElement.closest('.exercise-item');
+                        if (exerciseItem) {
+                            exerciseItem.classList.add('completed');
+                            console.log('✅ Exercise item marked as completed in UI');
+                        }
+
+                        // Update progress UI
+                        updateWorkoutProgressUI(data);
+                        showNotification('Exercise completed! 🎉', 'success');
+                    } else {
+                        // Reset button on error
+                        buttonElement.innerHTML = originalText;
+                        buttonElement.disabled = false;
+                        console.error('❌ API returned success: false', data);
+                        showNotification('Error: ' + (data.error || 'Failed to mark exercise'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Network error:', error);
+                    buttonElement.innerHTML = originalText;
+                    buttonElement.disabled = false;
+                    showNotification('Network error: ' + error.message, 'error');
+                });
+        }
+
+        // UI update functions
+        function updateWorkoutProgressUI(data) {
+            // Update circular progress
+            const circlePath = document.querySelector('.circle');
+            if (circlePath) {
+                circlePath.setAttribute('stroke-dasharray', `${data.progress}, 100`);
+            }
+
+            // Update percentage text
+            const percentageText = document.querySelector('.percentage');
+            if (percentageText) {
+                percentageText.textContent = `${data.progress}%`;
+            }
+
+            // Update exercise counts
+            const completedCount = document.getElementById('completedExercisesCount');
+            const totalCount = document.getElementById('totalExercisesCount');
+            if (completedCount) completedCount.textContent = data.completedExercises;
+            if (totalCount) totalCount.textContent = data.totalExercises;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 4px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                background-color: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            `;
+
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 100);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Chart initialization function
+        function initializeCharts() {
+            // Exercise Progress Chart
+             const exerciseData = <%- JSON.stringify(exerciseProgress || []) %>;
+            const exerciseCtx = document.getElementById('exerciseChart')?.getContext('2d');
+            
+            if (exerciseCtx && exerciseData.length > 0) {
+                // Remove the old chart instance if it exists before creating a new one
+                if (window.exerciseChartInstance) {
+                    window.exerciseChartInstance.destroy();
+                }
+
+                window.exerciseChartInstance = new Chart(exerciseCtx, {
+                    type: 'line',
+                    data: {
+                        // FIX: Use static labels for Gold as history data is not passed
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], 
+                        datasets: exerciseData.map(exercise => ({
+                            label: exercise.name + ' (kg)',
+                            // FIX: Use dummy data for Gold as history data is not passed
+                            data: [
+                                exercise.currentWeight * 0.8, 
+                                exercise.currentWeight * 0.9, 
+                                exercise.currentWeight * 0.95, 
+                                exercise.currentWeight
+                            ], 
+                            borderColor: exercise.color || '#8A2BE2',
+                            backgroundColor: (exercise.color || '#8A2BE2') + '33',
+                            tension: 0.3,
+                            fill: true
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { color: '#f1f1f1' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Exercise Progress Over Time',
+                                color: '#f1f1f1',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#f1f1f1' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#f1f1f1' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Chart dropdown handlers
+            const exerciseSelect = document.getElementById('exerciseSelect');
+            const timeframeSelect = document.getElementById('timeframeSelect');
+
+            if (exerciseSelect && timeframeSelect) {
+                function updateCharts() {
+                    const selectedExercise = exerciseSelect.value;
+                    const selectedTimeframe = timeframeSelect.value;
+                    console.log('Update charts for:', selectedExercise, selectedTimeframe);
+                    // Future implementation: AJAX call to fetch new data
+                }
+
+                exerciseSelect.addEventListener('change', updateCharts);
+                timeframeSelect.addEventListener('change', updateCharts);
+            }
+        }
+    </script>
+</body>
+
+</html>

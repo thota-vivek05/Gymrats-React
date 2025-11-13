@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GymRats</title>
+        <link rel="stylesheet" type="text/css" href="/home/home.css" />
+    </head>
+    <body>
+        <div class="main-navbar">
+            <header>
+                <!-- Header Branding -->
+                <div class="brand-logo">
+                    <a href="/home" class="brand-name">GymRats</a>
+                </div>
+                
+                <div class="nav-menu">
+                    <a href="/home">Home</a>
+                    <a href="/isolation">Exercises</a>
+                    <a href="/nutrition">Nutrition</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                </div>
+                
+                <div class="right-container">
+                    <div class="search-container">
+                        <img src="/home/icons8-search.svg" height="18px" alt="Search Icon" />
+                        <input type="text" placeholder="Search..." size="20" style="font-size: 14px;" />
+                    </div>
+                    
+                    <div class="login-button">
+                        <a href="/login_signup">Login / Signup</a>
+                    </div>
+                </div>
+
+                <div class="mobile-menu-icon" id="menuIcon">
+                    <img src="/home/menu.jpg" alt="Menu" height="25px" />
+                </div>
+
+                <div class="mobile-sidebar" id="sideNavbar">
+                    <a href="javascript:void(0)" class="close-button" id="closeBtn">&times;</a>
+                    <a href="/home">Home</a>
+                    <a href="/isolation">Exercises</a>
+                    <a href="/nutrition">Nutrition</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/login_signup">Login / Signup</a>
+                </div>
+                
+            </header>
+        </div>
+
+        <section class="hero-section">
+            <div class="hero-content startAnimation">
+                <div class="hero-text">
+                    <h1>Transform Your Body,<br> Transform Your Life
+                        </h1>
+                    <p>Join GymRats today and get access to expert-designed workout plans, nutritional guidance, and a supportive community.
+                    </p>
+                    <button onclick="window.open('#membership', '_self')">Get Started</button>
+                </div>
+            </div>
+            
+        </section>
+
+        <section class="services-section autoshow">
+            <h1>Our Gym Services</h1>
+            <div class="services-container">
+                <div class="service-card">
+                        <img src="https://img.icons8.com/ios/250/8A2BE2/dumbbell.png" class="service-image" alt="Personal Training" />
+                        <h2>Personal Training</h2>
+                        <p>Our personal training services offer expert guidance tailored to your fitness level. From initial assessments to customized workout plans, we ensure your progress is our top priority.</p>
+                    </a>
+                </div>
+
+                <div class="service-card">
+                        <img src="https://img.icons8.com/ios/250/8A2BE2/yoga.png" class="service-image" alt="Muscle Isolation" />
+                        <h2>Muscle Isolation</h2>
+                        <p>Learn proper form and technique for effective isolation exercises that target specific muscle groups for maximum definition and growth.</p>
+                    </a>
+                </div>
+
+                <div class="service-card">
+                        <img src="https://img.icons8.com/ios/250/8A2BE2/salad.png" class="service-image" alt="Nutrition Consultation" />
+                        <h2>Nutrition Consultation</h2>
+                        <p>Our nutrition experts offer personalized dietary advice to complement your workout routine and help you achieve optimal health and performance.</p>
+                    </a>
+                </div>
+            </div>
+            <button onclick="window.open('/about', '_self')">Explore Services</button>
+        </section>
+
+        <!-- Membership Plans Section -->
+        <section class="membership-section" id="membership">
+            <div class="section-header">
+                <h2>Membership Plans</h2>
+                <p>Choose the plan that fits your lifestyle and fitness goals. All plans include access to our comprehensive exercise guide.</p>
+            </div>
+
+            <div class="plan-cards">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>Basic Plan</h3>
+                        <div class="plan-price">₹299<span>/month</span></div>
+                        <p>Perfect for beginners</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">Access to Exercise Guide</li>
+                            <li class="included">Basic Workout Plans</li>
+                            <li class="included">Nutritional Tips</li>
+                            <li class="excluded">Current Stats Tracking</li>
+                            <li class="excluded">Online Classes</li>
+                            <li class="excluded">Personal Training Sessions</li>
+                        </ul>
+                        <a href="/login_signup/?form=signup" class="btn">Get Started</a>
+                    </div>
+                </div>
+
+                <div class="plan-card">
+                    <div class="plan-popular">Popular</div>
+                    <div class="plan-header">
+                        <h3>Gold Plan</h3>
+                        <div class="plan-price">₹599<span>/month</span></div>
+                        <p>For dedicated fitness enthusiasts</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">Access to Exercise Guide</li>
+                            <li class="included">Advanced Workout Plans</li>
+                            <li class="included">Detailed Nutritional Guidance</li>
+                            <li class="included">Current Stats Tracking</li>
+                            <li class="excluded">Online Classes</li>
+                            <li class="excluded">Personal Training Sessions</li>
+                        </ul>
+                        <a href="/login_signup/?form=signup" class="btn">Get Started</a>
+                    </div>
+                </div>
+
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>Platinum Plan</h3>
+                        <div class="plan-price">₹999<span>/month</span></div>
+                        <p>The ultimate fitness experience</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">Access to Exercise Guide</li>
+                            <li class="included">Premium Workout Plans</li>
+                            <li class="included">Comprehensive Nutrition Guidance</li>
+                            <li class="included">Current Stats Tracking with Goals</li>
+                            <li class="included">Online Classes</li>
+                            <li class="included">Personal Training Sessions</li>
+                        </ul>
+                        <a href="/login_signup/?form=signup" class="btn">Get Started</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials-section">
+            <div class="section-header">
+                <h2>Success Stories</h2>
+                <p>Hear from our members who have transformed their lives with GymRats.</p>
+            </div>
+
+            <div class="testimonials-container">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>The exercise guide at GymRats has been a game-changer for my fitness journey. The detailed instructions and videos helped me perfect my form, and I've seen incredible results in just 3 months!</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-author-image">
+                            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" alt="John Mitchell">
+                        </div>
+                        <div class="testimonial-author-info">
+                            <h4>John Mitchell</h4>
+                            <p>Member since 2024</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>As someone who struggled with nutrition, the guidance I received from GymRats has been invaluable. The meal plans are easy to follow, and I finally understand how to eat to support my fitness goals.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-author-image">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop" alt="Sarah Davis">
+                        </div>
+                        <div class="testimonial-author-info">
+                            <h4>Sarah Davis</h4>
+                            <p>Member since 2023</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section autoshow">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e" alt="About GymRats" />
+            </div>
+
+            <div class="about-content">
+                <h2>About Us</h2>
+                <p>Welcome to GymRats, your ultimate destination for fitness enthusiasts! Our mission is to empower you to achieve your best self through state-of-the-art gym facilities, personalized training programs, and a vibrant community.
+                   Whether you're a beginner or a seasoned athlete, we have the perfect plan tailored for you. Join us and transform your fitness journey with expert trainers, modern equipment, and a supportive atmosphere.</p>
+            </div>
+        </section>
+
+        <!-- Replace the existing footer with this -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-column">
+            <h3>GymRats</h3>
+            <ul>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/trainers">Our Trainers</a></li>
+                <li><a href="/testimonial">Testimonials</a></li>
+                <li><a href="/blog">Blog</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h3>Resources</h3>
+            <ul>
+                <li><a href="/isolation">Exercise Guide</a></li>
+                <li><a href="/nutrition">Nutrition Tips</a></li>
+                <li><a href="/workout_plans">Workout Plans</a></li>
+                <li><a href="/calculators">Calculators</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h3>Support</h3>
+            <ul>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="/about">About us</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
+                <li><a href="/privacy_policy">Privacy Policy</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h3>Connect With Us</h3>
+            <ul>
+                <li><a href="/trainer_form">Become a Trainer</a></li>
+            </ul>
+            
+            <p class="copyright">GymRats © 2025. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('menuIcon').addEventListener('click', function() {
+                    document.getElementById('sideNavbar').classList.add('open');
+                });
+
+                document.getElementById('closeBtn').addEventListener('click', function() {
+                    document.getElementById('sideNavbar').classList.remove('open');
+                });
+            });
+        </script>
+    </body>
+</html>

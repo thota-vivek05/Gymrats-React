@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymRats - Exercises Management</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <link rel="stylesheet" href="/admin/admin_exercises.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap">
+
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/home" class="brand-name">GymRats</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin_dashboard" class="nav-link ">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_user" class="nav-link">
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_trainers" class="nav-link">
+                        <span>Trainers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_membership" class="nav-link">
+                        <span>Memberships</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="/admin_exercises" class="nav-link active">
+                        <span>Exercises</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/admin_verifier" class="nav-link">
+                        <span>Verifiers</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>Exercises Management</h2>
+                <div class="right-container">
+                    <div class="user-info">
+                        <div class="avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+          <!-- Stats Cards -->
+<div class="stats-container">
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Total Exercises</h3>
+                </div>
+                <div class="stats-number"><%= stats.totalExercises %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Most Popular</h3>
+                </div>
+                <div class="stats-number" style="font-size: 1.1rem;"><%= stats.mostPopular %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Muscle Groups</h3>
+                </div>
+                <div class="stats-number"><%= stats.totalMuscleGroups %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Verification Rate</h3>
+                </div>
+                <div class="stats-number"><%= stats.verificationRate %>%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+           <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="exerciseSearchInput" placeholder="Search exercises by name, primary muscle, or difficulty..." style="width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; background: #2a2a2a; color: #f1f1f1; font-size: 14px;">
+                    </div>
+                </div>
+
+            <!-- Tab Navigation -->
+                    <div class="tab-container">
+                        <button class="tab active" data-tab="all">All Exercises</button>
+                        <% muscleGroups.forEach((muscle, index) => { %>
+                            <button class="tab" data-tab="<%= muscle.toLowerCase().replace(/\s+/g, '-') %>">
+                                <%= muscle %>
+                            </button>
+                        <% }); %>
+                        <button class="tab" data-tab="unverified">Unverified</button>
+                        <button class="tab" data-tab="trending">Trending</button>
+                    </div>
+        <!-- Exercises Table -->
+<div class="section">
+    <div class="table-header">
+        <h3 class="section-title">Exercise Library</h3>
+        <button class="add-btn" id="addExerciseBtn">+ Add New Exercise</button>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Exercise</th>
+                    <th>Primary Muscles</th>
+                    <th>All Muscle Groups</th>
+                    <th>Difficulty</th>
+                    <th>Popularity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="exerciseTableBody">
+                <% if (exercises && exercises.length > 0) { %>
+                    <% exercises.forEach((exercise, index) => { %>
+                        <tr data-exercise-id="<%= exercise._id %>">
+                            <td>
+                                <div class="exercise-info">
+                                    <% if (exercise.image) { %>
+                                        <div class="exercise-image">
+                                            <img src="<%= exercise.image %>" alt="<%= exercise.name %>">
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <%= exercise.name %>
+                                        <% if (exercise.verified) { %>
+                                            <span class="verified-badge">Verified</span>
+                                        <% } %>
+                                        <% if (exercise.usageCount > 5000) { %>
+                                            <span class="trending-badge">Trending</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="muscle-tags">
+                                    <% if (exercise.primaryMuscle) { %>
+                                        <span class="muscle-tag primary"><%= exercise.primaryMuscle %></span>
+                                    <% } else if (exercise.targetMuscles && exercise.targetMuscles.length > 0) { %>
+                                        <span class="muscle-tag primary"><%= exercise.targetMuscles[0] %></span>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="muscle-tags">
+                                    <% if (exercise.targetMuscles && exercise.targetMuscles.length > 0) { %>
+                                        <% exercise.targetMuscles.forEach((muscle, idx) => { %>
+                                            <% if (idx < 3) { %>
+                                                <span class="muscle-tag"><%= muscle %></span>
+                                            <% } %>
+                                        <% }); %>
+                                        <% if (exercise.targetMuscles.length > 3) { %>
+                                            <span class="muscle-tag more">+<%= exercise.targetMuscles.length - 3 %></span>
+                                        <% } %>
+                                    <% } else { %>
+                                        <span class="no-muscles">No muscles specified</span>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="difficulty-indicator">
+                                    <% 
+                                        const difficultyLevels = {
+                                            'Beginner': 2,
+                                            'Intermediate': 3, 
+                                            'Advanced': 4
+                                        };
+                                        const level = difficultyLevels[exercise.difficulty] || 2;
+                                    %>
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <div class="difficulty-dot <%= i <= level ? 'dot-filled' : 'dot-empty' %>"></div>
+                                    <% } %>
+                                    <span class="difficulty-text"><%= exercise.difficulty %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="popularity-bar">
+                                    <% 
+                                        const maxUsage = 10000;
+                                        const percentage = Math.min((exercise.usageCount / maxUsage) * 100, 100);
+                                        let popularityClass = 'low-popularity';
+                                        if (exercise.usageCount > 5000) popularityClass = 'high-popularity';
+                                        else if (exercise.usageCount > 2000) popularityClass = 'medium-popularity';
+                                    %>
+                                    <div class="popularity-fill <%= popularityClass %>" style="width: <%= percentage %>%"></div>
+                                </div>
+                                <span><%= exercise.usageCount.toLocaleString() %> uses</span>
+                            </td>
+                            <td>
+                                <span class="status <%= exercise.verified ? 'active' : 'pending' %>">
+                                    <%= exercise.verified ? 'Verified' : 'Unverified' %>
+                                </span>
+                            </td>
+                            <td>
+                                <button class="action-btn view-details">View</button>
+                                <button class="action-btn edit-exercise" data-id="<%= exercise._id %>">Edit</button>
+                            </td>
+                        </tr>
+                        <!-- Detail row remains the same -->
+                        <tr class="detail-row" id="details-<%= exercise._id %>">
+                            <td colspan="7">
+                                <div class="detail-content">
+                                    <% if (exercise.image) { %>
+                                        <div class="exercise-detail-image">
+                                            <img src="<%= exercise.image %>" alt="<%= exercise.name %>">
+                                        </div>
+                                    <% } %>
+                                    <div class="exercise-details">
+                                        <h4><%= exercise.name %></h4>
+                                        <p><strong>Category:</strong> <%= exercise.category %></p>
+                                        <p><strong>Equipment:</strong> <%= exercise.equipment && exercise.equipment.length > 0 ? exercise.equipment.join(', ') : 'None' %></p>
+                                        <p><strong>Type:</strong> <%= exercise.type %></p>
+                                        <p><strong>Default Sets:</strong> <%= exercise.defaultSets %></p>
+                                        <p><strong>Default Reps/Duration:</strong> <%= exercise.defaultRepsOrDuration %></p>
+                                        <p><strong>Primary Muscle:</strong> <%= exercise.primaryMuscle || 'Not specified' %></p>
+                                        <p><strong>All Target Muscles:</strong> <%= exercise.targetMuscles ? exercise.targetMuscles.join(', ') : 'Not specified' %></p>
+                                        <p><strong>Movement Pattern:</strong> <%= exercise.movementPattern || 'N/A' %></p>
+                                        <p><strong>Instructions:</strong> <%= exercise.instructions %></p>
+                                        <p><strong>Average Rating:</strong> <%= exercise.averageRating.toFixed(1) %>/5 (<%= exercise.totalRatings %> ratings)</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            No exercises found in the database.
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination">
+        <button class="page-btn active">1</button>
+    </div>
+</div>
+
+  <!-- Add Exercise Modal -->
+<div class="form-modal" id="exerciseFormModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Exercise</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="exerciseForm">
+            <div class="form-group">
+                <label for="exerciseName">Exercise Name*</label>
+                <input type="text" id="exerciseName" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseCategory">Category*</label>
+                <select id="exerciseCategory" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Calisthenics">Calisthenics</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                    <option value="HIIT">HIIT</option>
+                    <option value="Competitive">Competitive</option>
+                    <option value="Strength Training">Strength Training</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Flexibility">Flexibility</option>
+                    <option value="Bodybuilding">Bodybuilding</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="primaryMuscle">Primary Muscle*</label>
+                <select id="primaryMuscle" name="primaryMuscle" required>
+                    <option value="">Select Primary Muscle</option>
+                    <option value="Chest">Chest</option>
+                    <option value="Back">Back</option>
+                    <option value="Quadriceps">Quadriceps</option>
+                    <option value="Triceps">Triceps</option>
+                    <option value="Shoulders">Shoulders</option>
+                    <option value="Core">Core</option>
+                    <option value="Full Body">Full Body</option>
+                    <option value="Obliques">Obliques</option>
+                    <option value="Lower Abs">Lower Abs</option>
+                    <option value="Calves">Calves</option>
+                    <option value="Rear Shoulders">Rear Shoulders</option>
+                    <option value="Brachialis">Brachialis</option>
+                    <option value="Biceps">Biceps</option>
+                    <option value="Arms">Arms</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Legs">Legs</option>
+                    <option value="Cardiovascular">Cardiovascular</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseDifficulty">Difficulty*</label>
+                <select id="exerciseDifficulty" name="difficulty" required>
+                    <option value="">Select Difficulty</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseMuscles">Target Muscles*</label>
+                <input type="text" id="exerciseMuscles" name="targetMuscles" required placeholder="e.g., Chest, Shoulders, Triceps (comma separated)">
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseType">Exercise Type*</label>
+                <select id="exerciseType" name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="Reps">Reps-based</option>
+                    <option value="Time">Time-based</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="defaultSets">Default Sets</label>
+                <input type="number" id="defaultSets" name="defaultSets" value="3" min="1" max="10">
+            </div>
+            
+            <div class="form-group">
+                <label for="defaultRepsOrDuration">Default Reps/Duration*</label>
+                <input type="text" id="defaultRepsOrDuration" name="defaultRepsOrDuration" required placeholder="e.g., 10 reps or 30 seconds">
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseEquipment">Equipment</label>
+                <input type="text" id="exerciseEquipment" name="equipment" placeholder="e.g., Dumbbells, Barbell, None (comma separated)">
+            </div>
+            
+            <div class="form-group">
+                <label for="movementPattern">Movement Pattern</label>
+                <input type="text" id="movementPattern" name="movementPattern" placeholder="e.g., Push, Pull, Squat, Hinge">
+            </div>
+            
+            <div class="form-group">
+                <label for="secondaryMuscles">Secondary Muscles</label>
+                <input type="text" id="secondaryMuscles" name="secondaryMuscles" placeholder="e.g., Shoulders, Core (comma separated)">
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseInstructions">Instructions*</label>
+                <textarea id="exerciseInstructions" name="instructions" required placeholder="Step-by-step instructions for performing the exercise correctly" rows="4"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="exerciseImage">Image URL</label>
+                <input type="text" id="exerciseImage" name="image" placeholder="URL to an image demonstrating the exercise">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="cancel-btn">Cancel</button>
+                <button type="submit" class="submit-btn">Add Exercise</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Setup interactive elements
+    setupResponsiveFeatures();
+    setupTabNavigation();
+    setupSearchFunctionality();
+    setupDetailsToggle();
+    setupModalFunctionality();
+    initializeCharts();
+});
+
+function setupResponsiveFeatures() {
+    // Navigation buttons
+    const navItems = document.querySelectorAll('.nav-link');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            // Prevent default only for the current page to avoid redundant navigation
+            if (href === '/admin_exercises') {
+                e.preventDefault();
+                navItems.forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+            }
+            // Allow navigation for all other hrefs
+        });
+    });
+
+    // Action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.add('clicked');
+            setTimeout(() => {
+                this.classList.remove('clicked');
+            }, 200);
+
+            // Handle actions for specific buttons
+            if (!this.classList.contains('view-details')) {
+                if (this.textContent.trim() === 'Edit') {
+                    alert('Edit exercise form would appear here');
+                }
+            }
+        });
+    });
+
+    // Filter button
+    const filterBtn = document.getElementById('filterBtn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function() {
+            alert('Filter options would appear here');
+        });
+    }
+
+    // Pagination buttons
+    const pageButtons = document.querySelectorAll('.page-btn');
+    pageButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            pageButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Add New Exercise button
+    const addExerciseBtn = document.getElementById('addExerciseBtn');
+    if (addExerciseBtn) {
+        addExerciseBtn.addEventListener('click', function() {
+            document.getElementById('exerciseFormModal').style.display = 'flex';
+        });
+    }
+}
+function setupTabNavigation() {
+    const tabs = document.querySelectorAll('.tab');
+    const exerciseRows = document.querySelectorAll('#exerciseTableBody tr:not(.detail-row)');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const tabType = this.getAttribute('data-tab');
+            
+            // Filter exercises based on tab - ONLY BY PRIMARY MUSCLE
+            exerciseRows.forEach(row => {
+                // Close any open details
+                const rowId = row.getAttribute('data-exercise-id');
+                if (rowId) {
+                    const detailRow = document.getElementById('details-' + rowId);
+                    if (detailRow) {
+                        detailRow.style.display = 'none';
+                    }
+                }
+
+                const primaryMuscleElement = row.querySelector('.muscle-tag.primary');
+                const trendingBadge = row.querySelector('.trending-badge');
+                const statusCell = row.querySelector('.status');
+                
+                // Get the primary muscle text
+                const primaryMuscle = primaryMuscleElement ? primaryMuscleElement.textContent.trim().toLowerCase() : '';
+                
+                switch(tabType) {
+                    case 'all':
+                        row.style.display = '';
+                        break;
+                    case 'unverified':
+                        if (statusCell && statusCell.classList.contains('pending')) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                        break;
+                    case 'trending':
+                        if (trendingBadge) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                        break;
+                    default:
+                        // Muscle group filtering - ONLY match exact primary muscle
+                        const muscleName = tabType.replace(/-/g, ' ');
+                        if (primaryMuscle === muscleName) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                        break;
+                }
+            });
+        });
+    });
+}
+
+function setupSearchFunctionality() {
+    const searchInput = document.getElementById('exerciseSearchInput');
+    const exerciseRows = document.querySelectorAll('#exerciseTableBody tr:not(.detail-row)');
+    
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            console.log('Searching for:', searchTerm); // Debug log
+            
+            let visibleCount = 0;
+            
+            exerciseRows.forEach(row => {
+                // Close any open details
+                const rowId = row.getAttribute('data-exercise-id');
+                if (rowId) {
+                    const detailRow = document.getElementById('details-' + rowId);
+                    if (detailRow) {
+                        detailRow.style.display = 'none';
+                    }
+                }
+
+                // Get exercise data
+                const exerciseNameElement = row.querySelector('.exercise-info div:nth-child(2)');
+                const primaryMuscleElement = row.querySelector('.muscle-tag.primary');
+                const difficultyElement = row.querySelector('.difficulty-text');
+                
+                const exerciseName = exerciseNameElement ? exerciseNameElement.textContent.toLowerCase() : '';
+                const primaryMuscle = primaryMuscleElement ? primaryMuscleElement.textContent.toLowerCase() : '';
+                const difficulty = difficultyElement ? difficultyElement.textContent.toLowerCase() : '';
+                
+                // Check if any field matches the search term
+                const matchesSearch = searchTerm === '' || 
+                    exerciseName.includes(searchTerm) || 
+                    primaryMuscle.includes(searchTerm) ||
+                    difficulty.includes(searchTerm);
+                
+                if (matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            console.log('Found', visibleCount, 'matching exercises'); // Debug log
+            
+            // Show message if no results found
+            const noResultsRow = document.querySelector('#exerciseTableBody tr:last-child');
+            if (noResultsRow && !noResultsRow.getAttribute('data-exercise-id')) {
+                if (searchTerm !== '' && visibleCount === 0) {
+                    noResultsRow.style.display = '';
+                    noResultsRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 40px; color: #ff6b6b;">No exercises found matching "${searchTerm}"</td>`;
+                } else if (searchTerm === '') {
+                    noResultsRow.style.display = 'none';
+                }
+            }
+        });
+        
+        // Add focus styling for better UX
+        searchInput.addEventListener('focus', function() {
+            this.style.borderColor = '#8A2BE2';
+            this.style.outline = 'none';
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.style.borderColor = '#444';
+        });
+    }
+}
+
+function setupDetailsToggle() {
+    const viewDetailsButtons = document.querySelectorAll('.view-details');
+    
+    viewDetailsButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const exerciseId = row.getAttribute('data-exercise-id');
+            const detailRow = document.getElementById('details-' + exerciseId);
+            
+            // Close all other detail rows
+            document.querySelectorAll('.detail-row').forEach(row => {
+                if (row !== detailRow) {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Toggle the clicked detail row
+            if (detailRow) {
+                detailRow.style.display = detailRow.style.display === 'none' ? 'table-row' : 'none';
+            }
+        });
+    });
+}
+
+function setupModalFunctionality() {
+    const modal = document.getElementById('exerciseFormModal');
+    const closeBtn = document.querySelector('.close-modal');
+    const cancelBtn = document.querySelector('.cancel-btn');
+    const form = document.getElementById('exerciseForm');
+    
+    // Close the modal
+    function closeModal() {
+        modal.style.display = 'none';
+        form.reset();
+    }
+    
+    // Close on X button click
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close on Cancel button click
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close on click outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Form submission - UPDATED TO WORK WITH BACKEND
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // Validate required fields
+            if (!data.name || !data.category || !data.primaryMuscle || !data.difficulty || 
+                !data.targetMuscles || !data.type || !data.defaultRepsOrDuration || !data.instructions) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            // Convert strings to arrays
+            if (data.targetMuscles) {
+                data.targetMuscles = data.targetMuscles.split(',').map(muscle => muscle.trim()).filter(muscle => muscle !== '');
+            }
+            
+            if (data.equipment && data.equipment.trim() !== '') {
+                data.equipment = data.equipment.split(',').map(item => item.trim()).filter(item => item !== '');
+            } else {
+                data.equipment = [];
+            }
+            
+            if (data.secondaryMuscles && data.secondaryMuscles.trim() !== '') {
+                data.secondaryMuscles = data.secondaryMuscles.split(',').map(muscle => muscle.trim()).filter(muscle => muscle !== '');
+            } else {
+                data.secondaryMuscles = [];
+            }
+            
+            // Set default values
+            data.defaultSets = data.defaultSets || 3;
+            data.verified = false;
+            data.usageCount = 0;
+            data.averageRating = 0;
+            data.totalRatings = 0;
+            
+            // Remove empty fields
+            Object.keys(data).forEach(key => {
+                if (data[key] === '' || data[key] === null || data[key] === undefined) {
+                    delete data[key];
+                }
+            });
+            
+            try {
+                console.log('Sending data:', data); // For debugging
+                
+                const response = await fetch('/admin/exercises', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Exercise added successfully!');
+                    closeModal();
+                    // Reload the page to show the new exercise
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error adding exercise:', error);
+                alert('Error adding exercise. Please check console for details and try again.');
+            }
+        });
+    }
+}
+
+function initializeCharts() {
+    // Popular Exercises Chart
+    const popularCtx = document.getElementById('popularExercisesChart');
+    if (popularCtx) {
+        new Chart(popularCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Squats', 'Push-ups', 'Treadmill Running', 'Kettlebell Swings', 'Downward Dog'],
+                datasets: [{
+                    label: 'Usage Count',
+                    data: [8245, 7890, 7125, 6580, 6125],
+                    backgroundColor: [
+                        '#FF6B6B',
+                        '#FF6B6B',
+                        '#FF6B6B',
+                        '#FFC107',
+                        '#FFC107'
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#1e1e1e'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#f1f1f1'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#f1f1f1'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Category Distribution Chart
+    const categoryCtx = document.getElementById('categoryDistributionChart');
+    if (categoryCtx) {
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Strength', 'Cardio', 'Flexibility', 'Balance', 'Yoga'],
+                datasets: [{
+                    data: [45, 25, 15, 10, 5],
+                    backgroundColor: [
+                        '#8A2BE2',
+                        '#9370DB',
+                        '#BA55D3',
+                        '#DA70D6',
+                        '#EE82EE'
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#1e1e1e'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#f1f1f1',
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Exercise Trend Chart
+    const trendCtx = document.getElementById('exerciseTrendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Kettlebell Swings',
+                        data: [3200, 3400, 4100, 4800, 5700, 6580],
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Push-ups',
+                        data: [6500, 6700, 7000, 7200, 7500, 7890],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Squats',
+                        data: [7200, 7400, 7600, 7800, 8000, 8245],
+                        borderColor: '#8A2BE2',
+                        backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#f1f1f1'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#f1f1f1'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#f1f1f1',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+    </script>
+</body>
+</html>

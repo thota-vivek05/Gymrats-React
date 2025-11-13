@@ -1,0 +1,893 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background-color: #000;
+    font-size: 14px;
+    color: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Navbar - Styled to match home.html */
+.main-navbar {
+    margin: 0;
+    background-color: #000;
+    border-bottom: 1px solid #333;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header a {
+    text-decoration: none;
+    color: #f1f1f1;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+div .nav-menu {
+    display: flex;
+    gap: 2rem;
+}
+
+div .nav-menu a {
+    cursor: pointer;
+}
+
+.brand-logo {
+    color: #f1f1f1;
+    font-weight: bold;
+    transition: 0.3s all ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.1);
+}
+
+.brand-name {
+    font-size: 1.5rem;
+}
+
+.main-navbar .nav-menu a {
+    position: relative;
+    transition: 0.1s all ease;
+}
+
+.main-navbar .nav-menu a:hover {
+    color: #8A2BE2;
+}
+
+.right-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 5px 15px;
+}
+
+.search-container img {
+    margin-right: 8px;
+}
+
+input {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    padding: 5px;
+    width: 100%;
+    color: #f1f1f1;
+}
+
+input:focus {
+    outline: none;
+}
+
+.login-button a {
+    background-color: #8A2BE2;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: 0.3s all ease;
+}
+
+.login-button a:hover {
+    background-color: #7020a0;
+}
+
+.mobile-menu-icon {
+    display: none;
+    cursor: pointer;
+}
+
+/* Mobile sidebar */
+.mobile-sidebar {
+    width: 0;
+    height: 100%;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.mobile-sidebar a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #f1f1f1;
+    display: block;
+    transition: 0.3s;
+}
+
+.mobile-sidebar a:hover {
+    color: #8A2BE2;
+}
+
+.mobile-sidebar .close-button {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+    background-color: #1e1e3a;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 30px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 1200px;
+    width: 90%;
+}
+
+.welcome-banner h1 {
+    margin-bottom: 10px;
+    color: #f1f1f1;
+    font-size: 2.5rem;
+}
+
+.welcome-banner p {
+    font-size: 1.2rem;
+    color: #cccccc;
+}
+
+/* Main content container */
+.main-content {
+    display: flex;
+    margin: 30px auto;
+    gap: 30px;
+    flex: 1;
+    max-width: 1200px;
+    width: 90%;
+}
+
+/* Client List - Extended to full height */
+.client-list-container {
+    flex: 0 0 300px;
+    display: flex;
+    flex-direction: column;
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+}
+
+.client-list-container h2 {
+    margin-bottom: 15px;
+    color: #f1f1f1;
+    font-size: 1.5rem;
+}
+
+.client-list {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.client-item {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.client-item:hover {
+    background-color: rgba(138, 43, 226, 0.2);
+    border: 1px solid #8A2BE2;
+}
+
+.client-item.active {
+    background-color: rgba(138, 43, 226, 0.3);
+    border: 1px solid #8A2BE2;
+}
+
+.client-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.client-stats {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #cccccc;
+}
+
+/* Client Details Container */
+.client-details-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Top row with client profile and workout plan */
+.top-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Added for responsiveness */
+}
+
+.top-row > div {
+    flex: 1;
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+}
+
+/* Bottom section with stacked current stats and nutrition plan */
+.current-stats, .nutrition-plan {
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+}
+
+.client-details-container h2 {
+    color: #f1f1f1;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #8A2BE2;
+    padding-bottom: 10px;
+}
+
+.client-details-container h3 {
+    color: #f1f1f1;
+    margin: 15px 0 10px 0;
+    font-size: 1.2rem;
+}
+
+/* Client Profile */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Updated for responsiveness */
+    grid-gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    margin-bottom:5px ;
+}
+
+.stat-label {
+    font-weight: bold;
+}
+
+/* Workout Plan */
+.exercises-list {
+    margin-top: 15px;
+}
+
+.exercise-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #333;
+}
+
+.exercise-item:last-child {
+    border-bottom: none;
+}
+
+/* Current Stats - Updated with chart container */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Updated for responsiveness */
+    grid-gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    background-color: #1e1e3a;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-box h3 {
+    margin-bottom: 10px;
+    border-bottom: none;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #8A2BE2;
+}
+
+.chart-container {
+    margin-top: 15px;
+    height: 200px;
+    position: relative;
+    width: 100%;
+    background-color: #1e1e3a;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Nutrition Plan */
+.nutrition-goal {
+    margin-bottom: 15px;
+}
+
+.foods-to-take p { /* Updated to match structure in trainer.ejs */
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #333;
+}
+
+.foods-to-take p:last-child {
+    border-bottom: none;
+}
+
+/* Enhanced Membership badges */
+.membership-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75em;
+    font-weight: 700;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.membership-basic {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    border-color: #495057;
+}
+
+.membership-gold {
+    background: linear-gradient(135deg, #ffd700, #daa520);
+    color: #333;
+    border-color: #daa520;
+}
+
+.membership-platinum {
+    background: linear-gradient(135deg, #e5e4e2, #c0c0c0);
+    color: #333;
+    border-color: #c0c0c0;
+}
+
+/* Make sure badges are visible in both pages */
+.client-name .membership-badge,
+.user-name .membership-badge {
+    font-size: 0.7em;
+    padding: 3px 8px;
+}
+
+
+
+.goals-reached {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: rgba(46, 139, 87, 0.2);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.pie-chart-container {
+    height: 150px;
+    width: 100%;
+    position: relative;
+}
+
+/* Buttons - Updated to match home.css */
+.btn {
+    display: inline-block;
+    background-color: #8A2BE2;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid #8A2BE2;
+    margin-top: 15px;
+}
+
+.btn:hover {
+    background-color: transparent;
+    color: #8A2BE2;
+}
+
+.btn.disabled {
+    background-color: #333; /* Adjusted to match theme */
+    border-color: #333;
+    color: #666;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.meet-button {
+    width: 100%;
+}
+
+/* Footer - Styled to match home.html */
+.site-footer {
+    background-color: #0A0A0A;
+    color: #ffffff;
+    padding: 60px 0 40px;
+    margin-top: auto;
+    border-top: 1px solid #222;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-column {
+    flex: 1;
+    min-width: 200px;
+    margin: 0 15px 30px;
+}
+
+.footer-column h3 {
+    margin-bottom: 20px;
+    color: #f1f1f1;
+    font-size: 1.2rem;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.footer-column h3:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 2px;
+    background-color: #8A2BE2;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 12px;
+}
+
+.footer-column ul li a {
+    color: #cccccc;
+    text-decoration: none;
+    transition: 0.2s all ease;
+}
+
+.footer-column ul li a:hover {
+    color: #8A2BE2;
+    padding-left: 5px;
+}
+
+.social-icons {
+    display: flex;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: 0.3s all ease;
+}
+
+.social-icons a:hover {
+    background-color: #8A2BE2;
+    transform: translateY(-3px);
+}
+
+/* Weekly Workout Schedule Styling */
+.workout-plan {
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+    color: #f1f1f1;
+}
+
+.workout-plan h2 {
+    font-size: 1.5rem;
+    color: #f1f1f1;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid #8A2BE2;
+    padding-bottom: 10px;
+}
+
+.day-schedule h3 {
+    color: #f1f1f1;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: 500;
+    border-left: 4px solid #8A2BE2;
+    padding-left: 10px;
+}
+
+.weekly-schedule {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.column-left, .column-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.day-schedule {
+    margin-bottom: 15px;
+}
+
+
+.exercises-list {
+    margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.exercise-item {
+    background-color: #f1f1f1;
+    padding: 8px;
+    border-radius: 5px;
+    color: #f1f1f1;
+    border: 1px solid #333;
+    transition: background-color 0.3s ease;
+}
+
+.exercise-item:hover {
+    background-color: #2a2a4d;
+}
+
+
+.exercise-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.exercise-details {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .weekly-schedule {
+        grid-template-columns: 1fr;
+    }
+
+    .day-schedule h3 {
+        font-size: 16px;
+    }
+
+    .exercise-item {
+        padding: 6px;
+    }
+
+    .exercise-details {
+        font-size: 12px;
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .top-row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 1rem;
+    }
+
+    .mobile-menu-icon {
+        display: block;
+    }
+
+    .nav-menu, .right-container {
+        display: none;
+    }
+
+    .main-content {
+        flex-direction: column;
+    }
+
+    .client-list-container {
+        flex: none;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .top-row > div {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-banner h1 {
+        font-size: 2rem;
+    }
+    
+    .welcome-banner p {
+        font-size: 1rem;
+    }
+}
+
+/* Exercise Ratings Styles - Updated to match dark theme */
+.exercise-ratings {
+    background-color: #111;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
+    color: #f1f1f1;
+}
+
+.exercise-ratings h2 {
+    color: #f1f1f1;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #8A2BE2;
+    padding-bottom: 10px;
+}
+
+.ratings-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 12px;
+}
+
+.ratings-header p {
+    color: #cccccc;
+    font-size: 14px;
+    margin: 0;
+}
+
+.ratings-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* SPECIFIC to ratings items only */
+.rating-item {
+    background-color: #1e1e3a;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #8A2BE2;
+    transition: transform 0.2s ease;
+    color: #f1f1f1;
+}
+
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+/* SPECIFIC to ratings exercise names */
+.rating-exercise-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #f1f1f1;
+    margin: 0;
+}
+
+.rating-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.star {
+    color: #ffc107;
+    font-size: 16px;
+}
+
+.rating-value {
+    font-weight: 600;
+    color: #8A2BE2;
+    margin-left: 8px;
+}
+
+.rating-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.rating-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.rating-badge {
+    background: rgba(138, 43, 226, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: #f1f1f1;
+    border: 1px solid #8A2BE2;
+}
+
+.effectiveness-badge {
+    background: rgba(46, 139, 87, 0.2);
+    color: #90ee90;
+    border-color: #2e8b57;
+}
+
+.workout-type-badge {
+    background: rgba(32, 178, 170, 0.2);
+    color: #20b2aa;
+    border-color: #20b2aa;
+}
+
+.target-muscles {
+    margin-top: 8px;
+}
+
+.muscles-label {
+    font-size: 12px;
+    color: #cccccc;
+    margin-bottom: 4px;
+}
+
+.muscles-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.muscle-tag {
+    background: #8A2BE2;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.rating-notes {
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border-left: 2px solid #8A2BE2;
+}
+
+.notes-label {
+    font-size: 12px;
+    color: #cccccc;
+    margin-bottom: 4px;
+}
+
+.notes-content {
+    font-size: 13px;
+    color: #f1f1f1;
+    line-height: 1.4;
+}
+
+.no-ratings {
+    text-align: center;
+    padding: 40px 20px;
+    color: #cccccc;
+}
+
+.no-ratings p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.loading-ratings {
+    text-align: center;
+    padding: 20px;
+    color: #cccccc;
+}
+
+/* Scrollbar styling for ratings container - updated for dark theme */
+.ratings-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ratings-container::-webkit-scrollbar-track {
+    background: #1e1e3a;
+    border-radius: 3px;
+}
+
+.ratings-container::-webkit-scrollbar-thumb {
+    background: #8A2BE2;
+    border-radius: 3px;
+}
+
+.ratings-container::-webkit-scrollbar-thumb:hover {
+    background: #7020a0;
+}

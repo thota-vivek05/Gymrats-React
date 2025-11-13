@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymRats - Exercise Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/userexercises/userexercises.css">
+    <style>
+        /* Rating Stars Styles */
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+            margin: 10px 0;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #ddd;
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #ffc107;
+        }
+
+        .star:hover {
+            color: #ffc107;
+        }
+
+        .user-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .rating-badge {
+            background: #8A2BE2;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Recommendations Section */
+        .recommendations-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .recommendation-reason {
+            color: #8A2BE2;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        /* Exercise Card Enhancements */
+        .exercise-card {
+            position: relative;
+        }
+
+        .exercise-rating {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .exercise-category {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(138, 43, 226, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8A2BE2;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8A2BE2;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Workout Type Filter */
+        .workout-type-filter {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #8A2BE2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="main-navbar">
+        <header>
+            <!-- Header Branding -->
+            <div class="brand-logo">
+                <a href="<%= user && user.membershipType ? '/userdashboard_' + user.membershipType.charAt(0).toLowerCase() : '/dashboard' %>" class="brand-name">GymRats</a>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="<%= user && user.membershipType ? '/userdashboard_' + user.membershipType.charAt(0).toLowerCase() : '/dashboard' %>">Home</a>
+                <a href="/user_exercises" class="active">Exercises</a>
+                <a href="/user_nutrition">Nutrition</a>
+            </div>
+            
+            <div class="right-container">
+                <div class="search-container">
+                    <img src="/userdashboard/icons8-search.svg" height="18px" alt="Search Icon" />
+                    <input type="text" id="header-search" placeholder="Search exercises..." size="20" style="font-size: 14px;" />
+                </div>
+                
+                <div class="user-profile">
+                    <a href="/userprofile">
+                        <% if (user && user.name) { %>
+                            <span><%= user.name %></span>
+                        <% } else if (user && user.full_name) { %>
+                            <span><%= user.full_name %></span>
+                        <% } else { %>
+                            <span>User</span>
+                        <% } %>
+                    </a>
+                </div>
+            </div>
+            <div class="mobile-menu-icon" id="menuIcon">
+                <img src="/userdashboard/menu.jpg" alt="Menu" height="25px" />
+            </div>
+            <div class="mobile-sidebar" id="sideNavbar">
+                <a href="javascript:void(0)" class="close-button" id="closeBtn">&times;</a>
+                <a href="<%= user && user.membershipType ? '/userdashboard_' + user.membershipType.charAt(0).toLowerCase() : '/dashboard' %>">Home</a>
+                <a href="/user_exercises" class="active">Exercises</a>
+                <a href="/user_nutrition">Nutrition</a>
+                <div class="sidebar-profile">
+                    <a href="/userprofile">
+                        <% if (user && user.name) { %>
+                            <span><%= user.name %></span>
+                        <% } else if (user && user.full_name) { %>
+                            <span><%= user.full_name %></span>
+                        <% } else { %>
+                            <span>User</span>
+                        <% } %>
+                    </a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <h1>Complete Exercise Guide</h1>
+        <p>Discover detailed instructions, illustrations, and videos for exercises targeting every muscle group.</p>
+        <% if (user && user.workout_type) { %>
+            <div class="workout-type-filter">
+                <span class="filter-label">Your Workout Type:</span>
+                <span class="workout-type-badge"><%= user.workout_type %></span>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Category List -->
+        <!-- Replace the current category list with this -->
+<div class="category-list-container">
+    <h2>Muscle Groups</h2>
+    <div class="category-list" id="category-list">
+        <div class="category-item active" data-category="all">All Exercises</div>
+        <div class="category-item" data-category="Chest">Chest</div>
+        <div class="category-item" data-category="Back">Back</div>
+        <div class="category-item" data-category="Legs">Legs</div>
+        <div class="category-item" data-category="Shoulders">Shoulders</div>
+        <div class="category-item" data-category="Arms">Arms</div>
+        <div class="category-item" data-category="Core">Core</div>
+        <div class="category-item" data-category="Full Body">Full Body</div>
+        <div class="category-item" data-category="Cardio">Cardio</div>
+    </div>
+</div>
+
+        <!-- Exercise List Container -->
+        <div class="exercise-list-container">
+            <div id="exercise-overview">
+                <div class="exercise-header">
+                    <h2 id="exercises-title">All Exercises</h2>
+                    <div class="search-container">
+                        <input type="text" id="exercise-search" placeholder="Search exercises..." />
+                    </div>
+                </div>
+
+                <!-- Recommended Exercises -->
+                <div class="recommendations-section" id="recommendations-section" style="display: none;">
+                    <h3>Recommended For You</h3>
+                    <p class="recommendation-reason" id="recommendation-reason"></p>
+                    <div class="recommendations-grid" id="recommendations-grid">
+                        <!-- Recommended exercises will be populated here -->
+                    </div>
+                </div>
+
+                <!-- All Exercises -->
+                <div class="exercise-list" id="exercise-list">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Loading exercises...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercise Detail View -->
+            <div id="exercise-detail" class="exercise-detail" style="display: none;">
+                <div class="exercise-header">
+                    <h2 id="exercise-title">Exercise Title</h2>
+                    <button class="back-button" id="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to Exercises
+                    </button>
+                </div>
+                <div class="exercise-info">
+                    <div class="exercise-images">
+                        <div class="exercise-image" id="exercise-image"></div>
+                    </div>
+                    <div class="exercise-description">
+                        <div class="exercise-meta">
+                            <span class="category-badge" id="exercise-category"></span>
+                            <span class="difficulty-badge" id="exercise-difficulty"></span>
+                        </div>
+
+                        <h3>Description</h3>
+                        <p id="exercise-description">Exercise description goes here.</p>
+
+                        <!-- Rating Section -->
+                        <div class="rating-section">
+                            <h3>Your Rating</h3>
+                            <div class="rating-stars" id="rating-stars">
+                                <span class="star" data-rating="1">★</span>
+                                <span class="star" data-rating="2">★</span>
+                                <span class="star" data-rating="3">★</span>
+                                <span class="star" data-rating="4">★</span>
+                                <span class="star" data-rating="5">★</span>
+                            </div>
+                            <div class="user-rating" id="user-rating-display" style="display: none;">
+                                <span>Your rating:</span>
+                                <span class="rating-badge" id="user-rating-value"></span>
+                                <button class="edit-rating" id="edit-rating">Edit</button>
+                            </div>
+                        </div>
+
+                        <div id="exercise-muscles">
+                            <h3>Muscles Worked</h3>
+                            <div id="muscles-list">
+                                <!-- Muscle tags will be inserted here -->
+                            </div>
+                        </div>
+
+                        <div class="exercise-steps">
+                            <h3>How to Perform</h3>
+                            <ol id="exercise-steps">
+                                <!-- Exercise steps will be inserted here -->
+                            </ol>
+                        </div>
+
+                        <div class="exercise-equipment">
+                            <h3>Equipment Needed</h3>
+                            <div id="equipment-list">
+                                <!-- Equipment tags will be inserted here -->
+                            </div>
+                        </div>
+
+                        <div class="mind-muscle">
+                            <h3>Mind-Muscle Connection</h3>
+                            <p id="mind-muscle-tip">Mind-muscle connection tip goes here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Similar Exercises -->
+                <div class="similar-exercises" id="similar-exercises" style="display: none;">
+                    <h3>Similar Exercises</h3>
+                    <div class="similar-exercises-grid" id="similar-exercises-grid">
+                        <!-- Similar exercises will be populated here -->
+                    </div>
+                </div>
+
+                <div class="video-container">
+                    <h3>Exercise Video Guide</h3>
+                    <div class="video-embed" id="video-embed">
+                        <!-- Video embed will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>GymRats</h3>
+                <ul>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/trainers">Our Trainers</a></li>
+                    <li><a href="/testimonial">Testimonials</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="/isolation">Exercise Guide</a></li>
+                    <li><a href="/nutrition">Nutrition Tips</a></li>
+                    <li><a href="/workout_plans">Workout Plans</a></li>
+                    <li><a href="/calculators">Calculators</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Support</h3>
+                <ul>
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/about">About us</a></li>
+                    <li><a href="/terms">Terms of Service</a></li>
+                    <li><a href="/privacy_policy">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Connect With Us</h3>
+                <ul>
+                    <li><a href="/trainer_form">Become a Trainer</a></li>
+                </ul>
+                <ul>
+                    <li><a href="/contact">Contact Us</a></li>
+                </ul>
+                <p class="copyright">GymRats © 2025. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const categoryList = document.getElementById('category-list');
+        const exerciseList = document.getElementById('exercise-list');
+        const exerciseOverview = document.getElementById('exercise-overview');
+        const exerciseDetail = document.getElementById('exercise-detail');
+        const backButton = document.getElementById('back-button');
+        const exerciseSearch = document.getElementById('exercise-search');
+        const headerSearch = document.getElementById('header-search');
+        const loadingElement = document.getElementById('loading');
+        const recommendationsSection = document.getElementById('recommendations-section');
+        const recommendationsGrid = document.getElementById('recommendations-grid');
+        const recommendationReason = document.getElementById('recommendation-reason');
+        const exercisesTitle = document.getElementById('exercises-title');
+
+        // State
+        let currentExercises = [];
+        let currentCategory = 'all';
+        let currentExerciseId = null;
+        let userWorkoutType = 'All';
+
+        // Initialize the application
+        async function init() {
+            setupEventListeners();
+            await loadExercises();
+            await loadRecommendations();
+            hideLoading();
+        }
+
+        // Load exercises from API
+        async function loadExercises(category = 'all') {
+    console.log('=== LOAD EXERCISES START ===');
+    showLoading();
+    try {
+        console.log('Making API request to /api/exercises...');
+        const response = await fetch('/api/exercises');
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        const data = await response.json();
+        console.log('API Response data:', data);
+        console.log('Data success:', data.success);
+        console.log('Exercises count:', data.exercises ? data.exercises.length : 'no exercises');
+        
+        if (data.success) {
+    console.log('SUCCESS: Rendering exercises');
+    currentExercises = data.exercises;
+    userWorkoutType = data.userWorkoutType; // ADD THIS LINE
+    renderExercises(category);
+    updateExercisesTitle(category, data.userWorkoutType);
+} else {
+            console.log('ERROR: Data.success is false');
+            showError('Failed to load exercises');
+        }
+    } catch (error) {
+        console.error('CATCH ERROR loading exercises:', error);
+        showError('Error loading exercises. Please try again.');
+    } finally {
+        console.log('=== LOAD EXERCISES END ===');
+    }
+}
+
+        // Load recommended exercises
+        async function loadRecommendations() {
+            try {
+                const response = await fetch('/api/exercises/recommended');
+                const data = await response.json();
+                
+                if (data.success && data.exercises.length > 0) {
+                    renderRecommendations(data.exercises, data.reason, data.basedOn);
+                    recommendationsSection.style.display = 'block';
+                } else {
+                    recommendationsSection.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                recommendationsSection.style.display = 'none';
+            }
+        }
+
+        // Render exercises for a specific category
+        function renderExercises(muscleGroup = 'all') {
+    exerciseList.innerHTML = '';
+    
+    let filteredExercises = currentExercises;
+    
+    if (muscleGroup !== 'all') {
+        filteredExercises = currentExercises.filter(exercise => {
+            // Check primary muscle or target muscles array
+            return exercise.primaryMuscle === muscleGroup || 
+                   (exercise.targetMuscles && exercise.targetMuscles.includes(muscleGroup));
+        });
+    }
+    
+    // Sort by user's workout type preference first
+    if (userWorkoutType && userWorkoutType !== 'All') {
+        filteredExercises.sort((a, b) => {
+            const aMatch = a.category === userWorkoutType;
+            const bMatch = b.category === userWorkoutType;
+            return bMatch - aMatch; // User's workout type exercises first
+        });
+    }
+    
+    if (filteredExercises.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    filteredExercises.forEach(exercise => {
+        const exerciseCard = createExerciseCard(exercise);
+        exerciseList.appendChild(exerciseCard);
+    });
+}
+        // Create exercise card element
+       function createExerciseCard(exercise) {
+    const exerciseCard = document.createElement('div');
+    exerciseCard.className = 'exercise-card';
+    exerciseCard.dataset.id = exercise._id;
+    
+    const ratingHtml = exercise.userRating 
+        ? `<div class="exercise-rating"><i class="fas fa-star"></i> ${exercise.userRating}</div>`
+        : '';
+    
+    // Use instructions instead of description, and handle undefined case
+    const instructionsPreview = exercise.instructions 
+        ? exercise.instructions.substring(0, 80) + '...'
+        : 'No instructions available';
+
+    // Single image handling - remove the duplicate
+    const imageHtml = exercise.image 
+        ? `<div class="exercise-card-image" style="background-image: url('${exercise.image}')"></div>`
+        : `<div class="exercise-card-image no-image">No Image</div>`;
+    
+    exerciseCard.innerHTML = `
+        ${imageHtml}
+        <div class="exercise-category">${exercise.category}</div>
+        ${ratingHtml}
+        <h3>${exercise.name}</h3>
+        <p>${instructionsPreview}</p>
+        <div class="exercise-meta">
+            <span class="difficulty">${exercise.difficulty}</span>
+            <span class="type">${exercise.type}</span>
+        </div>
+    `;
+    
+    return exerciseCard;
+}
+
+        // Render recommended exercises
+        function renderRecommendations(exercises, reason, basedOn) {
+            recommendationsGrid.innerHTML = '';
+            
+            let reasonText = 'Based on ';
+            if (reason === 'popular') {
+                reasonText += 'popular exercises';
+            } else if (reason === 'similar_to_high_rated') {
+                reasonText += 'your high-rated exercises';
+                if (basedOn) {
+                    reasonText += ` in ${basedOn.categories.join(', ')}`;
+                }
+            }
+            
+            recommendationReason.textContent = reasonText;
+            
+            exercises.forEach(exercise => {
+                const exerciseCard = createExerciseCard(exercise);
+                recommendationsGrid.appendChild(exerciseCard);
+            });
+        }
+
+        // Show exercise details
+        async function showExerciseDetail(exerciseId) {
+            showLoading();
+            try {
+                const response = await fetch(`/api/exercises/${exerciseId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const exercise = data.exercise;
+                    currentExerciseId = exerciseId;
+                    
+                    // Populate exercise details
+                    document.getElementById('exercise-title').textContent = exercise.name;
+                    document.getElementById('exercise-image').style.backgroundImage = `url('${exercise.image}')`;
+                    document.getElementById('exercise-description').textContent = exercise.instructions;
+                    document.getElementById('exercise-category').textContent = exercise.category;
+                    document.getElementById('exercise-difficulty').textContent = exercise.difficulty;
+                    document.getElementById('mind-muscle-tip').textContent = 'Focus on proper form and muscle engagement throughout the movement.';
+                    
+                    // Populate muscles worked
+                    const musclesList = document.getElementById('muscles-list');
+                    musclesList.innerHTML = '';
+                    exercise.targetMuscles.forEach(muscle => {
+                        const muscleTag = document.createElement('span');
+                        muscleTag.className = 'muscle-tag';
+                        muscleTag.textContent = muscle;
+                        musclesList.appendChild(muscleTag);
+                    });
+                    
+                    // Populate equipment
+                    const equipmentList = document.getElementById('equipment-list');
+                    equipmentList.innerHTML = '';
+                    if (exercise.equipment && exercise.equipment.length > 0) {
+                        exercise.equipment.forEach(equipment => {
+                            const equipmentTag = document.createElement('span');
+                            equipmentTag.className = 'equipment-tag';
+                            equipmentTag.textContent = equipment;
+                            equipmentList.appendChild(equipmentTag);
+                        });
+                    } else {
+                        equipmentList.innerHTML = '<span class="no-equipment">No equipment needed</span>';
+                    }
+                    
+                    // Populate steps (simplified for now)
+                    const stepsContainer = document.getElementById('exercise-steps');
+                    stepsContainer.innerHTML = '<li>Follow the exercise description above for proper form and technique.</li>';
+                    
+                    // Setup rating stars
+                    setupRatingStars(exercise.userRating);
+                    
+                    // Show similar exercises if available
+                    if (data.similarExercises && data.similarExercises.length > 0) {
+                        renderSimilarExercises(data.similarExercises);
+                    }
+                    
+                    // Show the detail view
+                    exerciseOverview.style.display = 'none';
+                    exerciseDetail.style.display = 'block';
+                    hideLoading();
+                } else {
+                    showError('Exercise not found');
+                }
+            } catch (error) {
+                console.error('Error loading exercise details:', error);
+                showError('Error loading exercise details');
+            }
+        }
+
+        // Setup rating stars
+        function setupRatingStars(userRating) {
+            const stars = document.querySelectorAll('#rating-stars .star');
+            const userRatingDisplay = document.getElementById('user-rating-display');
+            const userRatingValue = document.getElementById('user-rating-value');
+            const editRatingBtn = document.getElementById('edit-rating');
+            
+            // Reset stars
+            stars.forEach(star => {
+                star.classList.remove('active');
+                star.style.display = 'inline-block';
+            });
+            
+            if (userRating) {
+                // Show user's current rating
+                stars.forEach(star => {
+                    if (parseInt(star.dataset.rating) <= userRating) {
+                        star.classList.add('active');
+                    }
+                });
+                userRatingValue.textContent = `${userRating}/5`;
+                userRatingDisplay.style.display = 'flex';
+            } else {
+                userRatingDisplay.style.display = 'none';
+            }
+            
+            // Add click listeners
+            stars.forEach(star => {
+                star.addEventListener('click', async () => {
+                    const rating = parseInt(star.dataset.rating);
+                    await rateExercise(currentExerciseId, rating);
+                });
+            });
+            
+            // Edit rating button
+            editRatingBtn.addEventListener('click', () => {
+                userRatingDisplay.style.display = 'none';
+                stars.forEach(star => {
+                    star.style.display = 'inline-block';
+                });
+            });
+        }
+
+        // Rate an exercise
+        async function rateExercise(exerciseId, rating) {
+            try {
+                const response = await fetch(`/api/exercises/${exerciseId}/rate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ rating })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update UI
+                    setupRatingStars(rating);
+                    
+                    // Reload recommendations
+                    await loadRecommendations();
+                    
+                    // Show success message
+                    showMessage('Exercise rated successfully!', 'success');
+                } else {
+                    showError(data.message || 'Failed to rate exercise');
+                }
+            } catch (error) {
+                console.error('Error rating exercise:', error);
+                showError('Error rating exercise');
+            }
+        }
+
+        // Render similar exercises
+        function renderSimilarExercises(exercises) {
+            const similarExercisesGrid = document.getElementById('similar-exercises-grid');
+            similarExercisesGrid.innerHTML = '';
+            
+            exercises.forEach(exercise => {
+                const exerciseCard = createExerciseCard(exercise);
+                similarExercisesGrid.appendChild(exerciseCard);
+            });
+            
+            document.getElementById('similar-exercises').style.display = 'block';
+        }
+
+        // Search functionality
+        async function searchExercises(query) {
+            if (!query || query.trim() === '') {
+                renderExercises(currentCategory);
+                return;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch(`/api/exercises/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    exerciseList.innerHTML = '';
+                    
+                    if (data.exercises.length === 0) {
+                        showEmptyState();
+                        return;
+                    }
+                    
+                    data.exercises.forEach(exercise => {
+                        const exerciseCard = createExerciseCard(exercise);
+                        exerciseList.appendChild(exerciseCard);
+                    });
+                } else {
+                    showError('Search failed');
+                }
+            } catch (error) {
+                console.error('Error searching exercises:', error);
+                showError('Error searching exercises');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            exerciseList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-dumbbell"></i>
+                    <h3>No exercises found</h3>
+                    <p>Try adjusting your search or selecting a different category.</p>
+                </div>
+            `;
+        }
+
+        // Update exercises title
+        // Update exercises title for muscle groups
+function updateExercisesTitle(muscleGroup, userWorkoutType) {
+    if (muscleGroup === 'all') {
+        if (userWorkoutType && userWorkoutType !== 'All') {
+            exercisesTitle.textContent = `${userWorkoutType} Exercises`;
+        } else {
+            exercisesTitle.textContent = 'All Exercises';
+        }
+    } else {
+        exercisesTitle.textContent = `${muscleGroup} Exercises`;
+    }
+}
+
+        // Show/hide loading
+        function showLoading() {
+            loadingElement.style.display = 'block';
+        }
+        
+        function hideLoading() {
+            loadingElement.style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            exerciseList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // Show success message
+        function showMessage(message, type = 'success') {
+            // Simple alert for now - you can replace with a toast notification
+            alert(message);
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Category selection
+            // Category selection - UPDATED FOR MUSCLE GROUPS
+categoryList.addEventListener('click', function(e) {
+    if (e.target.classList.contains('category-item')) {
+        const muscleGroup = e.target.dataset.category;
+        
+        // Update active state
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        e.target.classList.add('active');
+        
+        // Render exercises for selected muscle group
+        currentCategory = muscleGroup;
+        renderExercises(muscleGroup);
+        updateExercisesTitle(muscleGroup, userWorkoutType); // Use stored userWorkoutType
+        
+        // Clear search input
+        exerciseSearch.value = '';
+        headerSearch.value = '';
+    }
+});
+            
+            // Exercise selection (delegated)
+            exerciseList.addEventListener('click', function(e) {
+                const exerciseCard = e.target.closest('.exercise-card');
+                if (exerciseCard) {
+                    showExerciseDetail(exerciseCard.dataset.id);
+                }
+            });
+            
+            // Similar exercises selection
+            document.getElementById('similar-exercises-grid').addEventListener('click', function(e) {
+                const exerciseCard = e.target.closest('.exercise-card');
+                if (exerciseCard) {
+                    showExerciseDetail(exerciseCard.dataset.id);
+                }
+            });
+            
+            // Recommended exercises selection
+            recommendationsGrid.addEventListener('click', function(e) {
+                const exerciseCard = e.target.closest('.exercise-card');
+                if (exerciseCard) {
+                    showExerciseDetail(exerciseCard.dataset.id);
+                }
+            });
+            
+            // Back button
+            backButton.addEventListener('click', function() {
+                exerciseDetail.style.display = 'none';
+                exerciseOverview.style.display = 'block';
+            });
+            
+            // Search functionality
+            let searchTimeout;
+            exerciseSearch.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchExercises(e.target.value);
+                }, 300);
+            });
+            
+            headerSearch.addEventListener('input', function(e) {
+                exerciseSearch.value = e.target.value;
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchExercises(e.target.value);
+                }, 300);
+            });
+        }
+
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuIcon = document.getElementById('menuIcon');
+            const closeBtn = document.getElementById('closeBtn');
+            const sideNavbar = document.getElementById('sideNavbar');
+            
+            if (menuIcon) {
+                menuIcon.addEventListener('click', function() {
+                    sideNavbar.style.width = '250px';
+                });
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    sideNavbar.style.width = '0';
+                });
+            }
+            
+            // Initialize app
+            init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymRats - Trainer Management</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <link rel="stylesheet" href="/admin/admin_trainer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/home" class="brand-name">GymRats</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin_dashboard" class="nav-link">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_user" class="nav-link">
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_trainers" class="nav-link active">
+                        <span>Trainers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_membership" class="nav-link">
+                        <span>Memberships</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="/admin_exercises" class="nav-link">
+                        <span>Exercises</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_verifier" class="nav-link">
+                        <span>Verifiers</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>Trainer Management</h2>
+                <div class="right-container">
+                    
+                    <div class="user-info">
+                        <div class="avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+           <!-- Stats Cards -->
+<div class="stats-container">
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Total Trainers</h3>
+                </div>
+                <div class="stats-number" id="totalTrainers"><%= stats.totalTrainers %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Revenue Generated</h3>
+                </div>
+                <div class="stats-number" id="revenue">₹<%= stats.revenue.toLocaleString() %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Specializations</h3>
+                </div>
+                <div class="stats-number" id="specializationCount"><%= stats.specializationCount %></div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-card">
+        <div class="stats-content">
+            <div class="stats-info">
+                <div class="stats-header">
+                    <h3>Pending Approvals</h3>
+                </div>
+                <div class="stats-number" id="pendingApprovals"><%= stats.pendingApprovals %></div>
+            </div>
+        </div>
+    </div>
+</div>
+                        <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="trainerSearchInput" placeholder="Search trainers by name or specialty...">
+                    </div>
+                </div>
+            <!-- Trainer Table -->
+            <div class="section">
+                        <div class="table-header">
+                            <h3 class="section-title">Trainer List</h3>
+                        </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Trainer</th>
+                                <th>Specializations</th>
+                                <th>Experience</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainerTableBody">
+                        
+                        <% if (trainers && trainers.length > 0) { %>
+                        <% trainers.forEach(trainer => { %>
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div class="avatar"><%= trainer.name ? trainer.name.charAt(0).toUpperCase() : '?' %></div>
+                                    <span><%= trainer.name || 'Unknown Trainer' %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="specialization-tags">
+                                    <% if (trainer.specializations && trainer.specializations.length > 0) { %>
+                                    <% trainer.specializations.slice(0, 3).forEach(spec => { %>
+                                    <span class="tag"><%= spec %></span>
+                                    <% }); %>
+                                    <% if (trainer.specializations.length > 3) { %>
+                                    <span class="tag">+<%= trainer.specializations.length - 3 %></span>
+                                    <% } %>
+                                    <% } else { %>
+                                    <span class="tag">No specializations</span>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td><%= trainer.experience || '0' %> years</td>
+                            <td><span class="status <%= trainer.status ? trainer.status.toLowerCase() : 'unknown' %>"><%= trainer.status || 'Unknown' %></span></td>
+                            <td><%= trainer.email || 'No email' %></td>
+                        </tr>
+                        <% }); %>
+                        <% } else { %>
+                        <tr>
+                            <td colspan="5" class="no-data">No trainers found</td>
+                        </tr>
+                        <% } %>
+                    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            setupResponsiveFeatures();
+            setupDynamicLoading();
+        });
+
+        function setupResponsiveFeatures() {
+            try {
+                const navItems = document.querySelectorAll('.nav-link');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function (e) {
+                        const href = this.getAttribute('href');
+                        if (href === '/admin_trainers') {
+                            e.preventDefault();
+                            navItems.forEach(link => link.classList.remove('active'));
+                            this.classList.add('active');
+                            localStorage.setItem('activeNav', href);
+                        }
+                    });
+                });
+                const activeNav = localStorage.getItem('activeNav');
+                if (activeNav) {
+                    const activeItem = document.querySelector(`.nav-link[href="${activeNav}"]`);
+                    if (activeItem) {
+                        navItems.forEach(link => link.classList.remove('active'));
+                        activeItem.classList.add('active');
+                    }
+                }
+            } catch (error) {
+                console.error('Error setting up navigation:', error);
+            }
+
+            try {
+                const actionButtons = document.querySelectorAll('.action-btn');
+                actionButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        this.classList.add('clicked');
+                        if (this.classList.contains('approve')) {
+                            const row = this.closest('tr');
+                            const statusCell = row.querySelector('.status');
+                            statusCell.classList.remove('pending');
+                            statusCell.classList.add('active');
+                            statusCell.textContent = 'Active';
+                            this.textContent = 'View';
+                            this.classList.remove('approve');
+                            const editButton = document.createElement('button');
+                            editButton.className = 'action-btn';
+                            editButton.textContent = 'Edit';
+                            this.parentNode.appendChild(editButton);
+                            editButton.addEventListener('click', function () {
+                                this.classList.add('clicked');
+                                setTimeout(() => {
+                                    this.classList.remove('clicked');
+                                }, 200);
+                            });
+                        }
+                        setTimeout(() => {
+                            this.classList.remove('clicked');
+                        }, 200);
+                    });
+                });
+            } catch (error) {
+                console.error('Error setting up action buttons:', error);
+            }
+
+            
+            try {
+                const pageButtons = document.querySelectorAll('.page-btn');
+                pageButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        pageButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+            } catch (error) {
+                console.error('Error setting up pagination:', error);
+            }
+        }
+
+       function setupDynamicLoading() {
+    const searchInput = document.getElementById('trainerSearchInput');
+    const trainerTableBody = document.getElementById('trainerTableBody');
+console.log('Setting up dynamic loading...');
+    console.log('Search input:', searchInput);
+    console.log('Table body:', trainerTableBody);
+    async function fetchTrainers(searchTerm = '') {
+    try {
+        const response = await fetch(`/admin/api/trainers${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`);
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            updateTrainerTable(data.trainers);
+        } else {
+            console.error('Failed to fetch trainers:', data.message);
+            trainerTableBody.innerHTML = '<tr><td colspan="5" class="no-data">Error loading trainers</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error fetching trainers:', error);
+        trainerTableBody.innerHTML = '<tr><td colspan="5" class="no-data">Error loading trainers. Please check if the API endpoint exists.</td></tr>';
+    }
+}
+
+    function updateTrainerTable(trainers) {
+        if (trainers.length === 0) {
+            trainerTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No trainers found</td></tr>';
+            return;
+        }
+        trainerTableBody.innerHTML = trainers.map(trainer => `
+            <tr>
+                <td>
+                    <div class="user-info">
+                        <div class="avatar">${trainer.name ? trainer.name.charAt(0).toUpperCase() : '?'}</div>
+                        <span>${trainer.name || 'Unknown Trainer'}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="specialization-tags">
+                        ${trainer.specializations && trainer.specializations.length > 0 ?
+                            trainer.specializations.slice(0, 3).map(spec => `<span class="tag">${spec}</span>`).join('') +
+                            (trainer.specializations.length > 3 ? `<span class="tag">+${trainer.specializations.length - 3}</span>` : '') :
+                            '<span class="tag">No specializations</span>'}
+                    </div>
+                </td>
+                <td>${trainer.experience || '0'} years</td>
+                <td><span class="status ${trainer.status ? trainer.status.toLowerCase() : 'unknown'}">${trainer.status || 'Unknown'}</span></td>
+                <td>${trainer.email || 'No email'}</td>
+            </tr>
+        `).join('');
+    }
+
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            const searchTerm = this.value.trim();
+            
+            // Add debouncing to prevent too many API calls
+            searchTimeout = setTimeout(() => {
+                fetchTrainers(searchTerm);
+            }, 300);
+        });
+    }
+}
+        async function fetchStats() {
+    try {
+        const response = await fetch('/admin/api/trainers/stats');
+        const data = await response.json();
+        if (data.success) {
+            // Update stats cards
+            document.getElementById('totalTrainers').textContent = data.stats.totalTrainers;
+            document.getElementById('revenue').textContent = '₹' + data.stats.revenue.toLocaleString();
+            document.getElementById('specializationCount').textContent = data.stats.specializationCount;
+            document.getElementById('pendingApprovals').textContent = data.stats.pendingApprovals;
+        }
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+}
+
+// Update your DOMContentLoaded to include:
+document.addEventListener('DOMContentLoaded', function () {
+    setupResponsiveFeatures();
+    setupDynamicLoading();
+    fetchStats(); // Add this line
+    
+    // Refresh stats every 30 seconds
+    setInterval(fetchStats, 30000);
+});
+    </script>
+</body>
+</html>

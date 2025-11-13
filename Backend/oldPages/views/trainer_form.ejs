@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GymRats - Trainer Registration</title>
+  <link rel="stylesheet" href="/trainer_signup/trainer_signup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="auth-page">
+    <!-- Navbar -->
+    <div class="navbar">
+      <header>
+        <a href="/home" class="badge">GymRats</a>
+        <div class="menu">
+          <a href="/home">Home</a>
+          <a href="/isolation">Exercises</a>
+          <a href="/nutrition">Nutrition</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </header>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="auth-container">
+        <div class="auth-header">
+          <h2>Trainer Registration</h2>
+          <p>Join our professional trainer network</p>
+        </div>
+
+        <form id="trainerSignupForm">
+          <!-- Personal Information -->
+          <div class="form-section">
+            <h3>Personal Information</h3>
+            <div class="row">
+              <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" class="form-control" required />
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" class="form-control" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" class="form-control" required />
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" required />
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" class="form-control" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" class="form-control" required />
+            </div>
+          </div>
+
+          <!-- Professional Information -->
+          <div class="form-section">
+            <h3>Professional Information</h3>
+            <div class="form-group">
+              <label for="experience">Years of Experience</label>
+              <select id="experience" class="form-control" required>
+                <option value="">Select experience</option>
+                <option value="1-2">1-2 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="5-10">5-10 years</option>
+                <option value="10+">10+ years</option>
+              </select>
+            </div>
+
+            <div>
+            <div class="form-group">
+            <label for="specialization">Specialization</label>
+            <div class="checkbox-group">
+              <div class="checkbox-container">
+                <input type="checkbox" id="calisthenics" value="Calisthenics" />
+                <label for="calisthenics">Calisthenics</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="weightLoss" value="Weight Loss" />
+                <label for="weightLoss">Weight Loss</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="hiit" value="HIIT" />
+                <label for="hiit">HIIT</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="competitive" value="Competitive" />
+                <label for="competitive">Competitive</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="strength" value="Strength Training" />
+                <label for="strength">Strength Training</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="cardio" value="Cardio" />
+                <label for="cardio">Cardio</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="flexibility" value="Flexibility" />
+                <label for="flexibility">Flexibility</label>
+              </div>
+              <div class="checkbox-container">
+                <input type="checkbox" id="bodybuilding" value="Bodybuilding" />
+                <label for="bodybuilding">Bodybuilding</label>
+              </div>
+            </div>
+            </div>
+
+
+          <div class="form-group terms">
+            <input type="checkbox" id="termsAgree" required />
+            <label for="termsAgree">
+              I agree to the <a href="/terms">Terms of Service</a>, <a href="/privacy_policy">Privacy Policy</a>, and
+              <a href="/trainer-agreement">Trainer Agreement</a>
+            </label>
+          </div>
+
+          <button type="submit" class="btn">Register as Trainer</button>
+        </form>
+
+        <div class="alternate-action">
+          Already have an account? <a href="/trainer_login">Login</a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h3>User</h3>
+          <ul>
+             <li><a href="/login_signup">User Login</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h3>Verifier</h3>
+          <ul>
+               <li><a href="/verifier_login">Verifier Login</a></li>
+
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h3>Trainer</h3>
+          <ul>
+              <li><a href="/trainer_login">Trainer Login</a></li>
+
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h3>Connect With Us</h3>
+          <ul>
+            <li><a href="/trainer_form">Become a Trainer</a></li>
+          </ul>
+          <ul>
+                    <li><a href="/contact">Contact Us</a></li>
+                </ul>
+          <p class="copyright">GymRats © 2025. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    
+    // Validation functions
+function validateName(name) {
+    return /^[A-Za-z\s]{2,50}$/.test(name); // 2-50 letters and spaces only
+}
+
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email format
+}
+
+function validatePassword(password) {
+    return password.length >= 3; // At least 3 characters
+}
+
+function validatePhoneNumber(phone) {
+    // Remove all non-digit characters and check if it's exactly 10 digits
+    const cleanedPhone = phone.replace(/\D/g, '');
+    return /^\d{10}$/.test(cleanedPhone);
+}
+
+function validatePasswordStrength(password) {
+    // Optional: Add strength requirements
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return password.length >= 8 && hasUpperCase && hasLowerCase && hasNumbers;
+}
+
+    document.getElementById('trainerSignupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Collect form data
+      const specializations = Array.from(
+        document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked')
+      ).map(input => input.value);
+
+      const formData = {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        confirmPassword: document.getElementById('confirmPassword').value,
+        phone: document.getElementById('phone').value.trim(),
+        experience: document.getElementById('experience').value,
+        specializations,
+        termsAgree: document.getElementById('termsAgree').checked
+      };
+
+      // Add this validation check after collecting formData
+if (!validateName(formData.firstName) || !validateName(formData.lastName)) {
+    alert('Please enter valid names (2-50 letters only, no numbers or special characters)');
+    return;
+}
+
+if (!validateEmail(formData.email)) {
+    alert('Please enter a valid email address');
+    return;
+}
+
+if (!validatePassword(formData.password)) {
+    alert('Password must be at least 3 characters long');
+    return;
+}
+
+ if (!validatePhoneNumber(formData.phone)) {
+    alert('Please enter a valid 10-digit phone number');
+        return;
+    }
+
+if (formData.password !== formData.confirmPassword) {
+    alert('Passwords do not match');
+    return;
+}
+
+
+      try {
+        const response = await fetch('/trainer-signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message);
+          window.location.href = result.redirect;
+        } else {
+          alert(result.error || 'An error occurred during registration');
+        }
+      } catch (error) {
+        console.error('Error submitting trainer signup:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    });
+  </script>
+</body>
+
+</html>

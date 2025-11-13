@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymRats - Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/home" class="brand-name">GymRats</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin_dashboard" class="nav-link active">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_user" class="nav-link">
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_trainers" class="nav-link">
+                        <span>Trainers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_membership" class="nav-link">
+                        <span>Memberships</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_exercises" class="nav-link">
+                        <span>Exercises</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin_verifier" class="nav-link">
+                        <span>Verifiers</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>Admin Dashboard</h2>
+                <div class="right-container">
+                    <div class="user-info">
+                        <div class="avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- First Row: User Stats -->
+            <div class="dashboard-grid">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Total Users</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.totalUsers.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Active Members</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.activeMembers.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Personal Trainers</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.personalTrainers.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Content Verifiers</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.contentVerifiers.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row: Revenue Stats -->
+            <div class="dashboard-grid">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Total Revenue</h3>
+                            </div>
+                            <div class="stats-number">₹<%= stats.totalRevenue.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Monthly Revenue</h3>
+                            </div>
+                            <div class="stats-number">₹<%= stats.monthlyRevenue.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>Platinum Members</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.platinumMembers.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-info">
+                            <div class="stats-header">
+                                <h3>New Signups</h3>
+                            </div>
+                            <div class="stats-number"><%= stats.newSignups.toLocaleString() %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Revenue Overview</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Member Growth</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="memberChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Activity Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h3 class="section-title">User Activity</h3>
+                    <a href="/admin_user" class="view-all">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Membership</th>
+                                <th>Registration Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (typeof users !== 'undefined' && users.length > 0) { %>
+                            <% users.forEach(user => { %>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="avatar"><%= user.full_name.charAt(0) %></div>
+                                        <span><%= user.full_name %></span>
+                                    </div>
+                                </td>
+                                <td><%= user.email %></td>
+                                <td><span class="status <%= user.status.toLowerCase() %>"><%= user.status %></span></td>
+                                <td><%= user.membershipType %></td>
+                                <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+                            </tr>
+                            <% }); %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="5" class="no-data">No users found</td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Trainer Activity Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Trainer Activity</h3>
+                    <a href="/admin_trainers" class="view-all">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Trainer</th>
+                                <th>Specializations</th>
+                                <th>Experience</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (typeof trainers !== 'undefined' && trainers.length > 0) { %>
+                            <% trainers.forEach(trainer => { %>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="avatar"><%= trainer.name.charAt(0) %></div>
+                                        <span><%= trainer.name %></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="specialization-tags">
+                                        <% if (trainer.specializations && trainer.specializations.length > 0) { %>
+                                        <% trainer.specializations.slice(0, 3).forEach(spec => { %>
+                                        <span class="tag"><%= spec %></span>
+                                        <% }); %>
+                                        <% if (trainer.specializations.length > 3) { %>
+                                        <span class="tag">+<%= trainer.specializations.length - 3 %></span>
+                                        <% } %>
+                                        <% } else { %>
+                                        <span class="tag">No specializations</span>
+                                        <% } %>
+                                    </div>
+                                </td>
+                                <td><%= trainer.experience %> years</td>
+                                <td><span class="status <%= trainer.status.toLowerCase() %>"><%= trainer.status %></span></td>
+                                <td><%= trainer.email %></td>
+                            </tr>
+                            <% }); %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="5" class="no-data">No trainers found</td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Verifier Activity Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h3 class="section-title">Verifier Activity</h3>
+                    <a href="/admin_verifier" class="view-all">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (typeof verifiers !== 'undefined' && verifiers.length > 0) { %>
+                            <% verifiers.forEach(verifier => { %>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="avatar"><%= verifier.name.charAt(0) %></div>
+                                        <span><%= verifier.name %></span>
+                                    </div>
+                                </td>
+                                <td><span class="status active">Active</span></td>
+                            </tr>
+                            <% }); %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="2" class="no-data">No verifiers found</td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <script src="/admin/admin.js"></script>
+</body>
+
+</html>

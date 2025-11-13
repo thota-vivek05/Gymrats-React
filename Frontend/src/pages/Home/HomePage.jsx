@@ -27,3 +27,5 @@ export default HomePage;
 // take each component from HomePage and seperate the css OR
 // keep the css in the HomePage.module.css file and check how it works
 // also the header and footer section should be used from the common components folder as it is not showing on login page
+
+// use navlink and link to in this as <a> wint work with react router dom
