@@ -1238,102 +1238,6 @@ const getUserDashboard = async (req, res, membershipCode) => {
        // ✅ FIXED: Get today's workout with better debugging
 // ✅ FIXED: Get today's workout with proper progress calculation for TODAY ONLY
 // ✅ FIXED: Get today's workout with proper timezone handling
-const getTodaysWorkout = async (userId) => {
-    try {
-        // ✅ Use local time instead of UTC for day calculation
-        const today = new Date();
-        // Convert to Asia/Kolkata timezone (UTC+5:30)
-        const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-        const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
-        
-        //  console.log('🔍 Looking for workouts for:', todayDayName, 'User:', userId);
-        //  console.log('📅 Date info:', {
-        //     utc: today.toISOString(),
-        //     local: localDate.toString(),
-        //     localDay: todayDayName
-        // });
-
-                // Look for ANY workout history that has exercises for today
-                const workouts = await WorkoutHistory.find({ 
-                    userId: userId 
-                }).lean();
-
-        //  console.log('📋 Total workouts found:', workouts.length);
-
-                let todaysExercises = [];
-                let workoutPlanId = null;
-                let workoutName = `${todayDayName} Workout`;
-
-        // Check each workout for today's exercises
-        for (const workout of workouts) {
-            if (workout.exercises && workout.exercises.length > 0) {
-                const exercisesForToday = workout.exercises.filter(ex => 
-                    ex.day === todayDayName
-                );
-                
-                if (exercisesForToday.length > 0) {
-                    //  console.log('✅ Found workout with exercises for today:', workout._id);
-                    todaysExercises = exercisesForToday;
-                    workoutPlanId = workout._id;
-                    workoutName = workout.name || `${todayDayName} Workout`;
-                    break;
-                }
-            }
-        }
-
-        //  console.log('🎯 Today exercises found:', todaysExercises.length);
-
-        if (todaysExercises.length > 0) {
-            const completedExercises = todaysExercises.filter(ex => ex.completed).length;
-            const totalExercises = todaysExercises.length;
-            const progress = Math.round((completedExercises / totalExercises) * 100);
-            
-            //  console.log('📊 Progress calculation (TODAY ONLY):', {
-            //     completed: completedExercises,
-            //     total: totalExercises,
-            //     progress: progress,
-            //     todayDayName: todayDayName
-            // });
-            
-            return {
-                name: workoutName,
-                exercises: todaysExercises,
-                progress: progress,
-                completed: completedExercises === totalExercises,
-                completedExercises: completedExercises,
-                totalExercises: totalExercises,
-                duration: todaysExercises.reduce((total, ex) => total + (ex.duration || 45), 0),
-                workoutPlanId: workoutPlanId
-            };
-        }
-
-        // If no workouts found, return empty
-        //  console.log('❌ No workouts found for today');
-        return {
-            name: 'No Workout Scheduled',
-            exercises: [],
-            progress: 0,
-            completed: false,
-            completedExercises: 0,
-            totalExercises: 0,
-            duration: 0,
-            workoutPlanId: null
-        };
-
-            } catch (error) {
-                console.error('❌ Error in getTodaysWorkout:', error);
-                return {
-                    name: 'No Workout Scheduled',
-                    exercises: [],
-                    progress: 0,
-                    completed: false,
-                    completedExercises: 0,
-                    totalExercises: 0,
-                    duration: 0,
-                    workoutPlanId: null
-                };
-            }
-        };
 
 
         // ✅ USE the function to get today's workout
@@ -1711,6 +1615,84 @@ const getTodaysFoods = async (userId) => {
         return [];
     }
 };
+// Add this as a standalone function AFTER getTodaysFoods:
+
+const getTodaysWorkout = async (userId) => {
+    try {
+        // ✅ Use local time instead of UTC for day calculation
+        const today = new Date();
+        // Convert to Asia/Kolkata timezone (UTC+5:30)
+        const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
+        
+        // Look for ANY workout history that has exercises for today
+        const workouts = await WorkoutHistory.find({ 
+            userId: userId 
+        }).lean();
+
+        let todaysExercises = [];
+        let workoutPlanId = null;
+        let workoutName = `${todayDayName} Workout`;
+
+        // Check each workout for today's exercises
+        for (const workout of workouts) {
+            if (workout.exercises && workout.exercises.length > 0) {
+                const exercisesForToday = workout.exercises.filter(ex => 
+                    ex.day === todayDayName
+                );
+                
+                if (exercisesForToday.length > 0) {
+                    todaysExercises = exercisesForToday;
+                    workoutPlanId = workout._id;
+                    workoutName = workout.name || `${todayDayName} Workout`;
+                    break;
+                }
+            }
+        }
+
+        if (todaysExercises.length > 0) {
+            const completedExercises = todaysExercises.filter(ex => ex.completed).length;
+            const totalExercises = todaysExercises.length;
+            const progress = Math.round((completedExercises / totalExercises) * 100);
+            
+            return {
+                name: workoutName,
+                exercises: todaysExercises,
+                progress: progress,
+                completed: completedExercises === totalExercises,
+                completedExercises: completedExercises,
+                totalExercises: totalExercises,
+                duration: todaysExercises.reduce((total, ex) => total + (ex.duration || 45), 0),
+                workoutPlanId: workoutPlanId
+            };
+        }
+
+        // If no workouts found, return empty
+        return {
+            name: 'No Workout Scheduled',
+            exercises: [],
+            progress: 0,
+            completed: false,
+            completedExercises: 0,
+            totalExercises: 0,
+            duration: 0,
+            workoutPlanId: null
+        };
+
+    } catch (error) {
+        console.error('❌ Error in getTodaysWorkout:', error);
+        return {
+            name: 'No Workout Scheduled',
+            exercises: [],
+            progress: 0,
+            completed: false,
+            completedExercises: 0,
+            totalExercises: 0,
+            duration: 0,
+            workoutPlanId: null
+        };
+    }
+};
 
 module.exports = {
     loginUser,
@@ -1724,5 +1706,7 @@ module.exports = {
     updateUserProfile,
     changeMembership,
     getTodaysFoods,
-    markExerciseCompleted // Add this line
+    markExerciseCompleted,// Add this line
+    getTodaysWorkout
+
 };

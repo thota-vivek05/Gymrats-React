@@ -4,7 +4,7 @@ import styles from './LoginSignup.module.css';
 
 // --- Utility Functions ---
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validatePassword = (password) => password.length >= 8;
+const validatePassword = (password) => password.length >= 3;
 const validateName = (name) => /^[A-Za-z\s]{2,50}$/.test(name);
 const validatePhoneNumber = (phone) => /^\d{10}$/.test(phone.replace(/\D/g, ''));
 const validateCardNumber = (cardNumber) => /^\d{16}$/.test(cardNumber.replace(/[\s-]/g, ''));
@@ -205,7 +205,7 @@ const LoginSignup = () => {
             return;
         }
         if (!validatePassword(password)) {
-            showModal('error', 'Password must be at least 8 characters long');
+            showModal('error', 'Password must be at least 3 characters long');
             return;
         }
 
@@ -247,7 +247,7 @@ const LoginSignup = () => {
         }
         if (!validateName(f.userFullName)) return showModal('error', 'Please enter a valid full name (2-50 letters and spaces only)');
         if (!validateEmail(f.userEmail)) return showModal('error', 'Please enter a valid email address');
-        if (!validatePassword(f.userPassword)) return showModal('error', 'Password must be at least 8 characters long');
+        if (!validatePassword(f.userPassword)) return showModal('error', 'Password must be at least 3 characters long');
         if (!validatePhoneNumber(f.phoneNumber)) return showModal('error', 'Please enter a valid 10-digit phone number');
         if (!f.workoutType) return showModal('error', 'Please select your preferred workout type');
         if (f.userPassword !== f.userConfirmPassword) return showModal('error', 'Passwords do not match');
