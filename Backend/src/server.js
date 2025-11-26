@@ -5,6 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const cors = require('cors'); // Add CORS for React frontend
 const methodOverride = require('method-override');
+const JWT_SECRET = process.env.JWT_SECRET || 'gymrats-secret-key'; // Use environment variable in production
+
 
 process.env.TZ = 'Asia/Kolkata';
 
@@ -16,6 +18,9 @@ const adminRoutes = require('./Routes/adminRoutes');
 const userRoutes = require('./Routes/userRoutes');
 const trainerRoutes = require('./Routes/trainerRoutes');
 const verifierRoutes = require('./Routes/verifierRoutes');
+// In server.js - Add these lines after other route imports
+const authRoutes = require('./Routes/authRoutes');
+
 
 // Middleware setup
 app.use(cors({
