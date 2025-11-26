@@ -80,6 +80,16 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/verifier', verifierRoutes);
+app.use('/api/auth', authRoutes);
+
+// react signup
+// Add these before the catch-all handler
+const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer/dashboard'];
+spaRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/dist/index.html'));
+  });
+});
 
 // Redirect legacy admin URLs to new API routes
 app.get('/admin_dashboard', (req, res) => res.redirect('/api/admin/dashboard'));
@@ -120,6 +130,10 @@ app.post('/api/logout', (req, res) => {
     res.json({ message: 'Logged out successfully' });
   });
 });
+// In server.js, add these to your API routes
+app.post('/api/user/signup', userController.signupUser);
+app.post('/api/trainer/signup', trainerController.signupTrainer);
+
 
 // Catch-all handler: send back React's index.html file for SPA
 app.get('*', (req, res) => {

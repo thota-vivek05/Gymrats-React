@@ -38,7 +38,7 @@ const Footer = () => {
         <div className={styles['footer-column']}>
           <h3>Connect With Us</h3>
           <ul>
-            <li><a href="/trainer_form">Become a Trainer</a></li>
+            <li><a href="/signup/trainer">Become a Trainer</a></li>
           </ul>
 
           <p className={styles.copyright}>GymRats © 2025. All rights reserved.</p>

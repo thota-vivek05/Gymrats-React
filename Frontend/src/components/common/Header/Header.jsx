@@ -25,7 +25,7 @@ const Header = () => {
         <div className={styles['rightContainer']}>
           
           <div className={styles['loginButton']}>
-            <a href="/auth">Login / Signup</a>
+            <a href="/login">Login / Signup</a>
           </div>
         </div>
 
@@ -40,7 +40,7 @@ const Header = () => {
           <a href="/nutrition">Nutrition</a>
           <a href="/about">About</a>
           <a href="/contact">Contact</a>
-          <a href="/auth">Login / Signup</a>
+          <a href="/login">Login / Signup</a>
         </div>
       </header>
     </div>

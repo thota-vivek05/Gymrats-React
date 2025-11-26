@@ -140,70 +140,70 @@ const signupTrainer = async (req, res) => {
     }
 };
 
-const loginTrainer = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+// const loginTrainer = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
 
-        // console.log('Trainer login request received:', { email });
+//         // console.log('Trainer login request received:', { email });
 
-        if (!email || !password) {
-            // console.log('Validation failed: Missing email or password');
-            return res.status(400).render('trainer_login', {
-                errorMessage: 'Email and password are required',
-                email
-            });
-        }
+//         if (!email || !password) {
+//             // console.log('Validation failed: Missing email or password');
+//             return res.status(400).render('trainer_login', {
+//                 errorMessage: 'Email and password are required',
+//                 email
+//             });
+//         }
 
-        const trainer = await Trainer.findOne({ email });
-        if (!trainer) {
-            // console.log('Trainer not found:', email);
-            return res.status(401).render('trainer_login', {
-                errorMessage: 'Invalid email or password',
-                email
-            });
-        }
+//         const trainer = await Trainer.findOne({ email });
+//         if (!trainer) {
+//             // console.log('Trainer not found:', email);
+//             return res.status(401).render('trainer_login', {
+//                 errorMessage: 'Invalid email or password',
+//                 email
+//             });
+//         }
 
-        if (trainer.status !== 'Active') {
-            // console.log('Trainer account not active:', email, trainer.status);
-            return res.status(403).render('trainer_login', {
-                errorMessage: `Your account is ${trainer.status.toLowerCase()}. Please contact support.`,
-                email
-            });
-        }
+//         if (trainer.status !== 'Active') {
+//             // console.log('Trainer account not active:', email, trainer.status);
+//             return res.status(403).render('trainer_login', {
+//                 errorMessage: `Your account is ${trainer.status.toLowerCase()}. Please contact support.`,
+//                 email
+//             });
+//         }
 
-        const isMatch = await bcrypt.compare(password, trainer.password_hash);
-        if (!isMatch) {
-            // console.log('Invalid password for:', email);
-            return res.status(401).render('trainer_login', {
-                errorMessage: 'Invalid email or password',
-                email
-            });
-        }
+//         const isMatch = await bcrypt.compare(password, trainer.password_hash);
+//         if (!isMatch) {
+//             // console.log('Invalid password for:', email);
+//             return res.status(401).render('trainer_login', {
+//                 errorMessage: 'Invalid email or password',
+//                 email
+//             });
+//         }
 
-        req.session.trainer = {
-            id: trainer._id,
-            email: trainer.email,
-            name: trainer.full_name || 'Trainer'
-        };
-        //  console.log('Session set for trainer:', email);
+//         req.session.trainer = {
+//             id: trainer._id,
+//             email: trainer.email,
+//             name: trainer.full_name || 'Trainer'
+//         };
+//         //  console.log('Session set for trainer:', email);
 
-        res.redirect('/trainer');
-    } catch (error) {
-        console.error('Trainer login error:', error);
-        res.status(500).render('trainer_login', {
-            errorMessage: 'Server error. Please try again later.',
-            email: req.body.email || ''
-        });
-    }
-};
+//         res.redirect('/trainer');
+//     } catch (error) {
+//         console.error('Trainer login error:', error);
+//         res.status(500).render('trainer_login', {
+//             errorMessage: 'Server error. Please try again later.',
+//             email: req.body.email || ''
+//         });
+//     }
+// };
 
-const renderTrainerLogin = (req, res) => {
-    res.render('trainer_login', {
-        errorMessage: null,
-        successMessage: null,
-        email: ''
-    });
-};
+// const renderTrainerLogin = (req, res) => {
+//     res.render('trainer_login', {
+//         errorMessage: null,
+//         successMessage: null,
+//         email: ''
+//     });
+// };
 
 const renderTrainerDashboard = async (req, res) => {
     try {
@@ -1169,8 +1169,8 @@ const getUnassignedUsers = async (req, res) => {
 
 module.exports = { 
     signupTrainer, 
-    loginTrainer, 
-    renderTrainerLogin, 
+    // loginTrainer, 
+    // renderTrainerLogin, 
     renderTrainerDashboard, 
     renderEditWorkoutPlan, 
     saveWorkoutPlan, 
@@ -1179,8 +1179,8 @@ module.exports = {
     getClientData,
     getWorkoutData,
     getNutritionData,
-    renderTrainerAssignment,    // REYNA
-    assignUserToTrainer,        // REYNA
-    getUnassignedUsers,          // REYNA
+    renderTrainerAssignment,    
+    assignUserToTrainer,        
+    getUnassignedUsers,          
     getClientExerciseRatings 
 };

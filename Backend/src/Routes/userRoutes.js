@@ -26,7 +26,10 @@ router.get('/userdashboard_:type', userController.checkMembershipActive, (req, r
     userController.getUserDashboard(req, res, dashboardType);
 });
 
-router.post('/login', userController.loginUser);
+// user login is now done in authRoutes.js
+// router.post('/login', userController.loginUser);
+
+
 router.post('/signup', userController.signupUser);
 router.get('/profile', userController.getUserProfile);
 router.post('/complete-workout', userController.completeWorkout);

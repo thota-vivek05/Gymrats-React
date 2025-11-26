@@ -3,18 +3,19 @@ const router = express.Router();
 const trainerController = require('../controllers/trainerController');
 
 // Render trainer signup form
-router.get('/trainer_form', (req, res) => {
+router.get('/signup/trainer', (req, res) => {
     res.render('trainer_form');
 });
 
 // Handle trainer signup submission
-router.post('/trainer-signup', trainerController.signupTrainer);
+router.post('/signup', trainerController.signupTrainer);
 
-// Render trainer login form
-router.get('/trainer_login', trainerController.renderTrainerLogin);
+// The login functionality has been moved to authRoutes.js
 
-// Handle trainer login submission
-router.post('/trainer/login', trainerController.loginTrainer);
+// // Render trainer login form
+// router.get('/trainer_login', trainerController.renderTrainerLogin);
+// // Handle trainer login submission
+// router.post('/trainer/login', trainerController.loginTrainer);
 
 // Render trainer dashboard
 router.get('/trainer', trainerController.renderTrainerDashboard);

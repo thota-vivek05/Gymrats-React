@@ -267,94 +267,95 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+// Removing the login function as it's now in authController.js
+// const loginUser = async (req, res) => {
+// // ... (omitted for brevity)
+//     try {
+//         const { email, password } = req.body;
 
-const loginUser = async (req, res) => {
-// ... (omitted for brevity)
-    try {
-        const { email, password } = req.body;
+//         //  console.log('Login request received:', { email});
 
-        //  console.log('Login request received:', { email});
+//         if (!email || !password) {
+//             //  console.log('Validation failed: Missing fields');
+//             return res.status(400).json({ error: 'All fields are required' });
+//         }
 
-        if (!email || !password) {
-            //  console.log('Validation failed: Missing fields');
-            return res.status(400).json({ error: 'All fields are required' });
-        }
+//         const user = await User.findOne({ email });
+//         if (!user) {
+//             //  console.log('User not found:', email);
+//             return res.status(401).json({ error: 'Invalid email or password' });
+//         }
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            //  console.log('User not found:', email);
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
+//         const isMatch = await bcrypt.compare(password, user.password_hash);
+//         if (!isMatch) {
+//             //  console.log('Password mismatch for:', email);
+//             return res.status(401).json({ error: 'Invalid email or password' });
+//         }
+//         //brimstone 1
+//         // if (user.membershipType.toLowerCase() !== loginMembershipPlan.toLowerCase()) {
+//         //     //  console.log('Membership plan mismatch:', { user: user.membershipType, input: loginMembershipPlan });
+//         //     return res.status(400).json({ error: 'Selected membership plan does not match user membership' });
+//         // }
+//         // brimstone
+//         if (!req.session) {
+//             console.error('Session middleware not initialized');
+//             return res.status(500).json({ error: 'Session not available. Please try again later.' });
+//         }
 
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
-            //  console.log('Password mismatch for:', email);
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
-        //brimstone 1
-        // if (user.membershipType.toLowerCase() !== loginMembershipPlan.toLowerCase()) {
-        //     //  console.log('Membership plan mismatch:', { user: user.membershipType, input: loginMembershipPlan });
-        //     return res.status(400).json({ error: 'Selected membership plan does not match user membership' });
-        // }
-        // brimstone
-        if (!req.session) {
-            console.error('Session middleware not initialized');
-            return res.status(500).json({ error: 'Session not available. Please try again later.' });
-        }
+//         req.session.user = {
+//             id: user._id,
+//             email: user.email,
+//             full_name: user.full_name,
+//             name: user.full_name,
+//             membershipType: user.membershipType,
+//             membership: user.membershipType.toLowerCase(),
+//             phone: user.phone,
+//             dob: user.dob,
+//             gender: user.gender,
+//             weight: user.weight,
+//             height: user.height,
+//             BMI: user.BMI,
+//             status: user.status,
+//             created_at: user.created_at,
 
-        req.session.user = {
-            id: user._id,
-            email: user.email,
-            full_name: user.full_name,
-            name: user.full_name,
-            membershipType: user.membershipType,
-            membership: user.membershipType.toLowerCase(),
-            phone: user.phone,
-            dob: user.dob,
-            gender: user.gender,
-            weight: user.weight,
-            height: user.height,
-            BMI: user.BMI,
-            status: user.status,
-            created_at: user.created_at,
+//             // REYNA
+//             workout_type: user.workout_type,
+//             membershipDuration: {
+//                 months_remaining: user.membershipDuration.months_remaining,
+//                 end_date: user.membershipDuration.end_date,
+//                 auto_renew: user.membershipDuration.auto_renew
+//             },
+//             fitness_goals: {
+//                 calorie_goal: user.fitness_goals?.calorie_goal || 2200,
+//                 protein_goal: user.fitness_goals?.protein_goal || 90,
+//                 weight_goal: user.fitness_goals?.weight_goal || null
+//             }
+//         };
 
-            // REYNA
-            workout_type: user.workout_type,
-            membershipDuration: {
-                months_remaining: user.membershipDuration.months_remaining,
-                end_date: user.membershipDuration.end_date,
-                auto_renew: user.membershipDuration.auto_renew
-            },
-            fitness_goals: {
-                calorie_goal: user.fitness_goals?.calorie_goal || 2200,
-                protein_goal: user.fitness_goals?.protein_goal || 90,
-                weight_goal: user.fitness_goals?.weight_goal || null
-            }
-        };
+//         let redirectUrl;
+//         switch (user.membershipType.toLowerCase()) {
+//             case 'basic':
+//                 redirectUrl = '/userdashboard_b';
+//                 break;
+//             case 'gold':
+//                 redirectUrl = '/userdashboard_g';
+//                 break;
+//             case 'platinum':
+//                 redirectUrl = '/userdashboard_p';
+//                 break;
+//             default:
+//                 //  console.log('Unknown membership type:', user.membershipType);
+//                 redirectUrl = '/userdashboard_b'; // Default to basic dashboard
+//         }
+//         //  console.log('Redirecting to:', redirectUrl);
 
-        let redirectUrl;
-        switch (user.membershipType.toLowerCase()) {
-            case 'basic':
-                redirectUrl = '/userdashboard_b';
-                break;
-            case 'gold':
-                redirectUrl = '/userdashboard_g';
-                break;
-            case 'platinum':
-                redirectUrl = '/userdashboard_p';
-                break;
-            default:
-                //  console.log('Unknown membership type:', user.membershipType);
-                redirectUrl = '/userdashboard_b'; // Default to basic dashboard
-        }
-        //  console.log('Redirecting to:', redirectUrl);
+//         res.status(200).json({ message: 'Login successful', redirect: redirectUrl });
+//     } catch (error) {
+//         console.error('Login error:', error);
+//         res.status(500).json({ error: 'Server error' });
+//     }
+// };
 
-        res.status(200).json({ message: 'Login successful', redirect: redirectUrl });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
 
 const signupUser = async (req, res) => {
 // ... (omitted for brevity)
@@ -1713,7 +1714,7 @@ const getTodaysFoods = async (userId) => {
 };
 
 module.exports = {
-    loginUser,
+    //loginUser,
     signupUser,
     getUserDashboard,
     completeWorkout,
@@ -1724,5 +1725,5 @@ module.exports = {
     updateUserProfile,
     changeMembership,
     getTodaysFoods,
-    markExerciseCompleted // Add this line
+    markExerciseCompleted
 };
