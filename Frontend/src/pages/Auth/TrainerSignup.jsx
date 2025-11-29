@@ -116,7 +116,7 @@ const TrainerSignup = () => {
         }
 
         try {
-            const response = await fetch('/api/trainer/trainer-signup', {
+            const response = await fetch('/api/trainer/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

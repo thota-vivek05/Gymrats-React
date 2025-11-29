@@ -130,9 +130,6 @@ app.post('/api/logout', (req, res) => {
     res.json({ message: 'Logged out successfully' });
   });
 });
-// In server.js, add these to your API routes
-app.post('/api/user/signup', userController.signupUser);
-app.post('/api/trainer/signup', trainerController.signupTrainer);
 
 
 // Catch-all handler: send back React's index.html file for SPA

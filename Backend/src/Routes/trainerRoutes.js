@@ -3,9 +3,9 @@ const router = express.Router();
 const trainerController = require('../controllers/trainerController');
 
 // Render trainer signup form
-router.get('/signup/trainer', (req, res) => {
-    res.render('trainer_form');
-});
+// router.get('/signup/trainer', (req, res) => {
+//     res.render('trainer_form');
+// });
 
 // Handle trainer signup submission
 router.post('/signup', trainerController.signupTrainer);
