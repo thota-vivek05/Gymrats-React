@@ -68,7 +68,7 @@ const MembershipSection = ({styles}) => {
                   </li>
                 ))}
               </ul>
-              <a href="/auth/?form=signup" className={styles.btn}>Get Started</a>
+              <a href="/signup/user" className={styles.btn}>Get Started</a>
               {/* here i think we can use <a> as we are mapping to external login page */}
                 {/* but for <a> tags to map within the page we need to use Link from react-router-dom */}
             </div>

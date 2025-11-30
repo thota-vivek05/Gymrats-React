@@ -1,15 +1,49 @@
-/* src/index.css */
+/* 1. Font Import (Must be at the very top) */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    font-family: 'Outfit', sans-serif;
+/* 2. Import Tailwind (In v4, this replaces @tailwind base/components/utilities) */
+@import "tailwindcss";
+
+/* 3. Theme Configuration */
+@theme {
+  /* Override the default sans font so 'font-sans' uses Outfit */
+  --font-sans: "Outfit", sans-serif;
+
+  /* Register Custom Animations */
+  /* This creates utilities like 'animate-fadeIn' and 'animate-slideIn' */
+  --animate-fadeIn: fadeIn 0.3s ease-in-out;
+  --animate-slideIn: slideIn 0.3s ease-in-out;
 }
 
-body {
+/* 4. Base Styles */
+/* Using @layer base ensures these don't override utility classes later */
+@layer base {
+  body {
     background-color: #000;
-    font-size: 14px;
     color: #f1f1f1;
+    font-family: var(--font-sans); /* Applies Outfit globally */
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased; /* Makes text look crisp on dark backgrounds */
+  }
+}
+
+/* 5. Keyframes (Standard CSS) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

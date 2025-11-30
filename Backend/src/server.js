@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const mongoose = require('mongoose');
@@ -5,6 +7,8 @@ const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const methodOverride = require('method-override');
+const JWT_SECRET = process.env.JWT_SECRET || 'gymrats-secret-key'; // Use environment variable in production
+
 
 process.env.TZ = 'Asia/Kolkata';
 
@@ -16,6 +20,9 @@ const adminRoutes = require('./Routes/adminRoutes');
 const userRoutes = require('./Routes/userRoutes');
 const trainerRoutes = require('./Routes/trainerRoutes');
 const verifierRoutes = require('./Routes/verifierRoutes');
+// In server.js - Add these lines after other route imports
+const authRoutes = require('./Routes/authRoutes');
+
 
 // Enhanced CORS configuration
 app.use(cors({
@@ -77,10 +84,45 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/verifier', verifierRoutes);
+app.use('/api/auth', authRoutes);
 
-// Legacy redirects (optional)
+// react signup
+// Add these before the catch-all handler
+const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer/dashboard'];
+spaRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/dist/index.html'));
+  });
+});
+
+// Redirect legacy admin URLs to new API routes
 app.get('/admin_dashboard', (req, res) => res.redirect('/api/admin/dashboard'));
-// ... other redirects
+app.get('/admin_user', (req, res) => res.redirect('/api/admin/users'));
+app.get('/admin_trainers', (req, res) => res.redirect('/api/admin/trainers'));
+app.get('/admin_membership', (req, res) => res.redirect('/api/admin/memberships'));
+app.get('/admin_nutrition', (req, res) => res.redirect('/api/admin/nutrition-plans'));
+app.get('/admin_exercises', (req, res) => res.redirect('/api/admin/exercises'));
+app.get('/admin_verifier', (req, res) => res.redirect('/api/admin/verifier'));
+app.get('/admin_settings', (req, res) => res.redirect('/api/admin/settings'));
+
+// API Routes for static pages data (if needed)
+const pages = [
+  'about', 'blog', 'calculators', 'contact', 'home', 'isolation',
+  'login_signup', 'nutrition', 'privacy_policy', 'schedule', 'signup',
+  'terms', 'testimonial', 'trainer_form', 'trainer', 'trainers',
+  'verifier_form', 'verifier', 'workout_plans', 'userdashboard_b',
+  'userdashboard_g', 'userdashboard_p', 'trainer_login', 'edit_nutritional_plan',
+  'admin_login', 'pendingverifications', 'verifier_login', 'user_nutrition',
+  'user_exercises', 'userprofile'
+];
+
+// Optional: Provide API endpoints for page data
+pages.forEach(page => {
+  app.get(`/api/${page}`, (req, res) => {
+    // Return data for React components instead of rendering EJS
+    res.json({ page: page, data: {} });
+  });
+});
 
 // Logout API Route
 app.post('/api/logout', (req, res) => {
