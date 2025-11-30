@@ -1,0 +1,6 @@
+{
+  "tailwindCSS.validate": false,
+  "tailwindCSS.lint.cssConflict": "ignore",
+  "tailwindCSS.lint.recommendedVariantOrder": "ignore",
+  "css.lint.unknownAtRules": "ignore"
+}
