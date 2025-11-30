@@ -9,7 +9,7 @@ import TrainerSignup from './pages/Auth/TrainerSignup';
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 // import UserDashboard from './pages/User/UserDashboard';
-// import TrainerDashboard from './pages/Trainer/TrainerDashboard';
+import TrainerDashboard from './pages/Trainer/TrainerDashboard';
 
 function App() {
   return (
@@ -34,7 +34,7 @@ function App() {
 
             {/* 2. Trainer Routes */}
             <Route element={<ProtectedRoute allowedRoles={['trainer']} />}>
-               {/* <Route path="/trainer/dashboard" element={<TrainerDashboard />} /> */}
+               <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
                {/* Add other trainer pages here */}
             </Route>
 

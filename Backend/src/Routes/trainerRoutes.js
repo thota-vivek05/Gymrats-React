@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const trainerController = require('../controllers/trainerController');
 
+const { protect } = require('../middleware/authMiddleware');
+
 // Render trainer signup form
 // router.get('/signup/trainer', (req, res) => {
 //     res.render('trainer_form');
@@ -27,7 +29,7 @@ router.get('/edit_workout_plan/:userId', trainerController.renderEditWorkoutPlan
 router.post('/save-workout-plan', trainerController.saveWorkoutPlan);
 
 // Fetch workout data
-router.get('/workout/:userId', trainerController.getWorkoutData);
+router.get('/workout/:userId', protect, trainerController.getWorkoutData);
 
 // Render edit nutrition plan
 router.get('/edit_nutritional_plan/:userId', trainerController.renderEditNutritionPlan);
@@ -35,18 +37,22 @@ router.get('/edit_nutritional_plan/:userId', trainerController.renderEditNutriti
 // Save nutrition plan
 router.post('/edit_nutritional_plan', trainerController.editNutritionPlan);
 
+// react
+router.get('/clients', protect, trainerController.getClients);
+
 // Fetch client data
-router.get('/client/:id', trainerController.getClientData);
+router.get('/client/:id', protect, trainerController.getClientData);
 
 // Fetch nutrition data
-router.get('/nutrition/:userId', trainerController.getNutritionData);
+router.get('/nutrition/:userId', protect, trainerController.getNutritionData);
 
 // Add this route to trainerRoutes.js
 // BEFORE:
-router.get('/exercise-ratings/:userId', trainerController.getClientExerciseRatings);
-
+// router.get('/exercise-ratings/:userId', trainerController.getClientExerciseRatings);
 // AFTER:
-router.get('/trainer/exercise-ratings/:userId', trainerController.getClientExerciseRatings);
+// router.get('/trainer/exercise-ratings/:userId', protect, trainerController.getClientExerciseRatings);
+// Remove BOTH lines and replace with just this ONE:
+router.get('/exercise-ratings/:userId', protect, trainerController.getClientExerciseRatings);
 
 // REYNA
 

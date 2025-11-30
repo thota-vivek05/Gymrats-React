@@ -778,16 +778,20 @@ const editNutritionPlan = async (req, res) => {
 const getClientData = async (req, res) => {
     try {
         const userId = req.params.id;
-        const trainerId = req.session.trainer.id;
+        const trainerId = req.user._id; // From protect middleware
+        
         const user = await User.findOne({ 
             _id: userId, 
             trainer: trainerId
         })
-            .select('full_name dob weight height BMI fitness_goals membershipType') // ADD membershipType here
+            .select('full_name dob weight height BMI bodyFat goal workout_type fitness_goals membershipType gender phone email')
             .lean();
+            
         if (!user) {
             return res.status(404).json({ error: 'Client not found' });
         }
+        
+        // Calculate age
         const dob = new Date(user.dob);
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
@@ -795,25 +799,68 @@ const getClientData = async (req, res) => {
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
             age--;
         }
-        const fitnessGoal = user.fitness_goals.weight_goal
-            ? `${user.fitness_goals.weight_goal} kg`
-            : user.fitness_goals.calorie_goal
-            ? `${user.fitness_goals.calorie_goal} kcal`
-            : 'Not set';
         
+        // ✅ Return ALL fields needed by React frontend
         res.json({
-            name: user.full_name,
+            _id: user._id,
+            full_name: user.full_name,
+            dob: user.dob,
             age: isNaN(age) ? 'N/A' : age,
-            weight: user.weight ? `${user.weight} kg` : 'N/A',
-            height: user.height ? `${user.height} cm` : 'N/A',
-            bodyFat: user.BMI ? `${user.BMI.toFixed(1)} (BMI)` : 'N/A',
-            goal: fitnessGoal,
-            membershipType: user.membershipType || 'Basic', // ADD this line
-            id: user._id // ADD this too for the edit links
+            gender: user.gender || 'N/A',
+            weight: user.weight,
+            height: user.height,
+            BMI: user.BMI,
+            bodyFat: user.bodyFat,
+            goal: user.goal,
+            workout_type: user.workout_type,
+            fitness_goals: user.fitness_goals,
+            membershipType: user.membershipType || 'Basic',
+            email: user.email,
+            phone: user.phone
         });
     } catch (error) {
         console.error('Error fetching client data:', error);
         res.status(500).json({ error: 'Server error' });
+    }
+};
+
+const getClients = async (req, res) => {
+    try {
+        console.log('=== GET CLIENTS API CALLED ===');
+        console.log('User from JWT:', req.user);
+        console.log('Session trainer:', req.session?.trainer);
+        
+        // ✅ Get trainer ID from JWT token (set by protect middleware)
+        const trainerId = req.user._id;
+        
+        if (!trainerId) {
+            console.error('No trainer ID found in request');
+            return res.status(401).json({ error: 'Unauthorized - no trainer ID' });
+        }
+
+        // Fetch users assigned to this trainer
+        const clients = await User.find({ 
+            trainer: trainerId,
+            status: 'Active' 
+        }).select('full_name email membershipType status');
+
+        console.log(`Found ${clients.length} clients for trainer:`, trainerId);
+
+        // Map data to match what React expects
+        const formattedClients = clients.map(client => ({
+            _id: client._id,
+            full_name: client.full_name,
+            email: client.email,
+            membershipType: client.membershipType || 'Basic',
+            status: client.status || 'Active',
+            progress: 0,
+            nextSession: 'N/A'
+        }));
+
+        res.status(200).json(formattedClients);
+    } catch (error) {
+        console.error('Error fetching clients:', error);
+        res.status(500).json({ error: 'Server error fetching clients' });
     }
 };
 
@@ -1168,7 +1215,8 @@ const getUnassignedUsers = async (req, res) => {
 // END REYNA
 
 module.exports = { 
-    signupTrainer, 
+    signupTrainer,
+    getClients,
     // loginTrainer, 
     // renderTrainerLogin, 
     renderTrainerDashboard, 
