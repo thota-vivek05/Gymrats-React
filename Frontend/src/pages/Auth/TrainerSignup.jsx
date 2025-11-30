@@ -1,7 +1,8 @@
-// src/pages/Auth/TrainerSignup.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from './LoginSignup.module.css';
+import Modal from './Modal';
+import Header from '../../components/common/Header/Header';
+import Footer from '../../components/common/Footer/Footer';
 
 const TrainerSignup = () => {
     const [formData, setFormData] = useState({
@@ -16,9 +17,22 @@ const TrainerSignup = () => {
         termsAgree: false
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    
+    // Modal State
+    const [modal, setModal] = useState({ visible: false, type: '', message: '' });
 
     const navigate = useNavigate();
+
+    // Modal Handlers
+    const showModal = (type, message) => {
+        setModal({ visible: true, type, message });
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+        setModal({ visible: false, type: '', message: '' });
+        document.body.style.overflow = 'auto';
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -38,7 +52,6 @@ const TrainerSignup = () => {
                 [name]: type === 'checkbox' ? checked : value
             }));
         }
-        setError('');
     };
 
     const validateForm = () => {
@@ -49,56 +62,49 @@ const TrainerSignup = () => {
 
         for (let field of requiredFields) {
             if (!formData[field]) {
-                setError(`Please fill in all fields`);
+                showModal('error', `Please fill in all fields`);
                 return false;
             }
         }
 
-        // Name validation
         if (!/^[A-Za-z\s]{2,50}$/.test(formData.firstName)) {
-            setError('Please enter a valid first name');
+            showModal('error', 'Please enter a valid first name');
             return false;
         }
 
         if (!/^[A-Za-z\s]{2,50}$/.test(formData.lastName)) {
-            setError('Please enter a valid last name');
+            showModal('error', 'Please enter a valid last name');
             return false;
         }
 
-        // Email validation
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            setError('Please enter a valid email address');
+            showModal('error', 'Please enter a valid email address');
             return false;
         }
 
-        // Password validation
         if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters long');
+            showModal('error', 'Password must be at least 6 characters long');
             return false;
         }
 
-        // Password match
         if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
+            showModal('error', 'Passwords do not match');
             return false;
         }
 
-        // Phone validation
         const cleanedPhone = formData.phone.replace(/\D/g, '');
         if (!/^\d{10}$/.test(cleanedPhone)) {
-            setError('Please enter a valid 10-digit phone number');
+            showModal('error', 'Please enter a valid 10-digit phone number');
             return false;
         }
 
-        // Specializations validation
         if (formData.specializations.length === 0) {
-            setError('Please select at least one specialization');
+            showModal('error', 'Please select at least one specialization');
             return false;
         }
 
-        // Terms agreement
         if (!formData.termsAgree) {
-            setError('You must agree to the terms and conditions');
+            showModal('error', 'You must agree to the terms and conditions');
             return false;
         }
 
@@ -108,7 +114,6 @@ const TrainerSignup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
 
         if (!validateForm()) {
             setLoading(false);
@@ -116,7 +121,7 @@ const TrainerSignup = () => {
         }
 
         try {
-            const response = await fetch('/api/trainer/signup', {
+            const response = await fetch('/api/trainer/trainer-signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -130,194 +135,139 @@ const TrainerSignup = () => {
             const data = await response.json();
 
             if (data.message === 'Trainer application submitted successfully') {
-                navigate('/login', { 
-                    state: { 
-                        message: 'Trainer application submitted successfully! Please wait for verification.' 
-                    } 
-                });
+                showModal('success', 'Trainer application submitted successfully! Please wait for verification.');
+                setTimeout(() => {
+                    closeModal();
+                    navigate('/login');
+                }, 1000);
             } else {
-                setError(data.error || 'Registration failed. Please try again.');
+                showModal('error', data.error || 'Registration failed. Please try again.');
             }
         } catch (error) {
-            setError('Network error. Please try again.');
+            showModal('error', 'Network error. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const specializationsList = [
-        'Calisthenics',
-        'Weight Loss',
-        'HIIT',
-        'Competitive',
-        'Strength Training',
-        'Cardio',
-        'Flexibility',
-        'Bodybuilding'
+        'Calisthenics', 'Weight Loss', 'HIIT', 'Competitive',
+        'Strength Training', 'Cardio', 'Flexibility', 'Bodybuilding'
     ];
 
+    // Shared Tailwind Styles
+    const inputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] focus:border-[#8A2BE2] focus:outline-none transition-colors";
+    const labelClasses = "block mb-[8px] text-[#f1f1f1]";
+    const sectionTitleClasses = "text-[#f1f1f1] text-[1.2rem] mt-[20px] mb-[15px] border-b border-[#333] pb-[5px]";
+
     return (
-        <div className={styles.authContainer}>
-            <div className={styles.authHeader}>
-                <h2>Become a Trainer</h2>
-                <p>Join our team of fitness professionals</p>
-            </div>
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            
+            {/* Background Wrapper */}
+            <div className="flex-1 flex justify-center items-center py-[40px] px-[20px] bg-[linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1740&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat">
+                
+                <Modal 
+                    type={modal.type}
+                    message={modal.message}
+                    visible={modal.visible}
+                    onClose={closeModal}
+                />
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <h3>Personal Information</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="firstName">First Name *</label>
-                    <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        className={styles.formControl}
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="Enter your first name"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="lastName">Last Name *</label>
-                    <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        className={styles.formControl}
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Enter your last name"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="email">Email Address *</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        className={styles.formControl}
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="phone">Phone Number *</label>
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        className={styles.formControl}
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="10-digit phone number"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="password">Password *</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        className={styles.formControl}
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a password"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="confirmPassword">Confirm Password *</label>
-                    <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        className={styles.formControl}
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                    />
-                </div>
-
-                <h3>Professional Details</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="experience">Years of Experience *</label>
-                    <select
-                        id="experience"
-                        name="experience"
-                        className={styles.formControl}
-                        value={formData.experience}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select experience</option>
-                        <option value="1-2">1-2 years</option>
-                        <option value="3-5">3-5 years</option>
-                        <option value="5-10">5-10 years</option>
-                        <option value="10+">10+ years</option>
-                    </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label>Specializations *</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        {specializationsList.map(spec => (
-                            <label key={spec} className={styles.checkboxLabel}>
-                                <input
-                                    type="checkbox"
-                                    name="specializations"
-                                    value={spec}
-                                    checked={formData.specializations.includes(spec)}
-                                    onChange={handleChange}
-                                />
-                                {spec}
-                            </label>
-                        ))}
+                {/* Form Container */}
+                <div className="w-[600px] max-w-full bg-[#111]/95 rounded-[10px] p-[40px] shadow-[0_0_20px_rgba(138,43,226,0.3)] border border-[#8A2BE2] max-[768px]:p-[30px]">
+                    
+                    <div className="text-center mb-[30px]">
+                        <h2 className="text-[2rem] mb-[10px] text-[#f1f1f1] font-bold">Become a Trainer</h2>
+                        <p className="text-[#cccccc]">Join our team of fitness professionals</p>
                     </div>
-                </div>
 
-                <div className={styles.formGroup}>
-                    <label className={styles.checkboxLabel}>
-                        <input
-                            type="checkbox"
-                            name="termsAgree"
-                            checked={formData.termsAgree}
-                            onChange={handleChange}
-                            required
-                        />
-                        I agree to the <a href="/terms" className={styles.termsLink}>terms and conditions</a> *
-                    </label>
-                </div>
+                    <form onSubmit={handleSubmit}>
+                        <h3 className={sectionTitleClasses}>Personal Information</h3>
+                        
+                        <div className="flex gap-4 max-[600px]:flex-col">
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="firstName" className={labelClasses}>First Name *</label>
+                                <input type="text" id="firstName" name="firstName" className={inputClasses}
+                                    value={formData.firstName} onChange={handleChange} placeholder="Enter your first name" required />
+                            </div>
 
-                <button 
-                    type="submit" 
-                    className={styles.btn}
-                    disabled={loading}
-                >
-                    {loading ? 'Submitting Application...' : 'Apply as Trainer'}
-                </button>
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="lastName" className={labelClasses}>Last Name *</label>
+                                <input type="text" id="lastName" name="lastName" className={inputClasses}
+                                    value={formData.lastName} onChange={handleChange} placeholder="Enter your last name" required />
+                            </div>
+                        </div>
 
-                <div className={styles.alternateAction}>
-                    <p>
-                        Already have an account? <Link to="/login">Login here</Link>
-                    </p>
-                    <p>
-                        Want to join as a member? <Link to="/signup/user">Sign up as Member</Link>
-                    </p>
+                        <div className="mb-[20px]">
+                            <label htmlFor="email" className={labelClasses}>Email Address *</label>
+                            <input type="email" id="email" name="email" className={inputClasses}
+                                value={formData.email} onChange={handleChange} placeholder="Enter your email" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="phone" className={labelClasses}>Phone Number *</label>
+                            <input type="tel" id="phone" name="phone" className={inputClasses}
+                                value={formData.phone} onChange={handleChange} placeholder="10-digit phone number" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="password" className={labelClasses}>Password *</label>
+                            <input type="password" id="password" name="password" className={inputClasses}
+                                value={formData.password} onChange={handleChange} placeholder="Create a password" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" className={inputClasses}
+                                value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm your password" required />
+                        </div>
+
+                        <h3 className={sectionTitleClasses}>Professional Details</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="experience" className={labelClasses}>Years of Experience *</label>
+                            <select id="experience" name="experience" className={inputClasses}
+                                value={formData.experience} onChange={handleChange} required >
+                                <option value="" className="text-black">Select experience</option>
+                                <option value="1-2" className="text-black">1-2 years</option>
+                                <option value="3-5" className="text-black">3-5 years</option>
+                                <option value="5-10" className="text-black">5-10 years</option>
+                                <option value="10+" className="text-black">10+ years</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label className={labelClasses}>Specializations *</label>
+                            <div className="grid grid-cols-2 gap-[10px] max-[500px]:grid-cols-1">
+                                {specializationsList.map(spec => (
+                                    <label key={spec} className="flex items-center gap-[8px] font-normal cursor-pointer text-[#cccccc] hover:text-[#8A2BE2] transition-colors">
+                                        <input type="checkbox" name="specializations" value={spec}
+                                            checked={formData.specializations.includes(spec)} onChange={handleChange} className="accent-[#8A2BE2]" />
+                                        {spec}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label className="flex items-center gap-[8px] font-normal cursor-pointer text-[#f1f1f1]">
+                                <input type="checkbox" name="termsAgree" checked={formData.termsAgree} onChange={handleChange} required className="accent-[#8A2BE2]" />
+                                <span>I agree to the <a href="/terms" className="text-[#8A2BE2] no-underline hover:underline">terms and conditions</a> *</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" className="w-full p-[12px] bg-[#8A2BE2] text-white border-none rounded font-bold text-[1rem] cursor-pointer transition-all duration-300 hover:bg-[#7B25C9] disabled:opacity-70 disabled:cursor-not-allowed" disabled={loading}>
+                            {loading ? 'Submitting Application...' : 'Apply as Trainer'}
+                        </button>
+
+                        <div className="text-center mt-[20px] text-[#cccccc]">
+                            <p className="mb-2">Already have an account? <Link to="/login" className="text-[#8A2BE2] font-bold ml-[5px] no-underline hover:text-[#7B25C9]">Login here</Link></p>
+                            <p>Want to join as a member? <Link to="/signup/user" className="text-[#8A2BE2] font-bold ml-[5px] no-underline hover:text-[#7B25C9]">Sign up as Member</Link></p>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
+            <Footer />
         </div>
     );
 };

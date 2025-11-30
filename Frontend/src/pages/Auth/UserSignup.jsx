@@ -1,7 +1,8 @@
-// src/pages/Auth/UserSignup.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from './LoginSignup.module.css'; 
+import Modal from './Modal';
+import Header from '../../components/common/Header/Header';
+import Footer from '../../components/common/Footer/Footer';
 
 const UserSignup = () => {
     const [formData, setFormData] = useState({
@@ -26,8 +27,22 @@ const UserSignup = () => {
     });
     const [bmi, setBmi] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    
+    // Modal State
+    const [modal, setModal] = useState({ visible: false, type: '', message: '' });
+    
     const navigate = useNavigate();
+
+    // Modal Handlers
+    const showModal = (type, message) => {
+        setModal({ visible: true, type, message });
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+        setModal({ visible: false, type: '', message: '' });
+        document.body.style.overflow = 'auto';
+    };
 
     // Price configuration
     const priceConfig = {
@@ -42,7 +57,6 @@ const UserSignup = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        setError('');
     };
 
     const calculateBMI = () => {
@@ -67,7 +81,6 @@ const UserSignup = () => {
     };
 
     const validateForm = () => {
-        // Required fields validation
         const requiredFields = [
             'userFullName', 'dateOfBirth', 'gender', 'userEmail', 'phoneNumber',
             'userPassword', 'userConfirmPassword', 'membershipPlan', 'membershipDuration',
@@ -76,76 +89,66 @@ const UserSignup = () => {
 
         for (let field of requiredFields) {
             if (!formData[field]) {
-                setError(`Please fill in all fields`);
+                showModal('error', `Please fill in all fields`);
                 return false;
             }
         }
 
-        // Name validation
         if (!/^[A-Za-z\s]{2,50}$/.test(formData.userFullName)) {
-            setError('Please enter a valid full name (2-50 letters and spaces only)');
+            showModal('error', 'Please enter a valid full name (2-50 letters and spaces only)');
             return false;
         }
 
-        // Email validation
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
-            setError('Please enter a valid email address');
+            showModal('error', 'Please enter a valid email address');
             return false;
         }
 
-        // Password validation
         if (formData.userPassword.length < 3) {
-            setError('Password must be at least 3 characters long');
+            showModal('error', 'Password must be at least 3 characters long');
             return false;
         }
 
-        // Password match
         if (formData.userPassword !== formData.userConfirmPassword) {
-            setError('Passwords do not match');
+            showModal('error', 'Passwords do not match');
             return false;
         }
 
-        // Phone validation
         const cleanedPhone = formData.phoneNumber.replace(/\D/g, '');
         if (!/^\d{10}$/.test(cleanedPhone)) {
-            setError('Please enter a valid 10-digit phone number');
+            showModal('error', 'Please enter a valid 10-digit phone number');
             return false;
         }
 
-        // Card number validation
         const cleanedCard = formData.cardNumber.replace(/\s+/g, '');
         if (!/^\d{16}$/.test(cleanedCard)) {
-            setError('Please enter a valid 16-digit card number');
+            showModal('error', 'Please enter a valid 16-digit card number');
             return false;
         }
 
-        // Expiry date validation
         if (formData.expirationDate) {
             const currentDate = new Date();
             const [year, month] = formData.expirationDate.split('-').map(Number);
             const expiryDate = new Date(year, month - 1);
             
             if (expiryDate < currentDate) {
-                setError('Please enter a valid expiration date that is not in the past');
+                showModal('error', 'Please enter a valid expiration date that is not in the past');
                 return false;
             }
         }
 
-        // Weight validation
         if (isNaN(formData.weight) || formData.weight < 20 || formData.weight > 300) {
-            setError('Please enter a valid weight between 20 and 300 kg');
+            showModal('error', 'Please enter a valid weight between 20 and 300 kg');
             return false;
         }
 
-        // Weight goal validation
         if (isNaN(formData.weightGoal) || formData.weightGoal < 20 || formData.weightGoal > 300) {
-            setError('Please enter a valid weight goal between 20 and 300 kg');
+            showModal('error', 'Please enter a valid weight goal between 20 and 300 kg');
             return false;
         }
 
-        // Terms agreement
         if (!formData.terms) {
-            setError('You must agree to the terms and conditions');
+            showModal('error', 'You must agree to the terms and conditions');
             return false;
         }
 
@@ -155,7 +158,6 @@ const UserSignup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
 
         if (!validateForm()) {
             setLoading(false);
@@ -178,14 +180,16 @@ const UserSignup = () => {
             const data = await response.json();
 
             if (data.message === 'Signup successful') {
-                navigate('/login', { 
-                    state: { message: 'Registration successful! Please login.' } 
-                });
+                showModal('success', 'Registration successful! Welcome to GymRats!');
+                setTimeout(() => {
+                    closeModal();
+                    navigate('/login');
+                }, 1000);
             } else {
-                setError(data.error || 'Registration failed. Please try again.');
+                showModal('error', data.error || 'Registration failed. Please try again.');
             }
         } catch (error) {
-            setError('Network error. Please try again.');
+            showModal('error', 'Network error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -208,345 +212,214 @@ const UserSignup = () => {
                           formData.membershipDuration === '6' ? 25 : 
                           formData.membershipDuration === '12' ? 33 : 0;
 
+    // Shared Tailwind Styles
+    const inputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] focus:border-[#8A2BE2] focus:outline-none transition-colors";
+    const labelClasses = "block mb-[8px] text-[#f1f1f1]";
+    const sectionTitleClasses = "text-[#f1f1f1] text-[1.2rem] mt-[20px] mb-[15px] border-b border-[#333] pb-[5px]";
+
     return (
-        <div className={styles.authContainer}>
-            <div className={styles.authHeader}>
-                <h2>Create Member Account</h2>
-                <p>Join our fitness community today</p>
-            </div>
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            
+            {/* Background Wrapper */}
+            <div className="flex-1 flex justify-center items-center py-[40px] px-[20px] bg-[linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1740&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat">
+                
+                <Modal 
+                    type={modal.type}
+                    message={modal.message}
+                    visible={modal.visible}
+                    onClose={closeModal}
+                />
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <h3>Personal Details</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="userFullName">Full Name *</label>
-                    <input
-                        type="text"
-                        id="userFullName"
-                        name="userFullName"
-                        className={styles.formControl}
-                        value={formData.userFullName}
-                        onChange={handleChange}
-                        placeholder="Enter your full name"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="dateOfBirth">Date of Birth *</label>
-                    <input
-                        type="date"
-                        id="dateOfBirth"
-                        name="dateOfBirth"
-                        className={styles.formControl}
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="gender">Gender *</label>
-                    <select
-                        id="gender"
-                        name="gender"
-                        className={styles.formControl}
-                        value={formData.gender}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="height">Height (cm) *</label>
-                    <input
-                        type="number"
-                        id="height"
-                        name="height"
-                        className={styles.formControl}
-                        value={formData.height}
-                        onChange={(e) => {
-                            handleChange(e);
-                            calculateBMI();
-                        }}
-                        placeholder="Height in cm"
-                        min="50"
-                        max="250"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="weight">Weight (kg) *</label>
-                    <input
-                        type="number"
-                        id="weight"
-                        name="weight"
-                        className={styles.formControl}
-                        value={formData.weight}
-                        onChange={(e) => {
-                            handleChange(e);
-                            calculateBMI();
-                        }}
-                        placeholder="Weight in kg"
-                        min="20"
-                        max="300"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="bmi">BMI</label>
-                    <input
-                        type="text"
-                        id="bmi"
-                        className={styles.formControl}
-                        value={bmi}
-                        readOnly
-                        placeholder="Auto-calculated"
-                    />
-                </div>
-
-                <h3>Fitness Goals</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="workoutType">Preferred Workout Type *</label>
-                    <select
-                        id="workoutType"
-                        name="workoutType"
-                        className={styles.formControl}
-                        value={formData.workoutType}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select workout type</option>
-                        <option value="Calisthenics">Calisthenics</option>
-                        <option value="Weight Loss">Weight Loss</option>
-                        <option value="HIIT">HIIT</option>
-                        <option value="Competitive">Competitive</option>
-                        <option value="Strength Training">Strength Training</option>
-                        <option value="Cardio">Cardio</option>
-                        <option value="Flexibility">Flexibility & Mobility</option>
-                        <option value="Bodybuilding">Bodybuilding</option>
-                    </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="weightGoal">Weight Goal (kg) *</label>
-                    <input
-                        type="number"
-                        id="weightGoal"
-                        name="weightGoal"
-                        className={styles.formControl}
-                        value={formData.weightGoal}
-                        onChange={handleChange}
-                        placeholder="Target weight"
-                        min="20"
-                        max="300"
-                        required
-                    />
-                </div>
-
-                <h3>Contact Information</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="userEmail">Email Address *</label>
-                    <input
-                        type="email"
-                        id="userEmail"
-                        name="userEmail"
-                        className={styles.formControl}
-                        value={formData.userEmail}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="phoneNumber">Phone Number *</label>
-                    <input
-                        type="tel"
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        className={styles.formControl}
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        placeholder="10-digit phone number"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="userPassword">Password *</label>
-                    <input
-                        type="password"
-                        id="userPassword"
-                        name="userPassword"
-                        className={styles.formControl}
-                        value={formData.userPassword}
-                        onChange={handleChange}
-                        placeholder="Create a password"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="userConfirmPassword">Confirm Password *</label>
-                    <input
-                        type="password"
-                        id="userConfirmPassword"
-                        name="userConfirmPassword"
-                        className={styles.formControl}
-                        value={formData.userConfirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                    />
-                </div>
-
-                <h3>Membership Details</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="membershipPlan">Membership Plan *</label>
-                    <select
-                        id="membershipPlan"
-                        name="membershipPlan"
-                        className={styles.formControl}
-                        value={formData.membershipPlan}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select a plan</option>
-                        <option value="basic">Basic Plan</option>
-                        <option value="gold">Gold Plan</option>
-                        <option value="platinum">Platinum Plan</option>
-                    </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="membershipDuration">Duration *</label>
-                    <select
-                        id="membershipDuration"
-                        name="membershipDuration"
-                        className={styles.formControl}
-                        value={formData.membershipDuration}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="1">1 Month</option>
-                        <option value="3">3 Months</option>
-                        <option value="6">6 Months</option>
-                        <option value="12">12 Months</option>
-                    </select>
-                </div>
-
-                {price > 0 && (
-                    <div className={styles.priceDisplay}>
-                        <p className={styles.priceAmount}>₹{price}</p>
-                        {savePercentage > 0 && (
-                            <p className={styles.saveInfo}>Save {savePercentage}%</p>
-                        )}
+                {/* Form Container */}
+                <div className="w-[600px] max-w-full bg-[#111]/95 rounded-[10px] p-[40px] shadow-[0_0_20px_rgba(138,43,226,0.3)] border border-[#8A2BE2] max-[768px]:p-[30px]">
+                    
+                    <div className="text-center mb-[30px]">
+                        <h2 className="text-[2rem] mb-[10px] text-[#f1f1f1] font-bold">Create Member Account</h2>
+                        <p className="text-[#cccccc]">Join our fitness community today</p>
                     </div>
-                )}
 
-                <h3>Payment Information</h3>
-                <div className={styles.formGroup}>
-                    <label htmlFor="cardType">Card Type *</label>
-                    <select
-                        id="cardType"
-                        name="cardType"
-                        className={styles.formControl}
-                        value={formData.cardType}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select card type</option>
-                        <option value="visa">Visa</option>
-                        <option value="mastercard">Mastercard</option>
-                        <option value="amex">American Express</option>
-                    </select>
+                    <form onSubmit={handleSubmit}>
+                        
+                        <h3 className={sectionTitleClasses}>Personal Details</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="userFullName" className={labelClasses}>Full Name *</label>
+                            <input type="text" id="userFullName" name="userFullName" className={inputClasses}
+                                value={formData.userFullName} onChange={handleChange} placeholder="Enter your full name" required />
+                        </div>
+                        
+                        <div className="mb-[20px]">
+                            <label htmlFor="dateOfBirth" className={labelClasses}>Date of Birth *</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" className={`${inputClasses} [color-scheme:dark]`}
+                                value={formData.dateOfBirth} onChange={handleChange} required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="gender" className={labelClasses}>Gender *</label>
+                            <select id="gender" name="gender" className={inputClasses}
+                                value={formData.gender} onChange={handleChange} required >
+                                <option value="" className="text-black">Select</option>
+                                <option value="male" className="text-black">Male</option>
+                                <option value="female" className="text-black">Female</option>
+                                <option value="other" className="text-black">Other</option>
+                            </select>
+                        </div>
+
+                        <div className="flex gap-4 max-[600px]:flex-col">
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="height" className={labelClasses}>Height (cm) *</label>
+                                <input type="number" id="height" name="height" className={inputClasses}
+                                    value={formData.height} onChange={(e) => { handleChange(e); calculateBMI(); }}
+                                    placeholder="Height in cm" min="50" max="250" required />
+                            </div>
+
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="weight" className={labelClasses}>Weight (kg) *</label>
+                                <input type="number" id="weight" name="weight" className={inputClasses}
+                                    value={formData.weight} onChange={(e) => { handleChange(e); calculateBMI(); }}
+                                    placeholder="Weight in kg" min="20" max="300" required />
+                            </div>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="bmi" className={labelClasses}>BMI</label>
+                            <input type="text" id="bmi" className={`${inputClasses} bg-white/5 cursor-not-allowed`} value={bmi} readOnly placeholder="Auto-calculated" />
+                        </div>
+
+                        <h3 className={sectionTitleClasses}>Fitness Goals</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="workoutType" className={labelClasses}>Preferred Workout Type *</label>
+                            <select id="workoutType" name="workoutType" className={inputClasses}
+                                value={formData.workoutType} onChange={handleChange} required >
+                                <option value="" className="text-black">Select workout type</option>
+                                <option value="Calisthenics" className="text-black">Calisthenics</option>
+                                <option value="Weight Loss" className="text-black">Weight Loss</option>
+                                <option value="HIIT" className="text-black">HIIT</option>
+                                <option value="Competitive" className="text-black">Competitive</option>
+                                <option value="Strength Training" className="text-black">Strength Training</option>
+                                <option value="Cardio" className="text-black">Cardio</option>
+                                <option value="Flexibility" className="text-black">Flexibility & Mobility</option>
+                                <option value="Bodybuilding" className="text-black">Bodybuilding</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="weightGoal" className={labelClasses}>Weight Goal (kg) *</label>
+                            <input type="number" id="weightGoal" name="weightGoal" className={inputClasses}
+                                value={formData.weightGoal} onChange={handleChange} placeholder="Target weight" min="20" max="300" required />
+                        </div>
+
+                        <h3 className={sectionTitleClasses}>Contact Information</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="userEmail" className={labelClasses}>Email Address *</label>
+                            <input type="email" id="userEmail" name="userEmail" className={inputClasses}
+                                value={formData.userEmail} onChange={handleChange} placeholder="Enter your email" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="phoneNumber" className={labelClasses}>Phone Number *</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" className={inputClasses}
+                                value={formData.phoneNumber} onChange={handleChange} placeholder="10-digit phone number" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="userPassword" className={labelClasses}>Password *</label>
+                            <input type="password" id="userPassword" name="userPassword" className={inputClasses}
+                                value={formData.userPassword} onChange={handleChange} placeholder="Create a password" required />
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="userConfirmPassword" className={labelClasses}>Confirm Password *</label>
+                            <input type="password" id="userConfirmPassword" name="userConfirmPassword" className={inputClasses}
+                                value={formData.userConfirmPassword} onChange={handleChange} placeholder="Confirm your password" required />
+                        </div>
+
+                        <h3 className={sectionTitleClasses}>Membership Details</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="membershipPlan" className={labelClasses}>Membership Plan *</label>
+                            <select id="membershipPlan" name="membershipPlan" className={inputClasses}
+                                value={formData.membershipPlan} onChange={handleChange} required >
+                                <option value="" className="text-black">Select a plan</option>
+                                <option value="basic" className="text-black">Basic Plan</option>
+                                <option value="gold" className="text-black">Gold Plan</option>
+                                <option value="platinum" className="text-black">Platinum Plan</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="membershipDuration" className={labelClasses}>Duration *</label>
+                            <select id="membershipDuration" name="membershipDuration" className={inputClasses}
+                                value={formData.membershipDuration} onChange={handleChange} required >
+                                <option value="1" className="text-black">1 Month</option>
+                                <option value="3" className="text-black">3 Months</option>
+                                <option value="6" className="text-black">6 Months</option>
+                                <option value="12" className="text-black">12 Months</option>
+                            </select>
+                        </div>
+
+                        {price > 0 && (
+                            <div className="bg-white/10 border border-[#333] rounded p-[15px] text-center mt-[10px] mb-[20px] transition-all hover:bg-white/15 hover:border-[#8A2BE2] hover:shadow-[0_0_10px_rgba(138,43,226,0.2)]">
+                                <p className="text-[1.5rem] font-bold text-[#8A2BE2] m-0 drop-shadow-[0_0_10px_rgba(138,43,226,0.3)] animate-[priceUpdate_0.3s_ease]">₹{price}</p>
+                                {savePercentage > 0 && <p className="text-[0.9rem] m-[5px_0_0_0] text-[#4ecdc4] font-semibold">Save {savePercentage}%</p>}
+                            </div>
+                        )}
+
+                        <h3 className={sectionTitleClasses}>Payment Information</h3>
+                        <div className="mb-[20px]">
+                            <label htmlFor="cardType" className={labelClasses}>Card Type *</label>
+                            <select id="cardType" name="cardType" className={inputClasses}
+                                value={formData.cardType} onChange={handleChange} required >
+                                <option value="" className="text-black">Select card type</option>
+                                <option value="visa" className="text-black">Visa</option>
+                                <option value="mastercard" className="text-black">Mastercard</option>
+                                <option value="amex" className="text-black">American Express</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label htmlFor="cardNumber" className={labelClasses}>Card Number *</label>
+                            <input type="text" id="cardNumber" name="cardNumber" className={inputClasses}
+                                value={formData.cardNumber}
+                                onChange={(e) => {
+                                    const formatted = formatCardNumber(e.target.value);
+                                    setFormData(prev => ({ ...prev, cardNumber: formatted }));
+                                }}
+                                placeholder="1234 5678 9012 3456" maxLength="19" required />
+                        </div>
+
+                        <div className="flex gap-4 max-[600px]:flex-col">
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="expirationDate" className={labelClasses}>Expiration Date *</label>
+                                <input type="month" id="expirationDate" name="expirationDate" className={`${inputClasses} [color-scheme:dark]`}
+                                    value={formData.expirationDate} onChange={handleChange} required />
+                            </div>
+
+                            <div className="mb-[20px] flex-1">
+                                <label htmlFor="cvv" className={labelClasses}>CVV *</label>
+                                <input type="text" id="cvv" name="cvv" className={inputClasses}
+                                    value={formData.cvv} onChange={handleChange} placeholder="123" maxLength="4" required />
+                            </div>
+                        </div>
+
+                        <div className="mb-[20px]">
+                            <label className="flex items-center gap-[8px] font-normal cursor-pointer text-[#f1f1f1]">
+                                <input type="checkbox" name="terms" checked={formData.terms} onChange={handleChange} required className="accent-[#8A2BE2]" />
+                                <span>I agree to the <a href="/terms" className="text-[#8A2BE2] no-underline hover:underline">terms and conditions</a> *</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" className="w-full p-[12px] bg-[#8A2BE2] text-white border-none rounded font-bold text-[1rem] cursor-pointer transition-all duration-300 hover:bg-[#7B25C9] disabled:opacity-70 disabled:cursor-not-allowed" disabled={loading}>
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </button>
+
+                        <div className="text-center mt-[20px] text-[#cccccc]">
+                            <p className="mb-2">Already have an account? <Link to="/login" className="text-[#8A2BE2] font-bold ml-[5px] no-underline hover:text-[#7B25C9]">Login here</Link></p>
+                            <p>Are you a trainer? <Link to="/signup/trainer" className="text-[#8A2BE2] font-bold ml-[5px] no-underline hover:text-[#7B25C9]">Become a Trainer</Link></p>
+                        </div>
+                    </form>
                 </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="cardNumber">Card Number *</label>
-                    <input
-                        type="text"
-                        id="cardNumber"
-                        name="cardNumber"
-                        className={styles.formControl}
-                        value={formData.cardNumber}
-                        onChange={(e) => {
-                            const formatted = formatCardNumber(e.target.value);
-                            setFormData(prev => ({ ...prev, cardNumber: formatted }));
-                        }}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength="19"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="expirationDate">Expiration Date *</label>
-                    <input
-                        type="month"
-                        id="expirationDate"
-                        name="expirationDate"
-                        className={styles.formControl}
-                        value={formData.expirationDate}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="cvv">CVV *</label>
-                    <input
-                        type="text"
-                        id="cvv"
-                        name="cvv"
-                        className={styles.formControl}
-                        value={formData.cvv}
-                        onChange={handleChange}
-                        placeholder="123"
-                        maxLength="4"
-                        required
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label className={styles.checkboxLabel}>
-                        <input
-                            type="checkbox"
-                            name="terms"
-                            checked={formData.terms}
-                            onChange={handleChange}
-                            required
-                        />
-                        I agree to the <a href="/terms" className={styles.termsLink}>terms and conditions</a> *
-                    </label>
-                </div>
-
-                <button 
-                    type="submit" 
-                    className={styles.btn}
-                    disabled={loading}
-                >
-                    {loading ? 'Creating Account...' : 'Create Account'}
-                </button>
-
-                <div className={styles.alternateAction}>
-                    <p>
-                        Already have an account? <Link to="/login">Login here</Link>
-                    </p>
-                    <p>
-                        Are you a trainer? <Link to="/signup/trainer">Become a Trainer</Link>
-                    </p>
-                </div>
-            </form>
+            </div>
+            <Footer />
         </div>
     );
 };

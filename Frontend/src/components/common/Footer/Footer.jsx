@@ -1,48 +1,60 @@
-import styles from './Footer.module.css';
-// import {link} from 'react-router-dom';
+import React from 'react';
 
 const Footer = () => {
+  // Shared classes to keep the JSX clean
+  const linkClasses = "text-[#cccccc] no-underline text-[0.95rem] transition-colors duration-200 hover:text-[#8A2BE2]";
+  const columnClasses = "flex-1 min-w-[200px] mr-[20px] mb-[20px] max-[1016px]:w-full max-[1016px]:mr-0 max-[1016px]:mb-[30px]";
+  const headingClasses = "mb-[20px] text-[1.2rem] font-semibold text-white";
+
   return (
-    <footer className={styles['site-footer']}>
-      <div className={styles['footer-content']}>
-        <div className={styles['footer-column']}>
-          <h3>GymRats</h3>
-          <ul>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/trainers">Our Trainers</a></li>
-            <li><a href="/testimonial">Testimonials</a></li>
-            <li><a href="/blog">Blog</a></li>
+    <footer className="bg-[#0e0e0e] text-white pt-[60px] pb-[40px] px-[20px]">
+      <div className="max-w-[1200px] mx-auto flex justify-between flex-wrap max-[1016px]:flex-col max-[1016px]:px-[20px]">
+        
+        {/* Column 1: GymRats */}
+        <div className={columnClasses}>
+          <h3 className={headingClasses}>GymRats</h3>
+          <ul className="list-none p-0">
+            <li className="mb-[12px]"><a href="/about" className={linkClasses}>About Us</a></li>
+            <li className="mb-[12px]"><a href="/trainers" className={linkClasses}>Our Trainers</a></li>
+            <li className="mb-[12px]"><a href="/testimonial" className={linkClasses}>Testimonials</a></li>
+            <li className="mb-[12px]"><a href="/blog" className={linkClasses}>Blog</a></li>
           </ul>
         </div>
 
-        <div className={styles['footer-column']}>
-          <h3>Resources</h3>
-          <ul>
-            <li><a href="/isolation">Exercise Guide</a></li>
-            <li><a href="/nutrition">Nutrition Tips</a></li>
-            <li><a href="/workout_plans">Workout Plans</a></li>
-            <li><a href="/calculators">Calculators</a></li>
+        {/* Column 2: Resources */}
+        <div className={columnClasses}>
+          <h3 className={headingClasses}>Resources</h3>
+          <ul className="list-none p-0">
+            <li className="mb-[12px]"><a href="/isolation" className={linkClasses}>Exercise Guide</a></li>
+            <li className="mb-[12px]"><a href="/nutrition" className={linkClasses}>Nutrition Tips</a></li>
+            <li className="mb-[12px]"><a href="/workout_plans" className={linkClasses}>Workout Plans</a></li>
+            <li className="mb-[12px]"><a href="/calculators" className={linkClasses}>Calculators</a></li>
           </ul>
         </div>
 
-        <div className={styles['footer-column']}>
-          <h3>Support</h3>
-          <ul>
-            <li><a href="/contact">Contact Us</a></li>
-            <li><a href="/about">About us</a></li>
-            <li><a href="/terms">Terms of Service</a></li>
-            <li><a href="/privacy_policy">Privacy Policy</a></li>
+        {/* Column 3: Support */}
+        <div className={columnClasses}>
+          <h3 className={headingClasses}>Support</h3>
+          <ul className="list-none p-0">
+            <li className="mb-[12px]"><a href="/contact" className={linkClasses}>Contact Us</a></li>
+            <li className="mb-[12px]"><a href="/about" className={linkClasses}>About us</a></li>
+            <li className="mb-[12px]"><a href="/terms" className={linkClasses}>Terms of Service</a></li>
+            <li className="mb-[12px]"><a href="/privacy_policy" className={linkClasses}>Privacy Policy</a></li>
           </ul>
         </div>
 
-        <div className={styles['footer-column']}>
-          <h3>Connect With Us</h3>
-          <ul>
-            <li><a href="/signup/trainer">Become a Trainer</a></li>
+        {/* Column 4: Connect With Us */}
+        <div className={columnClasses}>
+          <h3 className={headingClasses}>Connect With Us</h3>
+          <ul className="list-none p-0">
+            <li className="mb-[12px]"><a href="/signup/trainer" className={linkClasses}>Become a Trainer</a></li>
           </ul>
 
-          <p className={styles.copyright}>GymRats © 2025. All rights reserved.</p>
+          <p className="text-[0.9rem] text-[#999] mt-[10px]">
+            GymRats © 2025. All rights reserved.
+          </p>
         </div>
+
       </div>
     </footer>
   );
