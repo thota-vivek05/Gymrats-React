@@ -21,40 +21,83 @@ const db = new sqlite3.Database(':memory:', (err) => {
 });
 
 // Create admins table and insert static admin data
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS admins (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        full_name TEXT NOT NULL
-    )`);
-
-    // Insert static admin users (passwords are hashed)
-    const adminUsers = [
-        {
-            email: 'admin1@gymrats.com',
-            password: 'Password123',
-            full_name: 'Admin One'
-        },
-        {
-            email: 'admin2@gymrats.com',
-            password: 'Password123',
-            full_name: 'Admin Two'
-        }
-    ];
-
-    adminUsers.forEach(async (admin) => {
-        const hashedPassword = await bcrypt.hash(admin.password, 10);
-        db.run(
-            'INSERT OR IGNORE INTO admins (email, password_hash, full_name) VALUES (?, ?, ?)',
-            [admin.email, hashedPassword, admin.full_name],
-            (err) => {
+const initializeAdminDatabase = async () => {
+    return new Promise((resolve, reject) => {
+        db.serialize(async () => {
+            // Create table
+            db.run(`CREATE TABLE IF NOT EXISTS admins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT NOT NULL
+            )`, (err) => {
                 if (err) {
-                    console.error('Error inserting admin:', err);
+                    console.error('Error creating admins table:', err);
+                    reject(err);
+                    return;
                 }
-            }
-        );
+
+                // Insert static admin users (passwords are hashed)
+                const adminUsers = [
+                    {
+                        email: 'admin1@gymrats.com',
+                        password: 'Password123',
+                        full_name: 'Admin One'
+                    },
+                    {
+                        email: 'admin2@gymrats.com',
+                        password: 'Password123',
+                        full_name: 'Admin Two'
+                    }
+                ];
+
+                // Use a counter to track completion
+                let insertedCount = 0;
+                const totalAdmins = adminUsers.length;
+
+                adminUsers.forEach(async (admin) => {
+                    try {
+                        const hashedPassword = await bcrypt.hash(admin.password, 10);
+                        db.run(
+                            'INSERT OR IGNORE INTO admins (email, password_hash, full_name) VALUES (?, ?, ?)',
+                            [admin.email, hashedPassword, admin.full_name],
+                            function(err) {
+                                if (err) {
+                                    console.error('Error inserting admin:', err);
+                                } else {
+                                    console.log(`Admin '${admin.email}' inserted/verified in database`);
+                                }
+                                
+                                insertedCount++;
+                                if (insertedCount === totalAdmins) {
+                                    // Verify admins are in database
+                                    db.all('SELECT email, full_name FROM admins', (err, rows) => {
+                                        if (err) {
+                                            console.error('Error verifying admins:', err);
+                                        } else {
+                                            console.log('Admins in database:', rows);
+                                        }
+                                        resolve();
+                                    });
+                                }
+                            }
+                        );
+                    } catch (hashError) {
+                        console.error('Error hashing password:', hashError);
+                        insertedCount++;
+                        if (insertedCount === totalAdmins) {
+                            resolve();
+                        }
+                    }
+                });
+            });
+        });
     });
+};
+
+// Initialize database on startup
+initializeAdminDatabase().catch(err => {
+    console.error('Failed to initialize admin database:', err);
 });
 // server end
 
@@ -72,7 +115,6 @@ const adminAuthController = {
     },
 
     // Admin Login Route (POST)
-    // Admin Login Route (POST)
     postAdminLogin: async (req, res) => {
         try {
             const { email, password } = req.body;
@@ -80,6 +122,8 @@ const adminAuthController = {
             if (!email || !password) {
                 return res.status(400).json({ success: false, message: 'Email and password are required' });
             }
+
+            console.log(`Admin login attempt for email: ${email}`);
 
             // Query SQLite database for admin
             db.get(
@@ -92,33 +136,47 @@ const adminAuthController = {
                     }
 
                     if (!admin) {
+                        console.log(`Admin not found with email: ${email}`);
+                        // Return a generic message to avoid revealing which emails exist
                         return res.status(401).json({ success: false, message: 'Invalid email or password' });
                     }
+
+                    console.log(`Admin found: ${admin.email}, attempting password verification`);
 
                     // Compare password
-                    const passwordMatch = await bcrypt.compare(password, admin.password_hash);
+                    try {
+                        const passwordMatch = await bcrypt.compare(password, admin.password_hash);
 
-                    if (!passwordMatch) {
-                        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+                        if (!passwordMatch) {
+                            console.log(`Password mismatch for admin: ${email}`);
+                            return res.status(401).json({ success: false, message: 'Invalid email or password' });
+                        }
+
+                        console.log(`Password match successful for admin: ${email}`);
+
+                        // Store admin in session
+                        req.session.userId = admin.id;
+                        req.session.email = admin.email;
+                        req.session.fullName = admin.full_name;
+                        req.session.user = {
+                            id: admin.id,
+                            name: admin.full_name,
+                            email: admin.email,
+                            role: 'admin'
+                        };
+
+                        console.log(`Admin session created for: ${email}`);
+
+                        // Return success with user data for React Context
+                        return res.json({ 
+                            success: true, 
+                            message: 'Admin login successful', 
+                            user: req.session.user
+                        });
+                    } catch (bcryptError) {
+                        console.error('Error comparing passwords:', bcryptError);
+                        return res.status(500).json({ success: false, message: 'Internal server error during password verification' });
                     }
-
-                    // Store admin in session
-                    req.session.userId = admin.id;
-                    req.session.email = admin.email;
-                    req.session.fullName = admin.full_name;
-                    req.session.user = {
-                        id: admin.id,
-                        name: admin.full_name,
-                        email: admin.email,
-                        role: 'admin'
-                    };
-
-                    // Return success with user data for React Context
-                    return res.json({ 
-                        success: true, 
-                        message: 'Admin login successful', 
-                        user: req.session.user
-                    });
                 }
             );
         } catch (err) {
@@ -627,7 +685,7 @@ const adminController = {
 getMemberships: async (req, res) => {
   try {
     if (!req.session.userId) {
-      return res.redirect('/admin_login');
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
     
     // Get ALL USERS with membership information
@@ -738,46 +796,44 @@ getMemberships: async (req, res) => {
       }
     });
 
-    // console.log('Membership Stats:', {
-    //   totalUsers,
-    //   activeMembers,
-    //   premiumMembers,
-    //   newSignups,
-    //   totalRevenue,
-    //   planStats,
-    //   userCount: users.length
-    // });
+    // Transform users to membership format for frontend
+    const memberships = users.map(user => ({
+      _id: user._id,
+      userName: user.full_name,
+      planType: user.membershipType || 'Basic',
+      startDate: user.membershipDuration?.start_date || user.created_at,
+      endDate: user.membershipDuration?.end_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: user.status,
+      amount: (() => {
+        switch(user.membershipType) {
+          case 'Gold': return 599;
+          case 'Platinum': return 999;
+          default: return 299;
+        }
+      })()
+    }));
 
-    res.render('admin_membership', {
-      pageTitle: 'Membership Management',
-      user: req.session.user || null,
-      memberships: users || [], // Passing users as memberships
+    res.json({
+      success: true,
+      memberships,
       stats: {
-        totalUsers,
-        totalRevenue,
         activeMembers,
-        premiumMembers,
-        newSignups
-      },
-      planStats
+        monthlyRevenue: Math.round(totalRevenue),
+        upcomingRenewals: newSignups,
+        expiringMemberships: premiumMembers
+      }
     });
   } catch (error) {
     console.error('Membership management error:', error);
-    res.render('admin_membership', {
-      pageTitle: 'Membership Management',
-      user: req.session.user || null,
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching memberships',
       memberships: [],
       stats: {
-        totalUsers: 0,
-        totalRevenue: 0,
         activeMembers: 0,
-        premiumMembers: 0,
-        newSignups: 0
-      },
-      planStats: {
-        basic: { active: 0, revenue: 0, retention: 0 },
-        gold: { active: 0, revenue: 0, retention: 0 },
-        platinum: { active: 0, revenue: 0, retention: 0 }
+        monthlyRevenue: 0,
+        upcomingRenewals: 0,
+        expiringMemberships: 0
       }
     });
   }
@@ -868,7 +924,7 @@ getMemberships: async (req, res) => {
 getExercises: async (req, res) => {
     try {
         if (!req.session.userId) {
-            return res.redirect('/admin_login');
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
         
         const exercises = await Exercise.find().sort({ name: 1 });
@@ -898,36 +954,27 @@ getExercises: async (req, res) => {
             ).length;
         });
 
-        res.render('admin_exercises', {
-            pageTitle: 'Exercise Library',
-            user: req.session.user || null,
+        res.json({
+            success: true,
             exercises,
-            muscleGroups: fixedMuscleGroups,
             stats: {
                 totalExercises,
-                verifiedExercises,
-                unverifiedExercises,
-                mostPopular: mostPopular ? mostPopular.name : 'N/A',
-                mostPopularCount: mostPopular ? mostPopular.usageCount : 0,
-                verificationRate: totalExercises > 0 ? Math.round((verifiedExercises / totalExercises) * 100) : 0,
-                totalMuscleGroups: fixedMuscleGroups.length
+                categories: fixedMuscleGroups.length,
+                difficulties: 3,
+                recentUpdates: totalExercises
             }
         });
     } catch (error) {
         console.error('Exercise management error:', error);
-        res.render('admin_exercises', {
-            pageTitle: 'Exercise Library',
-            user: req.session.user || null,
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching exercises',
             exercises: [],
-            muscleGroups: [],
             stats: {
                 totalExercises: 0,
-                verifiedExercises: 0,
-                unverifiedExercises: 0,
-                mostPopular: 'N/A',
-                mostPopularCount: 0,
-                verificationRate: 0,
-                totalMuscleGroups: 0
+                categories: 0,
+                difficulties: 0,
+                recentUpdates: 0
             }
         });
     }

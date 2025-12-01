@@ -11,39 +11,39 @@ const StatCard = ({ label, value, color }) => {
   );
 };
 
-const AdminTrainers = () => {
-  const [trainers, setTrainers] = useState([]);
+const AdminExercises = () => {
+  const [exercises, setExercises] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrainers = async () => {
+    const fetchExercises = async () => {
       try {
-        const response = await fetch('/api/admin/trainers', { 
+        const response = await fetch('/api/admin/exercises', { 
           credentials: 'include' 
         });
         const data = await response.json();
         if (data.success) {
-          setTrainers(data.trainers);
+          setExercises(data.exercises);
           setStats(data.stats);
         }
       } catch (error) {
-        console.error("Error fetching trainers:", error);
+        console.error("Error fetching exercises:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchTrainers();
+    fetchExercises();
   }, []);
 
   const handleDelete = async (id) => {
-    if(!confirm('Delete this trainer?')) return;
+    if(!confirm('Delete this exercise?')) return;
     try {
-      await fetch(`/api/admin/trainers/${id}`, { 
+      await fetch(`/api/admin/exercises/${id}`, { 
         method: 'DELETE', 
         credentials: 'include' 
       });
-      setTrainers(trainers.filter(t => t._id !== id));
+      setExercises(exercises.filter(e => e._id !== id));
     } catch(err) { alert('Failed to delete'); }
   };
 
@@ -53,7 +53,7 @@ const AdminTrainers = () => {
       <div className={styles.mainContent}>
         <div className={styles.loading}>
           <div className={styles.loadingSpinner}></div>
-          <p>Loading Trainers...</p>
+          <p>Loading Exercises...</p>
         </div>
       </div>
     </div>
@@ -66,62 +66,56 @@ const AdminTrainers = () => {
       <main className={styles.mainContent}>
         {/* Page Header */}
         <div className={styles.pageHeader}>
-          <h1>Trainer Management</h1>
-          <button className={styles.addButton}>+ Add Trainer</button>
+          <h1>Exercise Management</h1>
+          <button className={styles.addButton}>+ Add Exercise</button>
         </div>
 
         {/* Stats Row */}
         <div className={styles.statsGrid}>
-          <StatCard label="Total Trainers" value={stats?.totalTrainers || 0} color="blue" />
-          <StatCard label="Pending Approvals" value={stats?.pendingApprovals || 0} color="orange" />
-          <StatCard label="Active Trainers" value={stats?.activeTrainers || 0} color="green" />
-          <StatCard label="Certifications" value={stats?.totalCertifications || 0} color="purple" />
+          <StatCard label="Total Exercises" value={stats?.totalExercises || 0} color="blue" />
+          <StatCard label="By Category" value={stats?.categories || 0} color="green" />
+          <StatCard label="Difficulty Levels" value={stats?.difficulties || 0} color="purple" />
+          <StatCard label="Last Updated" value={stats?.recentUpdates || 0} color="orange" />
         </div>
 
-        {/* Trainers Table */}
+        {/* Exercises Table */}
         <div className={styles.tableContainer}>
-          <h2>Trainer Directory</h2>
+          <h2>Exercise Library</h2>
           
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Specializations</th>
-                  <th>Experience</th>
-                  <th>Status</th>
+                  <th>Category</th>
+                  <th>Difficulty</th>
+                  <th>Muscle Groups</th>
+                  <th>Instructions</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {trainers.length > 0 ? (
-                  trainers.map(t => (
-                    <tr key={t._id}>
-                      <td>{t.name}</td>
+                {exercises.length > 0 ? (
+                  exercises.map(e => (
+                    <tr key={e._id}>
+                      <td>{e.name}</td>
+                      <td>{e.category}</td>
                       <td>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {t.specializations.map((s, i) => (
-                            <span key={i} style={{
-                              backgroundColor: 'rgba(138, 43, 226, 0.2)',
-                              color: '#8A2BE2',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '0.8rem'
-                            }}>{s}</span>
-                          ))}
-                        </div>
-                      </td>
-                      <td>{t.experience} years</td>
-                      <td>
-                        <span className={`${styles.statusBadge} ${t.status === 'Active' ? styles.statusActive : styles.statusInactive}`}>
-                          {t.status}
+                        <span className={`${styles.statusBadge} ${
+                          e.difficulty === 'Easy' ? styles.difficultyEasy : 
+                          e.difficulty === 'Medium' ? styles.difficultyMedium : 
+                          styles.difficultyHard
+                        }`}>
+                          {e.difficulty}
                         </span>
                       </td>
+                      <td>{e.muscleGroups?.join(', ') || 'N/A'}</td>
+                      <td style={{fontSize: '0.8rem'}}>{e.instructions?.substring(0, 50)}...</td>
                       <td>
                         <div className={styles.actionButtons}>
                           <button className={`${styles.actionButton} ${styles.editButton}`}>Edit</button>
                           <button 
-                            onClick={() => handleDelete(t._id)}
+                            onClick={() => handleDelete(e._id)}
                             className={`${styles.actionButton} ${styles.deleteButton}`}
                           >
                             Delete
@@ -132,9 +126,7 @@ const AdminTrainers = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className={styles.emptyState}>
-                      <p>No trainers found.</p>
-                    </td>
+                    <td colSpan="6" className={styles.emptyState}>No exercises found.</td>
                   </tr>
                 )}
               </tbody>
@@ -146,4 +138,4 @@ const AdminTrainers = () => {
   );
 };
 
-export default AdminTrainers;
+export default AdminExercises;
