@@ -1,42 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; 
+import { useParams, useNavigate } from 'react-router-dom';
 
-// Import your existing Dashboard components
-// Note: Assuming these components are now in the src/pages/User/components/ directory
-import DashboardHero from './components/DashboardHero.jsx';
-import OverviewCards from './components/OverviewCards.jsx';
-import TodaysWorkout from './components/TodaysWorkout.jsx';
-import ProgressTracking from './components/ProgressTracking.jsx';
-import NutritionTracking from './components/NutritionTracking.jsx';
-import UpcomingClass from './components/UpcomingClass.jsx';
-
-// --- Reusable Tailwind Layout Components (Simplified for dashboard) ---
-
-const Header = ({ onOpenNav, userName }) => (
-    <div className="bg-gray-900 border-b border-gray-800 shadow-xl fixed top-0 w-full z-40">
-        <header className="flex justify-between items-center max-w-7xl mx-auto p-4 sm:p-5">
-            <Link to="/home" className="text-white text-2xl font-bold transition duration-300 hover:text-indigo-400">
-                GymRats
-            </Link>
-            
-            <div className="flex items-center space-x-4">
-                <span className="text-gray-300 hidden sm:block">Welcome, <span className="font-semibold text-indigo-400">{userName}</span></span>
-                <div className="cursor-pointer" onClick={onOpenNav}>
-                    <i className="fas fa-bars text-indigo-400 text-2xl"></i>
-                </div>
-            </div>
-        </header>
-    </div>
-);
-
-const Footer = () => (
-    <footer className="bg-gray-900 text-white p-4 text-center border-t border-gray-800">
-        <p className="text-sm text-gray-600">GymRats Dashboard &copy; 2025</p>
-    </footer>
-);
-
-// --- Dashboard Component ---
+// Components
+import DashboardHeader from './components/DashboardHeader';
+import DashboardHero from './components/DashboardHero';
+import OverviewCards from './components/OverviewCards';
+import TodaysWorkout from './components/TodaysWorkout';
+import UpcomingClass from './components/UpcomingClass';
+import ProgressTracking from './components/ProgressTracking';
+import NutritionTracking from './components/NutritionTracking';
 
 const UserDashboard = () => {
     // CRUCIAL: Retrieve authentication status and user details
@@ -46,91 +18,221 @@ const UserDashboard = () => {
 
     // 1. Authentication and Redirect Logic 
     useEffect(() => {
-        // If authentication is ready but no user is found, force redirect to login.
-        if (isAuthReady && !user && !loading) {
-            console.log("Authentication failed. Redirecting to login.");
-            navigate('/login');
-        }
-    }, [user, isAuthReady, loading, navigate]);
+        fetchDashboardData();
+    }, [type]);
 
-    const handleLogout = async () => {
+    const fetchDashboardData = async () => {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
         try {
-            await logout();
-            navigate('/home');
+            setLoading(true);
+            setError(null);
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            const [
+                userResponse,
+                workoutResponse,
+                nutritionResponse,
+                statsResponse,
+                progressResponse,
+                classResponse
+            ] = await Promise.all([
+                fetch('/api/user/profile', { headers }),
+                fetch('/api/workout/today', { headers }),
+                fetch('/api/nutrition/today', { headers }),
+                fetch('/api/workout/weekly-stats', { headers }),
+                fetch('/api/exercise/progress', { headers }),
+                fetch('/api/class/upcoming', { headers })
+            ]);
+
+            if (userResponse.status === 401 || workoutResponse.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+                return;
+            }
+
+            const userData = userResponse.ok ? await userResponse.json() : null;
+            const workoutData = workoutResponse.ok ? await workoutResponse.json() : null;
+            const nutritionData = nutritionResponse.ok ? await nutritionResponse.json() : null;
+            const statsData = statsResponse.ok ? await statsResponse.json() : null;
+            const progressData = progressResponse.ok ? await progressResponse.json() : null;
+            const classData = classResponse.ok ? await classResponse.json() : null;
+
+            if (userData && userData.success) {
+                setUser(userData.user);
+            }
+
+            setDashboardData(prev => ({
+                ...prev,
+                todayWorkout: workoutData?.success ? workoutData : prev.todayWorkout,
+                todayNutrition: nutritionData?.success ? nutritionData.todayNutrition : prev.todayNutrition,
+                todaysConsumedFoods: nutritionData?.success ? nutritionData.todaysConsumedFoods : prev.todaysConsumedFoods,
+                weeklyWorkouts: statsData?.success ? statsData.weeklyWorkouts : prev.weeklyWorkouts,
+                exerciseProgress: progressData?.success ? progressData.exerciseProgress : prev.exerciseProgress,
+                upcomingClass: classData?.success ? classData.upcomingClass : prev.upcomingClass
+            }));
+
         } catch (error) {
             console.error("Logout failed:", error);
         }
     };
 
-    const openSidebar = () => setIsSidebarOpen(true);
-    const closeSidebar = () => setIsSidebarOpen(false);
+    const handleExerciseComplete = () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-    // 2. Render Loading State (If auth is loading OR auth is ready but user is null/not yet loaded)
-    if (loading || !isAuthReady || !user) {
+        fetch('/api/workout/today', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setDashboardData(prev => ({
+                        ...prev,
+                        todayWorkout: data
+                    }));
+                }
+            })
+            .catch(console.error);
+    };
+
+    const handleFoodComplete = () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        fetch('/api/nutrition/today', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setDashboardData(prev => ({
+                        ...prev,
+                        todayNutrition: data.todayNutrition,
+                        todaysConsumedFoods: data.todaysConsumedFoods
+                    }));
+                }
+            })
+            .catch(console.error);
+    };
+
+    // --- NEW HELPER FUNCTION FOR ACCESS CONTROL ---
+    const hasAccess = (requiredTier) => {
+        if (!user || !user.membershipType) return false;
+        
+        // Map membership types to levels
+        const plans = {
+            'Basic': 1,
+            'Gold': 2,
+            'Platinum': 3
+        };
+
+        const userTier = plans[user.membershipType] || 0;
+        const requiredLevel = plans[requiredTier] || 0;
+
+        return userTier >= requiredLevel;
+    };
+
+    if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-900">
-                <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500"></div>
-                <p className="ml-4 text-white text-lg">Loading Dashboard...</p>
+            <div className="flex justify-center items-center h-screen bg-black text-[#f1f1f1] text-lg">
+                <div>Loading your dashboard...</div>
             </div>
         );
     }
-    
-    // User is guaranteed to exist here due to the checks above.
-    const userName = user.displayName || user.email?.split('@')[0] || 'User';
+
+    if (error) {
+        return (
+            <div className="flex flex-col justify-center items-center h-screen bg-black text-white gap-4">
+                <div className="text-red-500">{error}</div>
+                <button 
+                    onClick={fetchDashboardData}
+                    className="px-4 py-2 bg-[#8A2BE2] rounded hover:bg-[#7B25C9] transition-colors"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return null;
+    }
 
     return (
-        <div className="bg-gray-900 min-h-screen flex flex-col">
-            {/* Main Header */}
-            <Header onOpenNav={openSidebar} userName={userName} />
-
-            {/* Sidebar/Mobile Menu */}
-            <div 
-                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 shadow-2xl transform transition-transform duration-300 z-50 p-6 ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} md:translate-x-0 md:static md:w-auto md:shadow-none md:bg-transparent`}
-            >
-                <button className="absolute top-4 right-4 text-white text-3xl hover:text-indigo-400 md:hidden" onClick={closeSidebar}>
-                    &times;
-                </button>
-                <div className="flex flex-col space-y-6 pt-12 md:pt-0 text-white">
-                    <h3 className="text-xl font-bold text-indigo-400">Navigation</h3>
-                    <Link to="/userdashboard" onClick={closeSidebar} className="hover:text-indigo-400 transition">Dashboard</Link>
-                    <Link to="/user/nutrition" onClick={closeSidebar} className="hover:text-indigo-400 transition">My Nutrition</Link>
-                    <Link to="/user/exercises" onClick={closeSidebar} className="hover:text-indigo-400 transition">My Workouts</Link>
-                    <Link to="/user/profile" onClick={closeSidebar} className="hover:text-indigo-400 transition">Profile Settings</Link>
-                    
-                    <button 
-                        onClick={handleLogout} 
-                        className="mt-8 bg-red-600 text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition"
-                    >
-                        Logout
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content Area */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow pt-24 pb-8">
+        <div className="min-h-screen bg-black text-gray-100 font-sans">
+            <DashboardHeader user={user} currentPage="dashboard" />
+            
+            <DashboardHero user={user} />
+            
+            <div className="max-w-7xl mx-auto px-5 pb-10">
+                {/* 1. Overview Cards - Visible to ALL */}
+                <OverviewCards 
+                    todayNutrition={dashboardData.todayNutrition}
+                    weeklyWorkouts={dashboardData.weeklyWorkouts}
+                    user={user}
+                />
                 
-                <DashboardHero userName={userName} />
-
-                {/* Main Dashboard Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    {/* 2. Today's Workout - Visible to ALL */}
+                    <TodaysWorkout 
+                        todayWorkout={dashboardData.todayWorkout}
+                        onExerciseComplete={handleExerciseComplete}
+                    />
                     
-                    {/* Left Column (2/3 width on large screens) */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <OverviewCards />
-                        <TodaysWorkout />
-                        <ProgressTracking />
-                    </div>
-
-                    {/* Right Column (1/3 width on large screens) */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <NutritionTracking />
-                        <UpcomingClass />
-                    </div>
-
+                    {/* 3. Upcoming Class - PLATINUM ONLY */}
+                    {hasAccess('Platinum') ? (
+                        <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+                    ) : (
+                        // Placeholder for non-Platinum users
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[300px]">
+                            <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4 text-gray-500 text-2xl">
+                                <i className="fas fa-lock"></i>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-300 mb-2">Live Classes Locked</h3>
+                            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+                                Upgrade to our Platinum plan to access live classes with professional trainers.
+                            </p>
+                        </div>
+                    )}
                 </div>
-            </main>
-
-            <Footer />
+                
+                {/* 4. Progress Tracking - PLATINUM ONLY */}
+                {hasAccess('Platinum') && (
+                    <ProgressTracking 
+                        exerciseProgress={dashboardData.exerciseProgress}
+                        nutritionChartData={dashboardData.nutritionChartData}
+                    />
+                )}
+                
+                {/* 5. Nutrition Tracking - GOLD & PLATINUM ONLY */}
+                {hasAccess('Gold') ? (
+                    <NutritionTracking 
+                        todaysConsumedFoods={dashboardData.todaysConsumedFoods}
+                        todayNutrition={dashboardData.todayNutrition}
+                        user={user}
+                        onFoodComplete={handleFoodComplete}
+                    />
+                ) : (
+                     // Optional: You can remove this 'else' block if you want it to just be invisible
+                     <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-center mt-10">
+                        <h3 className="text-xl font-bold text-gray-300 mb-2">Nutrition Tracking Locked</h3>
+                        <p className="text-sm text-gray-500">
+                            Upgrade to Gold or Platinum to unlock advanced nutrition tracking and meal logs.
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

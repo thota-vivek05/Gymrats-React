@@ -13,29 +13,14 @@ const NutritionTracking = ({ todaysConsumedFoods, todayNutrition, user, onFoodCo
 
             const response = await fetch('/api/nutrition/mark-consumed', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    foodName,
-                    calories,
-                    protein,
-                    carbs,
-                    fats,
-                    day: dayName
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ foodName, calories, protein, carbs, fats, day: dayName })
             });
 
             const data = await response.json();
             if (data.success) {
-                // Add to consumed foods list
                 const newFood = {
-                    name: foodName,
-                    calories,
-                    protein,
-                    carbs,
-                    fats,
-                    consumedAt: new Date()
+                    name: foodName, calories, protein, carbs, fats, consumedAt: new Date()
                 };
                 setConsumedFoods(prev => [newFood, ...prev]);
                 onFoodComplete();
@@ -49,40 +34,34 @@ const NutritionTracking = ({ todaysConsumedFoods, todayNutrition, user, onFoodCo
     };
 
     return (
-        <div className="dashboard-wide-card">
-            <div className="card-header">
-                <h2>Nutrition Tracking</h2>
+        <div className="bg-white/5 border border-white/10 rounded-lg p-5 col-span-full">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-white">Nutrition Tracking</h2>
             </div>
             
             {/* Food Completion Section */}
-            <div className="nutrition-food-completion">
-                <h3>Today's Food Goals</h3>
-                <div className="food-goals-container">
+            <div className="mb-8">
+                <h3 className="text-lg font-medium text-white mb-4">Today's Food Goals</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {todaysConsumedFoods && todaysConsumedFoods.length > 0 ? (
                         todaysConsumedFoods.map((food, index) => (
-                            <div key={index} className="food-goal-item">
-                                <div className="food-info">
-                                    <h4>{food.name}</h4>
-                                    <div className="food-macros">
-                                        <span className="calories">{food.calories} kcal</span>
-                                        <span className="protein">{food.protein}g protein</span>
-                                        {food.carbs && (
-                                            <span className="carbs">{food.carbs}g carbs</span>
-                                        )}
-                                        {food.fats && (
-                                            <span className="fats">{food.fats}g fats</span>
-                                        )}
+                            <div key={index} className="bg-white/5 border border-white/10 rounded-lg p-4 flex flex-col justify-between gap-4">
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-white mb-2">{food.name}</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">{food.calories} kcal</span>
+                                        <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">{food.protein}g protein</span>
+                                        {food.carbs && <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">{food.carbs}g carbs</span>}
+                                        {food.fats && <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">{food.fats}g fats</span>}
                                     </div>
                                 </div>
                                 <button 
-                                    className={`food-complete-btn ${food.consumed ? 'completed' : ''}`}
-                                    onClick={() => markFoodAsConsumed(
-                                        food.name, 
-                                        food.calories, 
-                                        food.protein, 
-                                        food.carbs || 0, 
-                                        food.fats || 0
-                                    )}
+                                    className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                        food.consumed 
+                                            ? 'bg-green-600 cursor-not-allowed opacity-80 text-white' 
+                                            : 'bg-[#8A2BE2] hover:bg-[#7B1FA2] text-white'
+                                    }`}
+                                    onClick={() => markFoodAsConsumed(food.name, food.calories, food.protein, food.carbs || 0, food.fats || 0)}
                                     disabled={food.consumed}
                                 >
                                     {food.consumed ? (
@@ -94,66 +73,69 @@ const NutritionTracking = ({ todaysConsumedFoods, todayNutrition, user, onFoodCo
                             </div>
                         ))
                     ) : (
-                        <p>No food goals set for today. Add some foods to your nutrition plan.</p>
+                        <p className="text-gray-400 col-span-full">No food goals set for today. Add some foods to your nutrition plan.</p>
                     )}
                 </div>
             </div>
 
             {/* Food Log Section */}
-            <div className="nutrition-food-log">
-                <h3>Today's Food Log</h3>
-                <div className="todays-consumption">
-                    <div className="consumption-stats">
-                        <div className="stat">
-                            <span className="label">Calories:</span>
-                            <span className="value">{todayNutrition.calories_consumed || 0}</span>
-                            <span className="goal">/ {user.fitness_goals.calorie_goal}</span>
-                        </div>
-                        <div className="stat">
-                            <span className="label">Protein:</span>
-                            <span className="value">{todayNutrition.protein_consumed || 0}</span>
-                            <span className="goal">/ {user.fitness_goals.protein_goal}g</span>
-                        </div>
+            <div>
+                <h3 className="text-lg font-medium text-white mb-4">Today's Food Log</h3>
+                
+                <div className="flex flex-wrap gap-4 mb-4">
+                    <div className="bg-white/5 p-4 rounded-lg flex items-center gap-2 border border-white/5 flex-1 min-w-[200px]">
+                        <span className="font-bold text-gray-300">Calories:</span>
+                        <span className="text-xl font-bold text-[#8A2BE2]">{todayNutrition.calories_consumed || 0}</span>
+                        <span className="text-sm text-gray-500">/ {user.fitness_goals.calorie_goal}</span>
+                    </div>
+                    <div className="bg-white/5 p-4 rounded-lg flex items-center gap-2 border border-white/5 flex-1 min-w-[200px]">
+                        <span className="font-bold text-gray-300">Protein:</span>
+                        <span className="text-xl font-bold text-[#8A2BE2]">{todayNutrition.protein_consumed || 0}</span>
+                        <span className="text-sm text-gray-500">/ {user.fitness_goals.protein_goal}g</span>
                     </div>
                 </div>
                 
-                <table className="food-log-table">
-                    <thead>
-                        <tr>
-                            <th>Food</th>
-                            <th>Calories</th>
-                            <th>Protein</th>
-                            <th>Carbs</th>
-                            <th>Fats</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {consumedFoods.length > 0 ? (
-                            consumedFoods.map((food, index) => (
-                                <tr key={index} className="consumed-food-item">
-                                    <td>{food.name}</td>
-                                    <td>{food.calories} kcal</td>
-                                    <td>{food.protein}g</td>
-                                    <td>{food.carbs}g</td>
-                                    <td>{food.fats}g</td>
-                                    <td>
-                                        {food.consumedAt ? 
-                                            new Date(food.consumedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
-                                            'Today'
-                                        }
-                                    </td>
-                                    <td><span className="completed-badge">Completed</span></td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="7">No foods consumed today yet</td>
+                <div className="overflow-x-auto rounded-lg border border-white/10 bg-white/5">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr className="bg-white/10 text-gray-100">
+                                <th className="p-3 font-semibold border-b border-white/10">Food</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Calories</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Protein</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Carbs</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Fats</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Time</th>
+                                <th className="p-3 font-semibold border-b border-white/10">Status</th>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="text-gray-300">
+                            {consumedFoods.length > 0 ? (
+                                consumedFoods.map((food, index) => (
+                                    <tr key={index} className="hover:bg-white/5 transition-colors border-b border-white/10 last:border-0">
+                                        <td className="p-3">{food.name}</td>
+                                        <td className="p-3">{food.calories} kcal</td>
+                                        <td className="p-3">{food.protein}g</td>
+                                        <td className="p-3">{food.carbs}g</td>
+                                        <td className="p-3">{food.fats}g</td>
+                                        <td className="p-3">
+                                            {food.consumedAt ? 
+                                                new Date(food.consumedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
+                                                'Today'
+                                            }
+                                        </td>
+                                        <td className="p-3">
+                                            <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">Completed</span>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="p-4 text-center text-gray-500">No foods consumed today yet</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

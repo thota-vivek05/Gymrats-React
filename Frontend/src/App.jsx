@@ -56,27 +56,12 @@ function App() {
             
             {/* 1. Member Routes (User) */}
             <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-               {/* Dashboard Access Routes (All paths redirected to the main UserDashboard component) */}
-               <Route path="/userdashboard_b" element={<UserDashboard />} />
-               <Route path="/userdashboard_g" element={<UserDashboard />} />
-               <Route path="/userdashboard_p" element={<UserDashboard />} />
-               
-               {/* Primary Dashboard Route */}
-               <Route path="/userdashboard" element={<UserDashboard />} /> 
-               
-               {/* User Specific Feature Pages */}
-               <Route 
-                   path="/user/nutrition" 
-                   element={<UserNutritionPage />} 
-               /> 
-               <Route 
-                   path="/user/exercises" 
-                   element={<UserExercisesPage />} 
-               /> 
-               <Route 
-                   path="/user/profile" 
-                   element={<UserProfilePage />} 
-               />
+            {/* <Route path="/userdashboard_b" element={<UserDashboard />} />
+          <Route path="/userdashboard_g" element={<UserDashboard />} /> */}
+          <Route path="/dashboard" element={<UserDashboard />} />
+
+               {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
+               {/* Add pages here like /profile, /workouts */}
             </Route>
 
             {/* 2. Trainer Routes */}
