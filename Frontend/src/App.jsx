@@ -1,72 +1,105 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+
+// Public Pages
 import HomePage from './pages/Home/HomePage';
 import Login from './pages/Auth/Login';
 import UserSignup from './pages/Auth/UserSignup';
 import TrainerSignup from './pages/Auth/TrainerSignup';
-// import UserDashboard from './pages/User/UserDashboard';
+
+// Exercise Page
+import ExercisePage from './pages/Home/related/ExercisePage';
+
+// Nutrition Page (Public)
+import NutritionPage from './pages/Home/related/NutritionPage';
+
+// NEW — About Page
+import AboutPage from './pages/Home/related/AboutPage';
+
+// NEW — Contact Page
+import ContactPage from './pages/Home/related/ContactPage';
+
+// User Dashboard
+import UserDashboard from './pages/User/UserDashboard';
+
+// ⭐ NEW — User Nutrition Page
+import UserNutritionPage from './pages/User/UserNutritionPage';
+
+// Trainer Dashboard
 import TrainerDashboard from './pages/Trainer/TrainerDashboard';
 
-// Proteted Routes
-import ProtectedRoute from './components/common/ProtectedRoute'
-
+// Admin Pages
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
-import AdminLayout from './pages/Admin/components/AdminLayout'; 
+import AdminLayout from './pages/Admin/components/AdminLayout';
 import AdminUsers from './pages/Admin/AdminUsers';
 import AdminTrainers from './pages/Admin/AdminTrainers';
 
-import UserDashboard from './pages/User/UserDashboard';
+// Protected Route
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   return (
     <AuthProvider>
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup/user" element={<UserSignup />} />
-          <Route path="/signup/trainer" element={<TrainerSignup />} />
-          
-          <Route path="/admin/login" element={<AdminLogin />} />
-          
+      <Router>
+        <div className="App">
+          <Routes>
+
+            {/* PUBLIC ROUTES */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup/user" element={<UserSignup />} />
+            <Route path="/signup/trainer" element={<TrainerSignup />} />
+
+            {/* Exercise Page */}
+            <Route path="/isolation" element={<ExercisePage />} />
+            <Route path="/exercises" element={<ExercisePage />} />
+
+            {/* Public Nutrition Page */}
+            <Route path="/nutrition" element={<NutritionPage />} />
+
+            {/* NEW — About Page */}
+            <Route path="/about" element={<AboutPage />} />
+
+            {/* NEW — Contact Page */}
+            <Route path="/contact" element={<ContactPage />} />
+
+            {/* ADMIN LOGIN */}
+            <Route path="/admin/login" element={<AdminLogin />} />
 
 
-          {/* PROTECTED ROUTES - Requires Login */}
-            {/* This wrapper ensures the user is logged in before rendering child routes */}
-            
-            {/* 1. Member Routes */}
+            {/* ========= PROTECTED ROUTES ========= */}
+
+            {/* USER ROUTES */}
             <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-            <Route path="/userdashboard_b" element={<UserDashboard />} />
-          <Route path="/userdashboard_g" element={<UserDashboard />} />
-          <Route path="/userdashboard_p" element={<UserDashboard />} />
+              <Route path="/userdashboard_b" element={<UserDashboard />} />
+              <Route path="/userdashboard_g" element={<UserDashboard />} />
+              <Route path="/userdashboard_p" element={<UserDashboard />} />
 
-               {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
-               {/* Add pages here like /profile, /workouts */}
+              {/* ⭐ User Nutrition Page (Protected) */}
+              <Route path="/user/nutrition" element={<UserNutritionPage />} />
             </Route>
 
-            {/* 2. Trainer Routes */}
+            {/* TRAINER ROUTES */}
             <Route element={<ProtectedRoute allowedRoles={['trainer']} />}>
-               <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
-               {/* Add other trainer pages here */}
+              <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
             </Route>
 
-            {/* 3. Admin Routes */}
+            {/* ADMIN ROUTES */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-             <Route element={<AdminLayout />}>
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+              <Route element={<AdminLayout />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/trainers" element={<AdminTrainers />} />
-                {/* You will add memberships, exercises, verifiers here next */}
+              </Route>
             </Route>
-            </Route>  
 
-        </Routes>
-      </div>
-    </Router>
+          </Routes>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }

@@ -1,0 +1,357 @@
+/* src/pages/Home/related/Nutrition.module.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+.body, * {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+.body {
+    background-color: #000;
+    font-size: 16px;
+    color: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Navigation & Header Styles (Duplicated for standalone component) --- */
+.navbar {
+    background-color: #000;
+    padding: 15px 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header a {
+    text-decoration: none;
+    color: #f1f1f1;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.menu {
+    display: flex;
+    gap: 2rem; 
+}
+
+.badge {
+    color: #f1f1f1;
+    font-size: 1.8rem;
+    font-weight: bold;
+    transition: 0.3s all ease;
+}
+
+.badge:hover {
+    transform: scale(1.1);
+}
+
+.searchBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 5px 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.searchBar i {
+    margin-right: 10px;
+    color: #8A2BE2;
+}
+
+.searchBar input {
+    border: none; 
+    outline: none;
+    background-color: transparent; 
+    padding: 5px;
+    width: 180px;
+    color: #fff;
+    font-size: 0.9rem;
+} 
+
+.menuIcon {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #8A2BE2;
+}
+
+.sideNavbar {
+    width: 0;
+    height: 100%;
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.sideNavbar a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #f1f1f1;
+    display: block;
+    transition: 0.3s;
+}
+
+.sideNavbar .closeBtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+/* --- Main Nutrition Page Styles --- */
+
+.heroSection {
+    background-color: #1e1e3a;
+    padding: 50px 75px;
+    margin: 20px 75px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.heroSection h1 {
+    color: #8A2BE2;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.heroSection p {
+    color: #cccccc;
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.mainContent {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 75px;
+}
+
+.section {
+    background-color: #111;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 40px;
+    border: 1px solid #8A2BE2;
+    box-shadow: 0 4px 10px rgba(138, 43, 226, 0.2);
+}
+
+.section h2 {
+    color: #f1f1f1;
+    font-size: 2rem;
+    border-bottom: 2px solid #8A2BE2;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.articleCard {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    align-items: center;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #1e1e3a;
+    transition: transform 0.3s;
+}
+
+.articleCard:hover {
+    transform: translateY(-5px);
+}
+
+.articleImage {
+    flex: 0 0 250px;
+    height: 180px;
+    border-radius: 6px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid #8A2BE2;
+}
+
+.articleContent {
+    flex: 1;
+}
+
+.articleContent h3 {
+    color: #8A2BE2;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.articleContent p {
+    color: #cccccc;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.readMoreBtn {
+    background-color: #8A2BE2;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+}
+
+.readMoreBtn:hover {
+    background-color: #7B25C9;
+}
+
+.macroContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.macroCard {
+    flex: 1;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #0e0e0e;
+    border: 1px solid #333;
+    text-align: center;
+}
+
+.macroCard h4 {
+    color: #f1f1f1;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.macroCard p {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+
+/* --- Footer Styles (Duplicated for standalone component) --- */
+.siteFooter {
+    background-color: #0e0e0e;
+    color: #ffffff;
+    padding: 60px 20px 40px;
+    margin-top: auto;
+}
+
+.footerContent {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.footerColumn {
+    flex: 1;
+    min-width: 200px;
+    margin: 0 20px 20px 0;
+}
+
+.footerColumn h3 {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.footerColumn ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footerColumn ul li {
+    margin-bottom: 12px;
+}
+
+.footerColumn ul li a {
+    color: #cccccc;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.footerColumn ul li a:hover {
+    color: #8A2BE2;
+}
+
+.copyright {
+    font-size: 0.9rem;
+    color: #999;
+    margin-top: 10px;
+}
+
+/* --- Responsive Styles --- */
+
+@media (max-width: 1024px) {
+    .heroSection, .mainContent {
+        padding: 20px;
+        margin: 20px;
+    }
+    .articleCard {
+        flex-direction: column;
+        text-align: center;
+    }
+    .articleImage {
+        flex: none;
+        width: 100%;
+        height: 200px;
+    }
+    .macroContainer {
+        flex-wrap: wrap;
+    }
+    .macroCard {
+        flex: 1 1 45%; 
+    }
+}
+
+@media (max-width: 768px) {
+    .menuIcon {
+        display: block;
+    }
+    .menu, .searchBar {
+        display: none;
+    }
+    .heroSection h1 {
+        font-size: 2rem;
+    }
+    .mainContent {
+        padding: 0 15px;
+    }
+    .macroCard {
+        flex: 1 1 100%; 
+    }
+    .footerContent {
+        flex-direction: column;
+        align-items: center;
+    }
+    .footerColumn {
+        margin-right: 0;
+        text-align: center;
+    }
+}
