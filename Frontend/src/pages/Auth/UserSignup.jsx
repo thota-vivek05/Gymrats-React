@@ -167,13 +167,29 @@ const UserSignup = () => {
         try {
             const response = await fetch('/api/user/signup', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    ...formData,
+                    userFullName: formData.userFullName,
+                    dateOfBirth: formData.dateOfBirth,
+                    gender: formData.gender,
+                    userEmail: formData.userEmail,
+                    phoneNumber: formData.phoneNumber.replace(/\D/g, ''),
+                    userPassword: formData.userPassword,
+                    userConfirmPassword: formData.userConfirmPassword,
+                    membershipPlan: formData.membershipPlan,
+                    membershipDuration: formData.membershipDuration,
+                    cardType: formData.cardType,
                     cardNumber: formData.cardNumber.replace(/\s+/g, ''),
-                    phoneNumber: formData.phoneNumber.replace(/\D/g, '')
+                    expirationDate: formData.expirationDate,
+                    cvv: formData.cvv,
+                    weight: formData.weight,
+                    height: formData.height,
+                    workoutType: formData.workoutType,
+                    weightGoal: formData.weightGoal,
+                    terms: formData.terms
                 }),
             });
 
@@ -189,6 +205,7 @@ const UserSignup = () => {
                 showModal('error', data.error || 'Registration failed. Please try again.');
             }
         } catch (error) {
+            console.error('Signup error:', error);
             showModal('error', 'Network error. Please try again.');
         } finally {
             setLoading(false);

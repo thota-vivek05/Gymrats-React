@@ -79,7 +79,7 @@ app.use(express.static(path.join(__dirname, '../Frontend/dist')));
 
 // API Routes - Keep these before the React catch-all
 app.use('/api/admin', adminRoutes);
-app.use('/', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/verifier', verifierRoutes);
 app.use('/api/auth', authRoutes);
