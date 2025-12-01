@@ -19,6 +19,7 @@ import AdminTrainers from './pages/Admin/AdminTrainers';
 import AdminVerifications from './pages/Admin/AdminVerifications'; 
 
 import UserDashboard from './pages/User/UserDashboard';
+import UserProfile from './pages/User/UserProfile'; 
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/userdashboard_g" element={<UserDashboard />} /> */}
           <Route path="/dashboard" element={<UserDashboard />} />
 
+            <Route path="/userprofile" element={<UserProfile />} />
                {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
                {/* Add pages here like /profile, /workouts */}
             </Route>
