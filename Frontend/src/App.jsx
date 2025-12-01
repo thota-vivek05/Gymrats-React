@@ -4,6 +4,11 @@ import HomePage from './pages/Home/HomePage';
 import Login from './pages/Auth/Login';
 import UserSignup from './pages/Auth/UserSignup';
 import TrainerSignup from './pages/Auth/TrainerSignup';
+import ExercisePage from "./pages/Home/related/ExercisePage";
+import NutritionPage from "./pages/Home/related/NutritionPage";
+import AboutPage from "./pages/Home/related/AboutPage";
+import ContactPage from "./pages/Home/related/ContactPage";
+
 // import UserDashboard from './pages/User/UserDashboard';
 import TrainerDashboard from './pages/Trainer/TrainerDashboard';
 
@@ -35,7 +40,12 @@ function App() {
           
           <Route path="/admin/login" element={<AdminLogin />} />
           
-
+          {/* Static Info Pages */}
+          <Route path="/isolation" element={<ExercisePage />} />
+          <Route path="/exercises" element={<ExercisePage />} />
+          <Route path="/nutrition" element={<NutritionPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* PROTECTED ROUTES - Requires Login */}
             {/* This wrapper ensures the user is logged in before rendering child routes */}
