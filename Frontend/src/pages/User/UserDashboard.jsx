@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import styles from './UserDashboard.module.css';
 
 // Components
 import DashboardHeader from './components/DashboardHeader';
@@ -40,11 +39,22 @@ const UserDashboard = () => {
     }, [type]);
 
     const fetchDashboardData = async () => {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
 
-            // Fetch all data in parallel
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
             const [
                 userResponse,
                 workoutResponse,
@@ -53,21 +63,21 @@ const UserDashboard = () => {
                 progressResponse,
                 classResponse
             ] = await Promise.all([
-                fetch('/api/user/profile', { credentials: 'include' }),
-                fetch('/api/workout/today', { credentials: 'include' }),
-                fetch('/api/nutrition/today', { credentials: 'include' }),
-                fetch('/api/workout/weekly-stats', { credentials: 'include' }),
-                fetch('/api/exercise/progress', { credentials: 'include' }),
-                fetch('/api/class/upcoming', { credentials: 'include' })
+                fetch('/api/user/profile', { headers }),
+                fetch('/api/workout/today', { headers }),
+                fetch('/api/nutrition/today', { headers }),
+                fetch('/api/workout/weekly-stats', { headers }),
+                fetch('/api/exercise/progress', { headers }),
+                fetch('/api/class/upcoming', { headers })
             ]);
 
-            // Check for authentication errors
             if (userResponse.status === 401 || workoutResponse.status === 401) {
-                navigate('/login_signup?form=login');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
                 return;
             }
 
-            // Process responses
             const userData = userResponse.ok ? await userResponse.json() : null;
             const workoutData = workoutResponse.ok ? await workoutResponse.json() : null;
             const nutritionData = nutritionResponse.ok ? await nutritionResponse.json() : null;
@@ -79,7 +89,6 @@ const UserDashboard = () => {
                 setUser(userData.user);
             }
 
-            // Update dashboard data
             setDashboardData(prev => ({
                 ...prev,
                 todayWorkout: workoutData?.success ? workoutData : prev.todayWorkout,
@@ -99,8 +108,12 @@ const UserDashboard = () => {
     };
 
     const handleExerciseComplete = () => {
-        // Refresh workout data
-        fetch('/api/workout/today', { credentials: 'include' })
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        fetch('/api/workout/today', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -114,8 +127,12 @@ const UserDashboard = () => {
     };
 
     const handleFoodComplete = () => {
-        // Refresh nutrition data
-        fetch('/api/nutrition/today', { credentials: 'include' })
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        fetch('/api/nutrition/today', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -131,43 +148,44 @@ const UserDashboard = () => {
 
     if (loading) {
         return (
-            <div className="user-dashboard">
-                <div className="loading">Loading your dashboard...</div>
+            <div className="flex justify-center items-center h-screen bg-black text-[#f1f1f1] text-lg">
+                <div>Loading your dashboard...</div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="user-dashboard">
-                <div className="error">{error}</div>
-                <button onClick={fetchDashboardData}>Retry</button>
+            <div className="flex flex-col justify-center items-center h-screen bg-black text-white gap-4">
+                <div className="text-red-500">{error}</div>
+                <button 
+                    onClick={fetchDashboardData}
+                    className="px-4 py-2 bg-[#8A2BE2] rounded hover:bg-[#7B25C9] transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
 
     if (!user) {
-        return (
-            <div className="user-dashboard">
-                <div className="error">Please log in to view dashboard</div>
-            </div>
-        );
+        return null;
     }
 
     return (
-        <div className="user-dashboard">
+        <div className="min-h-screen bg-black text-gray-100 font-sans">
             <DashboardHeader user={user} currentPage="dashboard" />
             
             <DashboardHero user={user} />
             
-            <div className="dashboard-container">
+            <div className="max-w-7xl mx-auto px-5 pb-10">
                 <OverviewCards 
                     todayNutrition={dashboardData.todayNutrition}
                     weeklyWorkouts={dashboardData.weeklyWorkouts}
                     user={user}
                 />
                 
-                <div className="dashboard-grid">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                     <TodaysWorkout 
                         todayWorkout={dashboardData.todayWorkout}
                         onExerciseComplete={handleExerciseComplete}

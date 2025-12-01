@@ -81,7 +81,7 @@ app.use('/uploads', express.static('uploads'));
 
 // ========== API ROUTES (MUST COME FIRST) ==========
 app.use('/api/admin', adminRoutes);
-app.use('/api/user', userRoutes);
+app.use('/', userRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/verifier', verifierRoutes);
 app.use('/api/auth', authRoutes);
@@ -165,4 +165,4 @@ app.listen(PORT, () => {
 // // In your React components
 // fetch('/api/user/profile')
 //   .then(response => response.json())
-//   .then(data => console.log(data));
+//   .then(data => console.log(data));  

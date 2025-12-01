@@ -39,9 +39,9 @@ function App() {
             
             {/* 1. Member Routes */}
             <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-            <Route path="/userdashboard_b" element={<UserDashboard />} />
-          <Route path="/userdashboard_g" element={<UserDashboard />} />
-          <Route path="/userdashboard_p" element={<UserDashboard />} />
+            {/* <Route path="/userdashboard_b" element={<UserDashboard />} />
+          <Route path="/userdashboard_g" element={<UserDashboard />} /> */}
+          <Route path="/dashboard" element={<UserDashboard />} />
 
                {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
                {/* Add pages here like /profile, /workouts */}

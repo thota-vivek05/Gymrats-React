@@ -12,11 +12,11 @@ const Trainer = require('../model/Trainer');
 const checkMembershipActive = async (req, res, next) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session.user) {
+        if (!req.user) {
             return next();
         }
 
-        const user = await User.findById(req.session.user.id);
+        const user = await User.findById(req.user.id);
         if (user && !user.isMembershipActive()) {
             // Redirect to renewal page if membership expired
             return res.redirect('/membership/renewal');
@@ -32,11 +32,11 @@ const checkMembershipActive = async (req, res, next) => {
 const checkTrainerSubscription = async (req, res, next) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session.trainer) {
+        if (!req.trainer) {
             return next();
         }
 
-        const trainer = await Trainer.findById(req.session.trainer.id);
+        const trainer = await Trainer.findById(req.trainer.id);
         if (trainer && trainer.subscription.months_remaining === 0) {
             return res.redirect('/trainer/subscription/renewal');
         }
@@ -51,11 +51,11 @@ const checkTrainerSubscription = async (req, res, next) => {
 const getUserProfile = async (req, res) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             //  console.log('No user session found');
             return res.redirect('/login_signup?form=login');
         }
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         //  console.log('Fetching user profile data for:', userId);
         
@@ -67,7 +67,7 @@ const getUserProfile = async (req, res) => {
             //  console.log('User not found:', userId);
             return res.status(404).json({ error: 'User not found' });
         }
-        req.session.user.membershipDuration = {
+        req.user.membershipDuration = {
             months_remaining: user.membershipDuration.months_remaining,
             end_date: user.membershipDuration.end_date,
             auto_renew: user.membershipDuration.auto_renew
@@ -297,12 +297,12 @@ const getUserProfile = async (req, res) => {
 //         //     return res.status(400).json({ error: 'Selected membership plan does not match user membership' });
 //         // }
 //         // brimstone
-//         if (!req.session) {
+//         if (!req) {
 //             console.error('Session middleware not initialized');
 //             return res.status(500).json({ error: 'Session not available. Please try again later.' });
 //         }
 
-//         req.session.user = {
+//         req.user = {
 //             id: user._id,
 //             email: user.email,
 //             full_name: user.full_name,
@@ -529,11 +529,11 @@ const signupUser = async (req, res) => {
         await newUser.save();
         //  console.log('User saved to MongoDB:', userEmail);
 
-        if (!req.session) {
+        if (!req) {
             console.error('Session middleware not initialized');
             //  console.log('Proceeding without session for user:', userEmail);
         } else {
-            req.session.user = {
+            req.user = {
                 id: newUser._id,
                 email: newUser.email,
                 full_name: newUser.full_name,
@@ -565,14 +565,14 @@ const markExerciseCompleted = async (req, res) => {
     try {
         //  console.log('🔍=== MARK EXERCISE COMPLETED START ===');
         //  console.log('Request body:', req.body);
-        //  console.log('Session user:', req.session.user);
+        //  console.log('Session user:', req.user);
         
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             //  console.log('❌ No user session');
             return res.status(401).json({ error: 'Please log in to complete the exercise' });
         }
 
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { workoutPlanId, exerciseName } = req.body;
 
         //  console.log('📝 Processing:', { workoutPlanId, exerciseName, userId });
@@ -695,14 +695,14 @@ const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 const changeMembership = async (req, res) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             return res.status(401).json({
                 success: false,
                 message: 'Authentication required'
             });
         }
 
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { newMembershipType, duration, amount, cardLastFour } = req.body;
 
         //  console.log('Changing membership for user:', userId, 'Data:', req.body);
@@ -790,9 +790,9 @@ const changeMembership = async (req, res) => {
         ]);
 
         // Update session
-        req.session.user.membershipType = newMembershipType;
-        req.session.user.membership = newMembershipType.toLowerCase();
-        req.session.user.membershipDuration = {
+        req.user.membershipType = newMembershipType;
+        req.user.membership = newMembershipType.toLowerCase();
+        req.user.membershipDuration = {
             months_remaining: newMonthsRemaining,
             end_date: newEndDate,
             auto_renew: user.membershipDuration.auto_renew
@@ -833,14 +833,14 @@ const changeMembership = async (req, res) => {
 const updateUserProfile = async (req, res) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             return res.status(401).json({
                 success: false,
                 message: 'Authentication required'
             });
         }
 
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { full_name, email, phone, dob, height, weight } = req.body;
 
         //  console.log('Updating profile for user:', userId, 'Data:', req.body);
@@ -923,8 +923,8 @@ const updateUserProfile = async (req, res) => {
         }
 
         // Update session data
-        req.session.user = {
-            ...req.session.user,
+        req.user = {
+            ...req.user,
             full_name: updatedUser.full_name,
             email: updatedUser.email,
             phone: updatedUser.phone,
@@ -977,11 +977,11 @@ const updateUserProfile = async (req, res) => {
 const getUserDashboard = async (req, res, membershipCode) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             return res.redirect('/login_signup?form=login');
         }
 
-        const userId = req.session.user.id;
+        const userId = req.user.id;
 
         // ✅ PERMANENT FIX: Use local time consistently
         const today = new Date();
@@ -1438,12 +1438,12 @@ try {
 const completeWorkout = async (req, res) => {
 // ... (omitted for brevity)
     try {
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             //  console.log('No user session found');
             return res.status(401).json({ error: 'Please log in to complete the workout' });
         }
 
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { workoutPlanId } = req.body; // This is WorkoutHistory _id
 
         if (!workoutPlanId) {
@@ -1485,11 +1485,11 @@ const markWorkoutCompleted = async (req, res) => {
     try {
         const { workoutId } = req.body;
         
-        if (!req.session || !req.session.user) {
+        if (!req.user) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
         
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
