@@ -4,9 +4,9 @@ import HomePage from './pages/Home/HomePage';
 import Login from './pages/Auth/Login';
 import UserSignup from './pages/Auth/UserSignup';
 import TrainerSignup from './pages/Auth/TrainerSignup';
-// import UserDashboard from './pages/User/UserDashboard';
 import TrainerDashboard from './pages/Trainer/TrainerDashboard';
-import UserDashboard from './pages/User/UserDashboard';  
+import UserDashboard from './pages/User/UserDashboard';
+
 // Proteted Routes
 import ProtectedRoute from './components/common/ProtectedRoute'
 
@@ -19,8 +19,6 @@ import AdminMemberships from './pages/Admin/AdminMemberships';
 import AdminExercises from './pages/Admin/AdminExercises';
 import AdminVerifiers from './pages/Admin/AdminVerifiers';
 import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
-
-import UserDashboard from './pages/User/UserDashboard';
 
 import EditWorkoutPlan from './pages/Trainer/EditWorkoutPlan.jsx';
 import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
