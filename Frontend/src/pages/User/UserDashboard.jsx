@@ -180,6 +180,7 @@ const UserDashboard = () => {
                 <OverviewCards 
                     todayNutrition={dashboardData.todayNutrition}
                     weeklyWorkouts={dashboardData.weeklyWorkouts}
+                    todayWorkout={dashboardData.todayWorkout} // <--- ADD THIS LINE
                     user={user}
                 />
                 
@@ -237,4 +238,4 @@ const UserDashboard = () => {
     );
 };
 
-export default UserDashboard;
+export default UserDashboard; 
