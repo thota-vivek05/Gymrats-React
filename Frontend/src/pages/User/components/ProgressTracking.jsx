@@ -8,7 +8,6 @@ const ProgressTracking = ({ exerciseProgress, nutritionChartData }) => {
 
     useEffect(() => {
         if (chartRef.current && exerciseProgress.length > 0) {
-            // Destroy previous chart instance
             if (chartInstance.current) {
                 chartInstance.current.destroy();
             }
@@ -36,27 +35,12 @@ const ProgressTracking = ({ exerciseProgress, nutritionChartData }) => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: { color: '#f1f1f1' }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Exercise Progress Over Time',
-                            color: '#f1f1f1',
-                            font: { size: 16 }
-                        }
+                        legend: { position: 'top', labels: { color: '#f1f1f1' } },
+                        title: { display: true, text: 'Exercise Progress Over Time', color: '#f1f1f1', font: { size: 16 } }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#f1f1f1' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        },
-                        x: {
-                            ticks: { color: '#f1f1f1' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        }
+                        y: { beginAtZero: true, ticks: { color: '#f1f1f1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        x: { ticks: { color: '#f1f1f1' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
                     }
                 }
             });
@@ -70,19 +54,17 @@ const ProgressTracking = ({ exerciseProgress, nutritionChartData }) => {
     }, [exerciseProgress]);
 
     return (
-        <div className="dashboard-wide-card">
-            <div className="card-header">
-                <h2>Progress Tracking</h2>
-                <div className="card-actions">
-                    <select id="exerciseSelect" className="select-dropdown">
+        <div className="bg-white/5 border border-white/10 rounded-lg p-5 mb-10 col-span-full">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 className="text-xl font-semibold text-white">Progress Tracking</h2>
+                <div className="flex gap-3 w-full md:w-auto">
+                    <select id="exerciseSelect" className="bg-[#222] text-[#f1f1f1] py-2 px-3 border border-gray-700 rounded text-sm focus:border-[#8A2BE2] outline-none flex-1 md:flex-none min-w-[120px]">
                         <option value="all">All Exercises</option>
                         {exerciseProgress.map(exercise => (
-                            <option key={exercise.name} value={exercise.name}>
-                                {exercise.name}
-                            </option>
+                            <option key={exercise.name} value={exercise.name}>{exercise.name}</option>
                         ))}
                     </select>
-                    <select id="timeframeSelect" className="select-dropdown">
+                    <select id="timeframeSelect" className="bg-[#222] text-[#f1f1f1] py-2 px-3 border border-gray-700 rounded text-sm focus:border-[#8A2BE2] outline-none flex-1 md:flex-none min-w-[120px]">
                         <option value="month">Last Month</option>
                         <option value="3months">Last 3 Months</option>
                         <option value="6months">Last 6 Months</option>
@@ -91,28 +73,28 @@ const ProgressTracking = ({ exerciseProgress, nutritionChartData }) => {
                 </div>
             </div>
 
-            <div className="stats-content">
-                <div className="stats-container">
+            <div className="flex flex-col gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                     {exerciseProgress.map(exercise => (
-                        <div key={exercise.name} className="stat-item">
-                            <div className="stat-label">{exercise.name}</div>
-                            <div className="stat-progress">
-                                <div className="progress-bar">
+                        <div key={exercise.name} className="bg-white/5 border border-white/5 p-4 rounded-lg">
+                            <div className="font-bold text-gray-300 mb-2">{exercise.name}</div>
+                            <div className="w-full">
+                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden mb-2">
                                     <div 
-                                        className="progress" 
+                                        className="h-full bg-[#8A2BE2] transition-all duration-500" 
                                         style={{ width: `${exercise.progress}%` }}
                                     ></div>
                                 </div>
-                                <div className="stat-values">
-                                    <span className="current-value">{exercise.currentWeight} kg</span>
-                                    <span className="goal-value">{exercise.goalWeight} kg goal</span>
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-white font-bold">{exercise.currentWeight} kg</span>
+                                    <span className="text-gray-400">{exercise.goalWeight} kg goal</span>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="chart-container">
+                <div className="w-full h-[300px] relative">
                     <canvas ref={chartRef} id="exerciseChart"></canvas>
                 </div>
             </div>

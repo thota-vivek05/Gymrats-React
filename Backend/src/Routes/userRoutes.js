@@ -5,15 +5,19 @@ const membershipController = require('../controllers/membershipController');
 const NutritionHistory = require('../model/NutritionHistory');
 const WorkoutHistory = require('../model/WorkoutHistory');
 const User = require('../model/User');
+// IMPORT THE JWT MIDDLEWARE
+const { protect } = require('../middleware/authMiddleware');
 
-const isAuthenticated = (req, res, next) => {
-    if (req.session && req.session.user) {
-        return next();
-    }
-    res.status(401).json({ error: 'Authentication required' });
-};
+// const isAuthenticated = (req, res, next) => {
+//     if (req && req.session.user) {
+//         return next();
+//     }
+//     res.status(401).json({ error: 'Authentication required' });
+// };
+
 
 // Existing EJS routes (keep these for now)
+
 router.get('/login_signup', (req, res) => {
     res.render('login_signup', { form: req.query.form || 'login' });
 });
@@ -26,9 +30,10 @@ router.get('/userdashboard_:type', userController.checkMembershipActive, (req, r
 // ========== NEW JSON API ENDPOINTS FOR REACT ==========
 
 // Get user profile data
-router.get('/api/user/profile', isAuthenticated, async (req, res) => {
+router.get('/api/user/profile', protect, async (req, res) => {
     try {
-        const user = await User.findById(req.session.user.id)
+        // req.user is set by the protect middleware
+        const user = await User.findById(req.user._id)
             .populate('trainer', 'name email specializations experience')
             .select('-password_hash');
         
@@ -36,9 +41,10 @@ router.get('/api/user/profile', isAuthenticated, async (req, res) => {
             success: true,
             user: {
                 ...user.toObject(),
-                // Add session data
-                membershipType: req.session.user.membershipType,
-                membershipDuration: req.session.user.membershipDuration
+                // With JWT, we might not have session data readily available. 
+                // We typically pull this from the User DB object directly.
+                membershipType: user.membershipType,
+                membershipDuration: user.membershipDuration
             }
         });
     } catch (error) {
@@ -48,9 +54,9 @@ router.get('/api/user/profile', isAuthenticated, async (req, res) => {
 });
 
 // Get today's workout data
-router.get('/api/workout/today', isAuthenticated, async (req, res) => {
+router.get('/api/workout/today', protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user._id; // Updated from session
         const todayWorkoutData = await userController.getTodaysWorkout(userId);
         
         res.json({
@@ -64,9 +70,9 @@ router.get('/api/workout/today', isAuthenticated, async (req, res) => {
 });
 
 // Get today's nutrition data
-router.get('/api/nutrition/today', isAuthenticated, async (req, res) => {
+router.get('/api/nutrition/today', protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const todaysConsumedFoods = await userController.getTodaysFoods(userId);
         
         // Get user for goals
@@ -122,9 +128,9 @@ router.get('/api/nutrition/today', isAuthenticated, async (req, res) => {
 });
 
 // Get weekly workout stats
-router.get('/api/workout/weekly-stats', isAuthenticated, async (req, res) => {
+router.get('/api/workout/weekly-stats', protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -158,9 +164,9 @@ router.get('/api/workout/weekly-stats', isAuthenticated, async (req, res) => {
 });
 
 // Get exercise progress data
-router.get('/api/exercise/progress', isAuthenticated, async (req, res) => {
+router.get('/api/exercise/progress', protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         // Get all workout history to find max weights
         const allWorkouts = await WorkoutHistory.find({ userId: userId });
@@ -228,9 +234,9 @@ router.get('/api/exercise/progress', isAuthenticated, async (req, res) => {
 });
 
 // Get upcoming class
-router.get('/api/class/upcoming', isAuthenticated, async (req, res) => {
+router.get('/api/class/upcoming', protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const user = await User.findById(userId).populate('class_schedules.trainerId', 'name');
         
         const upcomingClass = user.class_schedules && user.class_schedules.length > 0
@@ -269,7 +275,7 @@ router.post('/signup', userController.signupUser);
 router.get('/profile', userController.getUserProfile);
 router.post('/complete-workout', userController.completeWorkout);
 router.post('/api/workout/complete', userController.markWorkoutCompleted);
-router.post('/api/exercise/complete', userController.checkMembershipActive, isAuthenticated, userController.markExerciseCompleted);
+router.post('/api/exercise/complete', userController.checkMembershipActive, protect, userController.markExerciseCompleted);
 
 // Debug routes
 router.get('/api/debug/workout/:id', async (req, res) => {
@@ -288,9 +294,9 @@ router.get('/api/debug/workout/:id', async (req, res) => {
     }
 });
 
-router.get('/api/debug/workouts', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/debug/workouts', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const workouts = await WorkoutHistory.find({ userId: userId });
         
         const today = new Date();
@@ -320,29 +326,29 @@ router.get('/api/debug/workouts', userController.checkMembershipActive, isAuthen
 router.post('/membership/extend', membershipController.extendMembership);
 router.get('/membership/status', membershipController.getMembershipStatus);
 router.post('/membership/auto-renew', membershipController.toggleAutoRenew);
-router.post('/user/membership/change', isAuthenticated, userController.changeMembership);
-router.get('/membership_renewal', isAuthenticated, (req, res) => {
+router.post('/user/membership/change', protect, userController.changeMembership);
+router.get('/membership_renewal', protect, (req, res) => {
     res.render('membership_renewal', { 
-        user: req.session.user 
+        user: req.user 
     });
 });
 
 // Page routes
-router.get('/user_nutrition', userController.checkMembershipActive, isAuthenticated, (req, res) => {
+router.get('/user_nutrition', userController.checkMembershipActive, protect, (req, res) => {
     res.render('user_nutrition', { 
-        user: req.session.user,
+        user: req.user,
         currentPage: 'nutrition'
     });
 });
 
-router.get('/user_exercises', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/user_exercises', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const User = require('../model/User');
-        const user = await User.findById(req.session.user.id);
+        const user = await User.findById(req.user.id);
         
         res.render('user_exercises', { 
             user: {
-                ...req.session.user,
+                ...req.user,
                 workout_type: user?.workout_type
             },
             currentPage: 'exercises'
@@ -350,7 +356,7 @@ router.get('/user_exercises', userController.checkMembershipActive, isAuthentica
     } catch (error) {
         console.error('Error loading exercises page:', error);
         res.render('user_exercises', { 
-            user: req.session.user,
+            user: req.user,
             currentPage: 'exercises'
         });
     }
@@ -361,9 +367,9 @@ const Exercise = require('../model/Exercise');
 const UserExerciseRating = require('../model/UserExerciseRating');
 
 // Get exercises based on user's workout type
-router.get('/api/exercises', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const User = require('../model/User');
         const user = await User.findById(userId);
         
@@ -406,9 +412,9 @@ router.get('/api/exercises', userController.checkMembershipActive, isAuthenticat
 });
 
 // Rate an exercise
-router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { exerciseId } = req.params;
         const { rating, effectiveness, notes } = req.body;
         
@@ -477,9 +483,9 @@ router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipAct
 // Get recommended exercises based on user ratings
 // Get recommended exercises based on user ratings - FIXED VERSION
 // Get recommended exercises based on user ratings
-router.get('/api/exercises/recommended', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/recommended', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const User = require('../model/User');
         const user = await User.findById(userId);
         const userWorkoutType = user?.workout_type;
@@ -582,9 +588,9 @@ router.get('/api/exercises/recommended', userController.checkMembershipActive, i
 });
 
 // Get exercise details
-router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { exerciseId } = req.params;
         
         const exercise = await Exercise.findById(exerciseId);
@@ -623,11 +629,11 @@ router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, i
 });
 
 // Add this route for debugging
-router.get('/api/debug/exercises-test', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/debug/exercises-test', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         //  console.log('=== DEBUG EXERCISES API ===');
         
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         //  console.log('User ID:', userId);
         
         const User = require('../model/User');
@@ -661,10 +667,10 @@ router.get('/api/debug/exercises-test', userController.checkMembershipActive, is
 });
 
 // Search exercises
-router.get('/api/exercises/search', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/search', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const { query } = req.query;
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         if (!query || query.trim() === '') {
             return res.json({ success: true, exercises: [] });
@@ -714,14 +720,14 @@ router.get('/api/exercises/search', userController.checkMembershipActive, isAuth
     }
 });
 // Add this route to userRoutes.js
-router.put('/user/profile/update', isAuthenticated, userController.updateUserProfile);
+router.put('/user/profile/update', protect, userController.updateUserProfile);
 
 
 // Nutrition mark consumed
-router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const { foodName, calories, protein, carbs, fats, day } = req.body;
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -801,6 +807,6 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
 });
 
 // Update profile
-router.put('/user/profile/update', isAuthenticated, userController.updateUserProfile);
+router.put('/user/profile/update', protect, userController.updateUserProfile);
 
 module.exports = router;

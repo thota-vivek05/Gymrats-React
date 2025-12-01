@@ -63,10 +63,12 @@ const Login = () => {
                 // Delay navigation to let user see the modal
                 setTimeout(() => {
                     closeModal();
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
+                    if (data.user.role === 'trainer') {
+                        navigate('/trainer/dashboard');
+                    } else if (data.user.role === 'admin') {
+                        navigate('/admin/dashboard');
                     } else {
-                        navigate(data.user.role === 'user' ? '/dashboard' : '/trainer/dashboard');
+                        navigate('/dashboard'); // This now matches the route in App.jsx
                     }
                 }, 1000);
             } else {
