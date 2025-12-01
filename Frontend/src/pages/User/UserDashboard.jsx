@@ -1,193 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import styles from './UserDashboard.module.css';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; 
 
-// Components
-import DashboardHeader from './components/DashboardHeader';
-import DashboardHero from './components/DashboardHero';
-import OverviewCards from './components/OverviewCards';
-import TodaysWorkout from './components/TodaysWorkout';
-import UpcomingClass from './components/UpcomingClass';
-import ProgressTracking from './components/ProgressTracking';
-import NutritionTracking from './components/NutritionTracking';
+// Import your existing Dashboard components
+// Note: Assuming these components are now in the src/pages/User/components/ directory
+import DashboardHero from './components/DashboardHero.jsx';
+import OverviewCards from './components/OverviewCards.jsx';
+import TodaysWorkout from './components/TodaysWorkout.jsx';
+import ProgressTracking from './components/ProgressTracking.jsx';
+import NutritionTracking from './components/NutritionTracking.jsx';
+import UpcomingClass from './components/UpcomingClass.jsx';
+
+// --- Reusable Tailwind Layout Components (Simplified for dashboard) ---
+
+const Header = ({ onOpenNav, userName }) => (
+    <div className="bg-gray-900 border-b border-gray-800 shadow-xl fixed top-0 w-full z-40">
+        <header className="flex justify-between items-center max-w-7xl mx-auto p-4 sm:p-5">
+            <Link to="/home" className="text-white text-2xl font-bold transition duration-300 hover:text-indigo-400">
+                GymRats
+            </Link>
+            
+            <div className="flex items-center space-x-4">
+                <span className="text-gray-300 hidden sm:block">Welcome, <span className="font-semibold text-indigo-400">{userName}</span></span>
+                <div className="cursor-pointer" onClick={onOpenNav}>
+                    <i className="fas fa-bars text-indigo-400 text-2xl"></i>
+                </div>
+            </div>
+        </header>
+    </div>
+);
+
+const Footer = () => (
+    <footer className="bg-gray-900 text-white p-4 text-center border-t border-gray-800">
+        <p className="text-sm text-gray-600">GymRats Dashboard &copy; 2025</p>
+    </footer>
+);
+
+// --- Dashboard Component ---
 
 const UserDashboard = () => {
-    const { type } = useParams();
+    // CRUCIAL: Retrieve authentication status and user details
+    const { user, loading, logout, isAuthReady } = useAuth();
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
-    const [dashboardData, setDashboardData] = useState({
-        todayNutrition: { calories_consumed: 0, protein_consumed: 0, calorie_goal: 2200, protein_goal: 90 },
-        weeklyWorkouts: { completed: 0, total: 0 },
-        todayWorkout: { 
-            name: 'No Workout Scheduled',
-            exercises: [], 
-            progress: 0,
-            completedExercises: 0,
-            totalExercises: 0,
-            duration: 0,
-            workoutPlanId: null
-        },
-        exerciseProgress: [],
-        upcomingClass: null,
-        todaysConsumedFoods: [],
-        nutritionChartData: { labels: [], calories: [], protein: [] }
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    // 1. Authentication and Redirect Logic 
     useEffect(() => {
-        fetchDashboardData();
-    }, [type]);
+        // If authentication is ready but no user is found, force redirect to login.
+        if (isAuthReady && !user && !loading) {
+            console.log("Authentication failed. Redirecting to login.");
+            navigate('/login');
+        }
+    }, [user, isAuthReady, loading, navigate]);
 
-    const fetchDashboardData = async () => {
+    const handleLogout = async () => {
         try {
-            setLoading(true);
-            setError(null);
-
-            // Fetch all data in parallel
-            const [
-                userResponse,
-                workoutResponse,
-                nutritionResponse,
-                statsResponse,
-                progressResponse,
-                classResponse
-            ] = await Promise.all([
-                fetch('/api/user/profile', { credentials: 'include' }),
-                fetch('/api/workout/today', { credentials: 'include' }),
-                fetch('/api/nutrition/today', { credentials: 'include' }),
-                fetch('/api/workout/weekly-stats', { credentials: 'include' }),
-                fetch('/api/exercise/progress', { credentials: 'include' }),
-                fetch('/api/class/upcoming', { credentials: 'include' })
-            ]);
-
-            // Check for authentication errors
-            if (userResponse.status === 401 || workoutResponse.status === 401) {
-                navigate('/login_signup?form=login');
-                return;
-            }
-
-            // Process responses
-            const userData = userResponse.ok ? await userResponse.json() : null;
-            const workoutData = workoutResponse.ok ? await workoutResponse.json() : null;
-            const nutritionData = nutritionResponse.ok ? await nutritionResponse.json() : null;
-            const statsData = statsResponse.ok ? await statsResponse.json() : null;
-            const progressData = progressResponse.ok ? await progressResponse.json() : null;
-            const classData = classResponse.ok ? await classResponse.json() : null;
-
-            if (userData && userData.success) {
-                setUser(userData.user);
-            }
-
-            // Update dashboard data
-            setDashboardData(prev => ({
-                ...prev,
-                todayWorkout: workoutData?.success ? workoutData : prev.todayWorkout,
-                todayNutrition: nutritionData?.success ? nutritionData.todayNutrition : prev.todayNutrition,
-                todaysConsumedFoods: nutritionData?.success ? nutritionData.todaysConsumedFoods : prev.todaysConsumedFoods,
-                weeklyWorkouts: statsData?.success ? statsData.weeklyWorkouts : prev.weeklyWorkouts,
-                exerciseProgress: progressData?.success ? progressData.exerciseProgress : prev.exerciseProgress,
-                upcomingClass: classData?.success ? classData.upcomingClass : prev.upcomingClass
-            }));
-
+            await logout();
+            navigate('/home');
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            setError('Failed to load dashboard data');
-        } finally {
-            setLoading(false);
+            console.error("Logout failed:", error);
         }
     };
 
-    const handleExerciseComplete = () => {
-        // Refresh workout data
-        fetch('/api/workout/today', { credentials: 'include' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setDashboardData(prev => ({
-                        ...prev,
-                        todayWorkout: data
-                    }));
-                }
-            })
-            .catch(console.error);
-    };
+    const openSidebar = () => setIsSidebarOpen(true);
+    const closeSidebar = () => setIsSidebarOpen(false);
 
-    const handleFoodComplete = () => {
-        // Refresh nutrition data
-        fetch('/api/nutrition/today', { credentials: 'include' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    setDashboardData(prev => ({
-                        ...prev,
-                        todayNutrition: data.todayNutrition,
-                        todaysConsumedFoods: data.todaysConsumedFoods
-                    }));
-                }
-            })
-            .catch(console.error);
-    };
-
-    if (loading) {
+    // 2. Render Loading State (If auth is loading OR auth is ready but user is null/not yet loaded)
+    if (loading || !isAuthReady || !user) {
         return (
-            <div className="user-dashboard">
-                <div className="loading">Loading your dashboard...</div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500"></div>
+                <p className="ml-4 text-white text-lg">Loading Dashboard...</p>
             </div>
         );
     }
-
-    if (error) {
-        return (
-            <div className="user-dashboard">
-                <div className="error">{error}</div>
-                <button onClick={fetchDashboardData}>Retry</button>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return (
-            <div className="user-dashboard">
-                <div className="error">Please log in to view dashboard</div>
-            </div>
-        );
-    }
+    
+    // User is guaranteed to exist here due to the checks above.
+    const userName = user.displayName || user.email?.split('@')[0] || 'User';
 
     return (
-        <div className="user-dashboard">
-            <DashboardHeader user={user} currentPage="dashboard" />
-            
-            <DashboardHero user={user} />
-            
-            <div className="dashboard-container">
-                <OverviewCards 
-                    todayNutrition={dashboardData.todayNutrition}
-                    weeklyWorkouts={dashboardData.weeklyWorkouts}
-                    user={user}
-                />
-                
-                <div className="dashboard-grid">
-                    <TodaysWorkout 
-                        todayWorkout={dashboardData.todayWorkout}
-                        onExerciseComplete={handleExerciseComplete}
-                    />
+        <div className="bg-gray-900 min-h-screen flex flex-col">
+            {/* Main Header */}
+            <Header onOpenNav={openSidebar} userName={userName} />
+
+            {/* Sidebar/Mobile Menu */}
+            <div 
+                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 shadow-2xl transform transition-transform duration-300 z-50 p-6 ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} md:translate-x-0 md:static md:w-auto md:shadow-none md:bg-transparent`}
+            >
+                <button className="absolute top-4 right-4 text-white text-3xl hover:text-indigo-400 md:hidden" onClick={closeSidebar}>
+                    &times;
+                </button>
+                <div className="flex flex-col space-y-6 pt-12 md:pt-0 text-white">
+                    <h3 className="text-xl font-bold text-indigo-400">Navigation</h3>
+                    <Link to="/userdashboard" onClick={closeSidebar} className="hover:text-indigo-400 transition">Dashboard</Link>
+                    <Link to="/user/nutrition" onClick={closeSidebar} className="hover:text-indigo-400 transition">My Nutrition</Link>
+                    <Link to="/user/exercises" onClick={closeSidebar} className="hover:text-indigo-400 transition">My Workouts</Link>
+                    <Link to="/user/profile" onClick={closeSidebar} className="hover:text-indigo-400 transition">Profile Settings</Link>
                     
-                    <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+                    <button 
+                        onClick={handleLogout} 
+                        className="mt-8 bg-red-600 text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition"
+                    >
+                        Logout
+                    </button>
                 </div>
-                
-                <ProgressTracking 
-                    exerciseProgress={dashboardData.exerciseProgress}
-                    nutritionChartData={dashboardData.nutritionChartData}
-                />
-                
-                <NutritionTracking 
-                    todaysConsumedFoods={dashboardData.todaysConsumedFoods}
-                    todayNutrition={dashboardData.todayNutrition}
-                    user={user}
-                    onFoodComplete={handleFoodComplete}
-                />
             </div>
+
+            {/* Main Content Area */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow pt-24 pb-8">
+                
+                <DashboardHero userName={userName} />
+
+                {/* Main Dashboard Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* Left Column (2/3 width on large screens) */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <OverviewCards />
+                        <TodaysWorkout />
+                        <ProgressTracking />
+                    </div>
+
+                    {/* Right Column (1/3 width on large screens) */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <NutritionTracking />
+                        <UpcomingClass />
+                    </div>
+
+                </div>
+            </main>
+
+            <Footer />
         </div>
     );
 };
