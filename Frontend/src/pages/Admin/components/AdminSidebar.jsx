@@ -8,7 +8,7 @@ const AdminSidebar = () => {
     { name: 'Trainers', path: '/admin/trainers', icon: '💪' },
     { name: 'Memberships', path: '/admin/memberships', icon: '💳' },
     { name: 'Exercises', path: '/admin/exercises', icon: '🏋️' },
-    { name: 'Verifiers', path: '/admin/verifiers', icon: '✅' },
+    { name: 'Verify', path: '/admin/verifiers', icon: '✅' },
   ];
 
   return (

@@ -2,16 +2,18 @@ import React, { useEffect, useState } from 'react';
 import AdminSidebar from './components/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import styles from './AdminDashboard.module.css';
+import styles from './AdminPages.module.css';
 
 // Simple card component for stats
-const StatCard = ({ title, value, change, color = "blue" }) => (
+const StatCard = ({ label, value, change, color = "blue" }) => (
   <div className={styles.statCard}>
-    <h3>{title}</h3>
+    <h3>{label}</h3>
     <div className={styles.statValue}>{value}</div>
-    <div className={change.includes('+') ? styles.statChange : `${styles.statChange} ${styles.negative}`}>
-      {change}
-    </div>
+    {change && (
+      <div className={change.includes('+') ? styles.statChange : `${styles.statChange} ${styles.negative}`}>
+        {change}
+      </div>
+    )}
   </div>
 );
 
@@ -104,105 +106,156 @@ const AdminDashboard = () => {
       <AdminSidebar />
       
       <main className={styles.mainContent}>
-        {/* Welcome Message */}
-        <div className={styles.welcomeMessage}>
-          <div className={styles.welcomeText}>
-            <h2>Dashboard Overview</h2>
-            <p>Welcome to the Admin Panel</p>
-          </div>
-          <div className={styles.userProfile}>
-            <div className={styles.userAvatar}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
-            </div>
-            <div className={styles.userName}>
-              <p>{user?.name || 'Admin'}</p>
-              <small style={{ color: '#999' }}>Administrator</small>
-            </div>
-          </div>
+        {/* Page Header */}
+        <div className={styles.pageHeader}>
+          <h1>Dashboard Overview</h1>
+          <p style={{color: '#999', fontSize: '0.9rem'}}>Welcome to the Admin Panel</p>
         </div>
 
         {/* Stats Grid */}
         <div className={styles.statsGrid}>
           <StatCard 
-            title="Total Users" 
-            value={data.stats.totalUsers} 
-            change={data.stats.totalUsersChange} 
+            label="Total Users" 
+            value={data.stats.totalUsers}
           />
           <StatCard 
-            title="Active Members" 
-            value={data.stats.activeMembers} 
-            change={data.stats.activeChange} 
+            label="Active Members" 
+            value={data.stats.activeMembers}
           />
           <StatCard 
-            title="Total Revenue" 
-            value={`₹${data.stats.totalRevenue}`} 
-            change={data.stats.monthlyChange} 
+            label="Total Revenue" 
+            value={`₹${data.stats.totalRevenue}`}
           />
           <StatCard 
-            title="New Signups" 
-            value={data.stats.newSignups} 
-            change={data.stats.newSignupsChange} 
+            label="New Signups" 
+            value={data.stats.newSignups}
+          />
+          <StatCard 
+            label="Personal Trainers" 
+            value={data.stats.personalTrainers}
+          />
+          <StatCard 
+            label="Content Verifiers" 
+            value={data.stats.contentVerifiers}
           />
         </div>
 
-        {/* Tables Container */}
-        <div className={styles.tablesContainer}>
-          
-          {/* Recent Users */}
-          <div className={styles.tableSection}>
-            <h2>Recent Users</h2>
+        {/* Recent Users Table */}
+        <div className={styles.tableContainer}>
+          <h2>Recent Users</h2>
+          <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Email</th>
                   <th>Status</th>
-                  <th>Plan</th>
+                  <th>Plan Type</th>
                 </tr>
               </thead>
               <tbody>
-                {data.users.map((u, i) => (
-                  <tr key={i}>
-                    <td>{u.full_name}</td>
-                    <td>
-                      <span className={`${styles.statusBadge} ${u.status === 'Active' ? styles.statusActive : styles.statusInactive}`}>
-                        {u.status}
-                      </span>
-                    </td>
-                    <td>{u.membershipType}</td>
+                {data.users && data.users.length > 0 ? (
+                  data.users.map((u) => (
+                    <tr key={u._id}>
+                      <td>{u.full_name}</td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${
+                          u.status === 'Active' ? styles.statusApproved :
+                          u.status === 'Inactive' ? styles.statusRejected :
+                          styles.statusPending
+                        }`}>
+                          {u.status}
+                        </span>
+                      </td>
+                      <td>{u.membershipType}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className={styles.emptyState}>No users found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Recent Trainers */}
-          <div className={styles.tableSection}>
-            <h2>New Trainers</h2>
+        {/* Recent Trainers Table */}
+        <div className={styles.tableContainer}>
+          <h2>Recent Trainers</h2>
+          <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Email</th>
                   <th>Experience</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {data.trainers.map((t, i) => (
-                  <tr key={i}>
-                    <td>{t.name}</td>
-                    <td>{t.experience}y</td>
-                    <td>
-                      <span className={`${styles.statusBadge} ${styles.statusPending}`}>
-                        {t.status}
-                      </span>
-                    </td>
+                {data.trainers && data.trainers.length > 0 ? (
+                  data.trainers.map((t) => (
+                    <tr key={t.name}>
+                      <td>{t.name}</td>
+                      <td>{t.email}</td>
+                      <td>{t.experience}</td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${
+                          t.status === 'Active' ? styles.statusApproved :
+                          styles.statusPending
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className={styles.emptyState}>No trainers found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-
         </div>
+
+        {/* Recent Verifiers Table */}
+        <div className={styles.tableContainer}>
+          <h2>Recent Verifiers</h2>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.verifiers && data.verifiers.length > 0 ? (
+                  data.verifiers.map((v) => (
+                    <tr key={v.name}>
+                      <td>{v.name}</td>
+                      <td>{v.email || 'N/A'}</td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${styles.statusApproved}`}>
+                          Verified
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className={styles.emptyState}>No verifiers found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </main>
     </div>
   );

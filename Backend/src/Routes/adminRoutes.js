@@ -41,16 +41,17 @@ router.get('/api/trainers/stats', adminController.getTrainerStats);
 router.post('/trainers', adminController.createTrainer);
 router.put('/trainers/:id', adminController.updateTrainer);
 router.delete('/trainers/:id', adminController.deleteTrainer);
-// Add this route in adminRoutes.js - after the existing trainer routes
-// router.get('/api/trainers', adminController.searchTrainers);
 
+// Trainer Applications Routes
+router.get('/trainer-applications', adminController.getTrainerApplications);
+router.put('/trainer-applications/:id/approve', adminController.approveTrainerApplication);
+router.put('/trainer-applications/:id/reject', adminController.rejectTrainerApplication);
 
 // Membership Routes
 router.get('/memberships', adminController.getMemberships);
 router.post('/memberships', adminController.createMembership);
 router.put('/memberships/:id', adminController.updateMembership);
 router.delete('/memberships/:id', adminController.deleteMembership);
-
 
 // Exercise Routes
 router.get('/exercises', adminController.getExercises);
@@ -60,16 +61,12 @@ router.delete('/exercises/:id', adminController.deleteExercise);
 router.get('/api/exercises', adminController.searchExercises);
 
 // Verifier Routes
-router.get('/verifier', adminController.getVerifiers);
-// router.get('/verifier', adminController.getVerifierPage);
-// Add this before your routes in adminRoutes.js or server.js
-router.get('/verifier_form', (req, res) => {
-    res.render('verifier_form'); // You might need to create this view
-});
-router.post('/verifier', adminController.createVerifier);
-router.put('/verifier/:id', adminController.updateVerifier);
-router.delete('/verifier/:id', adminController.deleteVerifier);
-
+router.get('/verifiers', adminController.getVerifiers);
+router.post('/verifiers', adminController.createVerifier);
+router.put('/verifiers/:id', adminController.updateVerifier);
+router.delete('/verifiers/:id', adminController.deleteVerifier);
+router.put('/verifiers/:id/approve', adminController.approveVerifier);
+router.put('/verifiers/:id/reject', adminController.rejectVerifier);
 
 // Debug route to check data
 router.get('/debug/trainer-stats', async (req, res) => {
@@ -77,29 +74,29 @@ router.get('/debug/trainer-stats', async (req, res) => {
         const Membership = require('../model/Membership');
         const Trainer = require('../model/Trainer');
         const TrainerApplication = require('../model/TrainerApplication');
-        
+
         const activeMemberships = await Membership.find({ status: 'Active' });
         const trainers = await Trainer.find({});
         const pendingApps = await TrainerApplication.countDocuments({ status: 'Pending' });
-        
+
         let revenue = 0;
         const allSpecializations = new Set();
-        
+
         activeMemberships.forEach(membership => {
             let monthlyPrice = 0;
-            switch(membership.plan) {
+            switch (membership.plan) {
                 case 'basic': monthlyPrice = 299; break;
                 case 'gold': monthlyPrice = 599; break;
                 case 'platinum': monthlyPrice = 999; break;
                 default: monthlyPrice = 0;
             }
-            
+
             const currentDate = new Date();
             const endDate = new Date(membership.end_date);
-            
+
             if (endDate > currentDate) {
-                const monthsDiff = (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                 (endDate.getMonth() - currentDate.getMonth());
+                const monthsDiff = (endDate.getFullYear() - currentDate.getFullYear()) * 12 +
+                    (endDate.getMonth() - currentDate.getMonth());
                 const remainingMonths = Math.max(1, monthsDiff);
                 revenue += monthlyPrice * remainingMonths;
             }

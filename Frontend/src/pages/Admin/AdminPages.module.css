@@ -87,6 +87,16 @@
   font-weight: bold;
 }
 
+.statChange {
+  color: #90ee90;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.statChange.negative {
+  color: #ff6b6b;
+}
+
 /* Table Container */
 .tableContainer {
   background-color: #111;
