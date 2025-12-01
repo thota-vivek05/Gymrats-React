@@ -20,6 +20,10 @@ import AdminExercises from './pages/Admin/AdminExercises';
 import AdminVerifiers from './pages/Admin/AdminVerifiers';
 import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
 
+import UserDashboard from './pages/User/UserDashboard';
+
+import EditWorkoutPlan from './pages/Trainer/EditWorkoutPlan.jsx';
+import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
 
 function App() {
   return (
@@ -50,11 +54,26 @@ function App() {
                {/* Add pages here like /profile, /workouts */}
             </Route>
 
-          {/* 2. Trainer Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['trainer']} />}>
-             <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
-             {/* Add other trainer pages here */}
-          </Route>
+            {/* 2. Trainer Routes */}
+            {/* 2. Trainer Routes */}
+<Route element={<ProtectedRoute allowedRoles={['trainer']} />}>
+    {/* Update path from "/trainer/dashboard" to "/trainer" */}
+    <Route path="/trainer" element={<TrainerDashboard />} />
+
+               {/* 2b. Edit Workout Plan Route */}
+                <Route 
+                    path="/trainer/workout/edit/:clientId" 
+                    element={<EditWorkoutPlan />} 
+                />
+
+                {/* 2c. Edit Nutrition Plan Route */}
+                <Route 
+                    path="/trainer/nutrition/edit/:clientId" 
+                    element={<EditNutritionPlan />} 
+                />
+                
+                {/* Add other trainer pages here */}
+            </Route>
 
           {/* 3. Admin Routes - Protected */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
