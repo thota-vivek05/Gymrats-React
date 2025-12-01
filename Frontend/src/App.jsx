@@ -38,12 +38,17 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* PROTECTED ROUTES - Requires Login */}
-          
-          {/* 1. User Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-             {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
-             {/* Add pages here like /profile, /workouts */}
-          </Route>
+            {/* This wrapper ensures the user is logged in before rendering child routes */}
+            
+            {/* 1. Member Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['user']} />}>
+            {/* <Route path="/userdashboard_b" element={<UserDashboard />} />
+          <Route path="/userdashboard_g" element={<UserDashboard />} /> */}
+          <Route path="/dashboard" element={<UserDashboard />} />
+
+               {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
+               {/* Add pages here like /profile, /workouts */}
+            </Route>
 
           {/* 2. Trainer Routes */}
           <Route element={<ProtectedRoute allowedRoles={['trainer']} />}>

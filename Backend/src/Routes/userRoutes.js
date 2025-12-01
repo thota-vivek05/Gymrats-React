@@ -7,13 +7,20 @@ const membershipController = require('../controllers/membershipController'); // 
 
 // Add this import at the top with other imports
 const NutritionHistory = require('../model/NutritionHistory');
+const WorkoutHistory = require('../model/WorkoutHistory');
+const User = require('../model/User');
+// IMPORT THE JWT MIDDLEWARE
+const { protect } = require('../middleware/authMiddleware');
 
-const isAuthenticated = (req, res, next) => {
-    if (req.session && req.session.user) {
-        return next();
-    }
-    res.redirect('/login_signup?form=login');
-};
+// const isAuthenticated = (req, res, next) => {
+//     if (req && req.session.user) {
+//         return next();
+//     }
+//     res.status(401).json({ error: 'Authentication required' });
+// };
+
+
+// Existing EJS routes (keep these for now)
 
 router.get('/login_signup', (req, res) => {
     res.render('login_signup', { form: req.query.form || 'login' });
@@ -26,6 +33,246 @@ router.get('/userdashboard_:type', userController.checkMembershipActive, (req, r
     userController.getUserDashboard(req, res, dashboardType);
 });
 
+// ========== NEW JSON API ENDPOINTS FOR REACT ==========
+
+// Get user profile data
+router.get('/api/user/profile', protect, async (req, res) => {
+    try {
+        // req.user is set by the protect middleware
+        const user = await User.findById(req.user._id)
+            .populate('trainer', 'name email specializations experience')
+            .select('-password_hash');
+        
+        res.json({
+            success: true,
+            user: {
+                ...user.toObject(),
+                // With JWT, we might not have session data readily available. 
+                // We typically pull this from the User DB object directly.
+                membershipType: user.membershipType,
+                membershipDuration: user.membershipDuration
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get today's workout data
+router.get('/api/workout/today', protect, async (req, res) => {
+    try {
+        const userId = req.user._id; // Updated from session
+        const todayWorkoutData = await userController.getTodaysWorkout(userId);
+        
+        res.json({
+            success: true,
+            ...todayWorkoutData
+        });
+    } catch (error) {
+        console.error('Error fetching today workout:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get today's nutrition data
+router.get('/api/nutrition/today', protect, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const todaysConsumedFoods = await userController.getTodaysFoods(userId);
+        
+        // Get user for goals
+        const user = await User.findById(userId);
+        
+        // Calculate today's nutrition from weekly plan
+        const today = new Date();
+        const weekStart = new Date(today);
+        const dayOfWeek = today.getDay();
+        weekStart.setDate(today.getDate() - dayOfWeek);
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+        
+        const weeklyNutrition = await NutritionHistory.findOne({
+            userId: userId,
+            date: { $gte: weekStart, $lt: weekEnd }
+        });
+        
+        let todayNutrition = { 
+            calories_consumed: 0, 
+            protein_consumed: 0,
+            calorie_goal: user.fitness_goals.calorie_goal,
+            protein_goal: user.fitness_goals.protein_goal,
+            macros: { protein: 0, carbs: 0, fats: 0 }
+        };
+        
+        if (weeklyNutrition) {
+            const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today.getDay()];
+            const todayData = weeklyNutrition.daily_nutrition[todayDayName];
+            
+            if (todayData) {
+                todayNutrition = {
+                    calories_consumed: todayData.calories_consumed || 0,
+                    protein_consumed: todayData.protein_consumed || 0,
+                    calorie_goal: weeklyNutrition.calorie_goal || user.fitness_goals.calorie_goal,
+                    protein_goal: weeklyNutrition.protein_goal || user.fitness_goals.protein_goal,
+                    macros: todayData.macros || { protein: 0, carbs: 0, fats: 0 }
+                };
+            }
+        }
+        
+        res.json({
+            success: true,
+            todayNutrition,
+            todaysConsumedFoods
+        });
+    } catch (error) {
+        console.error('Error fetching today nutrition:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get weekly workout stats
+router.get('/api/workout/weekly-stats', protect, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const dayOfWeek = today.getDay();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - dayOfWeek);
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+        
+        const weeklyWorkoutHistory = await WorkoutHistory.find({
+            userId: userId,
+            date: { $gte: weekStart, $lt: weekEnd }
+        });
+        
+        const workoutsCompleted = weeklyWorkoutHistory.filter(w => w.completed).length;
+        const workoutsTotal = weeklyWorkoutHistory.length;
+        
+        res.json({
+            success: true,
+            weeklyWorkouts: {
+                completed: workoutsCompleted,
+                total: workoutsTotal
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching weekly stats:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get exercise progress data
+router.get('/api/exercise/progress', protect, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Get all workout history to find max weights
+        const allWorkouts = await WorkoutHistory.find({ userId: userId });
+        
+        const exerciseMaxWeights = {
+            'Bench Press': 0,
+            'Squat': 0,
+            'Deadlift': 0
+        };
+        
+        allWorkouts.forEach(workout => {
+            if (workout.exercises && workout.exercises.length > 0) {
+                workout.exercises.forEach(exercise => {
+                    const exerciseName = exercise.name.toLowerCase();
+                    const weight = exercise.weight || 0;
+                    
+                    if (exerciseName.includes('bench') || exerciseName.includes('press')) {
+                        if (weight > exerciseMaxWeights['Bench Press']) {
+                            exerciseMaxWeights['Bench Press'] = weight;
+                        }
+                    }
+                    else if (exerciseName.includes('squat')) {
+                        if (weight > exerciseMaxWeights['Squat']) {
+                            exerciseMaxWeights['Squat'] = weight;
+                        }
+                    }
+                    else if (exerciseName.includes('deadlift')) {
+                        if (weight > exerciseMaxWeights['Deadlift']) {
+                            exerciseMaxWeights['Deadlift'] = weight;
+                        }
+                    }
+                });
+            }
+        });
+        
+        const exerciseProgress = [
+            { 
+                name: 'Bench Press', 
+                progress: exerciseMaxWeights['Bench Press'] > 0 ? Math.round((exerciseMaxWeights['Bench Press'] / 100) * 100) : 0, 
+                currentWeight: exerciseMaxWeights['Bench Press'], 
+                goalWeight: 100 
+            },
+            { 
+                name: 'Squat', 
+                progress: exerciseMaxWeights['Squat'] > 0 ? Math.round((exerciseMaxWeights['Squat'] / 120) * 100) : 0, 
+                currentWeight: exerciseMaxWeights['Squat'], 
+                goalWeight: 120 
+            },
+            { 
+                name: 'Deadlift', 
+                progress: exerciseMaxWeights['Deadlift'] > 0 ? Math.round((exerciseMaxWeights['Deadlift'] / 130) * 100) : 0, 
+                currentWeight: exerciseMaxWeights['Deadlift'], 
+                goalWeight: 130 
+            }
+        ];
+        
+        res.json({
+            success: true,
+            exerciseProgress
+        });
+    } catch (error) {
+        console.error('Error fetching exercise progress:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get upcoming class
+router.get('/api/class/upcoming', protect, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('class_schedules.trainerId', 'name');
+        
+        const upcomingClass = user.class_schedules && user.class_schedules.length > 0
+            ? user.class_schedules
+                .filter(cls => {
+                    const classDate = new Date(cls.date);
+                    const now = new Date();
+                    return classDate >= now;
+                })
+                .sort((a, b) => new Date(a.date) - new Date(b.date))[0]
+            : null;
+        
+        // Format class data
+        const formattedClass = upcomingClass ? {
+            ...upcomingClass.toObject(),
+            trainerName: upcomingClass.trainerId?.name || 'Coach'
+        } : null;
+        
+        res.json({
+            success: true,
+            upcomingClass: formattedClass
+        });
+    } catch (error) {
+        console.error('Error fetching upcoming class:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// ========== EXISTING ROUTES (KEEP THESE) ==========
+
 // user login is now done in authRoutes.js
 // router.post('/login', userController.loginUser);
 
@@ -34,10 +281,9 @@ router.post('/signup', userController.signupUser);
 router.get('/profile', userController.getUserProfile);
 router.post('/complete-workout', userController.completeWorkout);
 router.post('/api/workout/complete', userController.markWorkoutCompleted);
+router.post('/api/exercise/complete', userController.checkMembershipActive, protect, userController.markExerciseCompleted);
 
-// Individual exercise completion route
-router.post('/api/exercise/complete', userController.checkMembershipActive, isAuthenticated, userController.markExerciseCompleted);
-// Add this temporary debug route to userRoutes.js
+// Debug routes
 router.get('/api/debug/workout/:id', async (req, res) => {
     try {
         const workout = await WorkoutHistory.findById(req.params.id);
@@ -53,10 +299,10 @@ router.get('/api/debug/workout/:id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Add to userRoutes.js
-router.get('/api/debug/workouts', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+
+router.get('/api/debug/workouts', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const workouts = await WorkoutHistory.find({ userId: userId });
         
         const today = new Date();
@@ -87,33 +333,29 @@ router.get('/api/debug/workouts', userController.checkMembershipActive, isAuthen
 router.post('/membership/extend', membershipController.extendMembership);
 router.get('/membership/status', membershipController.getMembershipStatus);
 router.post('/membership/auto-renew', membershipController.toggleAutoRenew);
-//brimstone
-router.post('/user/membership/change', isAuthenticated, userController.changeMembership);
-//brimstone
-router.get('/membership_renewal', isAuthenticated, (req, res) => {
+router.post('/user/membership/change', protect, userController.changeMembership);
+router.get('/membership_renewal', protect, (req, res) => {
     res.render('membership_renewal', { 
-        user: req.session.user 
+        user: req.user 
     });
 });
 
-// For nutrition page
-router.get('/user_nutrition', userController.checkMembershipActive, isAuthenticated, (req, res) => {
+// Page routes
+router.get('/user_nutrition', userController.checkMembershipActive, protect, (req, res) => {
     res.render('user_nutrition', { 
-        user: req.session.user,
+        user: req.user,
         currentPage: 'nutrition'
     });
 });
 
-// For exercise page
-// Update in Routes/userRoutes.js - the existing user_exercises route
-router.get('/user_exercises', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/user_exercises', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const User = require('../model/User');
-        const user = await User.findById(req.session.user.id);
+        const user = await User.findById(req.user.id);
         
         res.render('user_exercises', { 
             user: {
-                ...req.session.user,
+                ...req.user,
                 workout_type: user?.workout_type
             },
             currentPage: 'exercises'
@@ -121,7 +363,7 @@ router.get('/user_exercises', userController.checkMembershipActive, isAuthentica
     } catch (error) {
         console.error('Error loading exercises page:', error);
         res.render('user_exercises', { 
-            user: req.session.user,
+            user: req.user,
             currentPage: 'exercises'
         });
     }
@@ -134,9 +376,9 @@ const Exercise = require('../model/Exercise');
 const UserExerciseRating = require('../model/UserExerciseRating');
 
 // Get exercises based on user's workout type
-router.get('/api/exercises', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const User = require('../model/User');
         const user = await User.findById(userId);
         
@@ -179,9 +421,9 @@ router.get('/api/exercises', userController.checkMembershipActive, isAuthenticat
 });
 
 // Rate an exercise
-router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { exerciseId } = req.params;
         const { rating, effectiveness, notes } = req.body;
         
@@ -250,9 +492,9 @@ router.post('/api/exercises/:exerciseId/rate', userController.checkMembershipAct
 // Get recommended exercises based on user ratings
 // Get recommended exercises based on user ratings - FIXED VERSION
 // Get recommended exercises based on user ratings
-router.get('/api/exercises/recommended', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/recommended', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const User = require('../model/User');
         const user = await User.findById(userId);
         const userWorkoutType = user?.workout_type;
@@ -355,9 +597,9 @@ router.get('/api/exercises/recommended', userController.checkMembershipActive, i
 });
 
 // Get exercise details
-router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, protect, async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         const { exerciseId } = req.params;
         
         const exercise = await Exercise.findById(exerciseId);
@@ -396,11 +638,11 @@ router.get('/api/exercises/:exerciseId', userController.checkMembershipActive, i
 });
 
 // Add this route for debugging
-router.get('/api/debug/exercises-test', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/debug/exercises-test', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         //  console.log('=== DEBUG EXERCISES API ===');
         
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         //  console.log('User ID:', userId);
         
         const User = require('../model/User');
@@ -434,10 +676,10 @@ router.get('/api/debug/exercises-test', userController.checkMembershipActive, is
 });
 
 // Search exercises
-router.get('/api/exercises/search', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+router.get('/api/exercises/search', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const { query } = req.query;
-        const userId = req.session.user.id;
+        const userId = req.user.id;
         
         if (!query || query.trim() === '') {
             return res.json({ success: true, exercises: [] });
@@ -487,18 +729,14 @@ router.get('/api/exercises/search', userController.checkMembershipActive, isAuth
     }
 });
 // Add this route to userRoutes.js
-router.put('/user/profile/update', isAuthenticated, userController.updateUserProfile);
+router.put('/user/profile/update', protect, userController.updateUserProfile);
 
 
-// brimstone
-// Mark food as consumed
-// In your userRoutes.js, improve the mark-consumed endpoint:
-router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive, isAuthenticated, async (req, res) => {
+// Nutrition mark consumed
+router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive, protect, async (req, res) => {
     try {
         const { foodName, calories, protein, carbs, fats, day } = req.body;
-        const userId = req.session.user.id;
-        
-        //  console.log('🎯 Marking food as consumed:', { foodName, day, userId });
+        const userId = req.user.id;
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -604,5 +842,7 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
     }
 });
 
+// Update profile
+router.put('/user/profile/update', protect, userController.updateUserProfile);
 
 module.exports = router;
