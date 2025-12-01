@@ -151,3 +151,4 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
 };
 
 export default TodaysWorkout;
+ 

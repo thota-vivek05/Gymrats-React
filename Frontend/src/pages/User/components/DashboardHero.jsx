@@ -15,4 +15,4 @@ const DashboardHero = ({ user }) => {
     );
 };
 
-export default DashboardHero;
+export default DashboardHero; 
