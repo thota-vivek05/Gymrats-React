@@ -6,7 +6,7 @@ import UserSignup from './pages/Auth/UserSignup';
 import TrainerSignup from './pages/Auth/TrainerSignup';
 // import UserDashboard from './pages/User/UserDashboard';
 import TrainerDashboard from './pages/Trainer/TrainerDashboard';
-
+import UserDashboard from './pages/User/UserDashboard';  
 // Proteted Routes
 import ProtectedRoute from './components/common/ProtectedRoute'
 

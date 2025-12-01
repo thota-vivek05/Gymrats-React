@@ -10,11 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@tailwindcss/vite": "^4.1.16",
->>>>>>> origin/main
     "chart.js": "^4.5.1",
     "react": "^19.1.1",
     "react-chartjs-2": "^5.3.1",
