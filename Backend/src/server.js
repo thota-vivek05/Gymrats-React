@@ -27,7 +27,8 @@ const authRoutes = require('./Routes/authRoutes');
 // Middleware setup
 app.use(cors({
   origin: 'http://localhost:5173', // Vite default port
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());

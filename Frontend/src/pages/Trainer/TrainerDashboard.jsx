@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
 import styles from './TrainerDashboard.module.css';
@@ -17,8 +18,10 @@ const TrainerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const [searchParams] = useSearchParams(); 
+  const navigate = useNavigate(); // Hook for navigation
 
-  // ✅ FIXED: Your routes are mounted at /api/trainer in server.js
   const API_BASE = '/api/trainer';
 
   // Calculate age from DOB
@@ -34,10 +37,8 @@ const TrainerDashboard = () => {
     return age;
   };
 
-  // Fetch clients on mount
   useEffect(() => {
     fetchClients();
-    // Get trainer name from localStorage
     const trainerData = JSON.parse(localStorage.getItem('user') || '{}');
     if (trainerData.name) setTrainer(trainerData);
   }, []);
@@ -45,17 +46,11 @@ const TrainerDashboard = () => {
   const fetchClients = async () => {
     try {
       const token = localStorage.getItem('token');
-      
       if (!token) {
-        console.error('No token found in localStorage');
-        alert('Please login again - no authentication token found');
         window.location.href = '/login';
         return;
       }
       
-      console.log('Fetching clients...');
-      
-      // ✅ FIXED: Use /api/trainer/clients (from server.js mount)
       const response = await fetch(`${API_BASE}/clients`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -63,66 +58,48 @@ const TrainerDashboard = () => {
         }
       });
       
-      console.log('Response status:', response.status);
-      
-      // Check if response is HTML (error page)
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('text/html')) {
-        console.error('Received HTML instead of JSON');
-        throw new Error('API route not found or authentication failed');
-      }
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error('Failed to fetch clients');
       const data = await response.json();
-      
-      console.log('✅ Fetched clients:', data);
-      
-      // ✅ Your backend returns array directly
       const clientsList = Array.isArray(data) ? data : [];
-      
-      if (clientsList.length === 0) {
-        console.warn('No clients assigned to this trainer yet');
-      }
-      
       setClients(clientsList);
       
-      // Auto-select first client
+      const urlClientId = searchParams.get('clientId');
+      
       if (clientsList.length > 0) {
-        handleClientSelect(clientsList[0]);
+        if (urlClientId) {
+            const targetClient = clientsList.find(c => (c._id === urlClientId || c.id === urlClientId));
+            if (targetClient) {
+                handleClientSelect(targetClient);
+            } else {
+                handleClientSelect(clientsList[0]);
+            }
+        } else {
+            handleClientSelect(clientsList[0]);
+        }
       }
     } catch (error) {
-      console.error('❌ Error fetching clients:', error);
-      alert(`Failed to load clients: ${error.message}`);
+      console.error('Error fetching clients:', error);
     }
   };
 
   const handleClientSelect = async (client) => {
-    console.log('Selected client:', client);
     setSelectedClient(client);
     setLoading(true);
     setSidebarOpen(false);
 
-    // Use _id for MongoDB
     const clientId = client._id || client.id;
-    
     if (!clientId) {
-      console.error('Client ID not found:', client);
       setLoading(false);
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const headers = { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+      }; 
 
-      console.log(`Fetching data for client ID: ${clientId}`);
-
-      // ✅ FIXED: All routes use /api/trainer prefix
       const [profileRes, workoutRes, nutritionRes, ratingsRes] = await Promise.all([
         fetch(`${API_BASE}/client/${clientId}`, { headers }),
         fetch(`${API_BASE}/workout/${clientId}`, { headers }),
@@ -131,16 +108,11 @@ const TrainerDashboard = () => {
       ]);
 
       const [profile, workout, nutrition, ratings] = await Promise.all([
-        profileRes.json(),
-        workoutRes.json(),
-        nutritionRes.json(),
-        ratingsRes.json()
+            profileRes.ok ? profileRes.json().catch(() => ({})) : ({}),
+            workoutRes.ok ? workoutRes.json().catch(() => ({ weeklySchedule: null })) : ({ weeklySchedule: null }),
+            nutritionRes.ok ? nutritionRes.json().catch(() => ({ nutrition: null })) : ({ nutrition: null }),
+            ratingsRes.ok ? ratingsRes.json().catch(() => ({ ratings: [] })) : ({ ratings: [] })
       ]);
-
-      console.log('Profile:', profile);
-      console.log('Workout:', workout);
-      console.log('Nutrition:', nutrition);
-      console.log('Ratings:', ratings);
 
       setClientProfile(profile);
       setWorkoutData(workout);
@@ -153,13 +125,21 @@ const TrainerDashboard = () => {
     }
   };
 
-  // Filter clients based on search
+  // 3. LOGOUT HANDLER
+  const handleLogout = () => {
+    // Clear local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Redirect to login page
+    navigate('/login');
+  };
+
   const filteredClients = clients.filter(client =>
     client.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate stats
   const calculateStats = () => {
     let workoutsCompleted = 0;
     let totalCalories = 0;
@@ -178,7 +158,6 @@ const TrainerDashboard = () => {
       totalProtein = nutritionData.nutrition.foods.reduce((sum, food) => sum + (food.protein || 0), 0);
     }
 
-    // Use fitness_goals fields from User model
     if (clientProfile?.fitness_goals?.protein_goal) {
       proteinGoal = parseInt(clientProfile.fitness_goals.protein_goal);
     } else if (nutritionData?.nutrition?.protein_goal) {
@@ -196,18 +175,34 @@ const TrainerDashboard = () => {
 
   const stats = calculateStats();
 
-  // Nutrition Chart Data
-  const nutritionChartData = {
-    labels: ['Protein', 'Carbs', 'Fats'],
-    datasets: [{
-      data: [
-        nutritionData?.nutrition?.macros?.protein || 0,
-        nutritionData?.nutrition?.macros?.carbs || 0,
-        nutritionData?.nutrition?.macros?.fats || 0
-      ],
-      backgroundColor: ['#8A2BE2', '#20B2AA', '#FF6347'],
-      borderWidth: 0
-    }]
+  // 1. NUTRITION CHART LOGIC (Updated for Empty State)
+  const getNutritionChartData = () => {
+    const protein = nutritionData?.nutrition?.macros?.protein || 0;
+    const carbs = nutritionData?.nutrition?.macros?.carbs || 0;
+    const fats = nutritionData?.nutrition?.macros?.fats || 0;
+    const total = protein + carbs + fats;
+
+    if (total === 0) {
+        // Return gray placeholder data if empty
+        return {
+            labels: ['Empty'],
+            datasets: [{
+                data: [1], // Dummy value to make the ring appear
+                backgroundColor: ['#333333'], // Dark gray
+                borderWidth: 0,
+                tooltip: { enabled: false } // Disable tooltips for placeholder
+            }]
+        };
+    }
+
+    return {
+        labels: ['Protein', 'Carbs', 'Fats'],
+        datasets: [{
+            data: [protein, carbs, fats],
+            backgroundColor: ['#8A2BE2', '#20B2AA', '#FF6347'],
+            borderWidth: 0
+        }]
+    };
   };
 
   const nutritionChartOptions = {
@@ -216,25 +211,37 @@ const TrainerDashboard = () => {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { color: '#f1f1f1', padding: 10 }
+        labels: { color: '#f1f1f1', padding: 10 },
+        // Hide legend if it's the placeholder "Empty" state
+        display: (ctx) => {
+            const data = ctx.chart.data;
+            if (data.labels.length === 1 && data.labels[0] === 'Empty') return false;
+            return true;
+        }
+      },
+      tooltip: {
+        enabled: (ctx) => {
+             // Disable tooltips for placeholder
+             const data = ctx.chart.data;
+             return !(data.labels.length === 1 && data.labels[0] === 'Empty');
+        }
       }
     }
   };
 
-  // Exercise Chart Data
   const exerciseChartData = {
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
     datasets: [
       {
         label: 'Bicep Curls (kg)',
-        data: [0, 0, 0, 0, 0, 0],
+        data: [0, 0, 0, 0, 0, 0], // Placeholder data
         borderColor: '#8A2BE2',
         backgroundColor: 'rgba(138, 43, 226, 0.1)',
         tension: 0.3
       },
       {
         label: 'Deadlift (kg)',
-        data: [0, 0, 0, 0, 0, 0],
+        data: [0, 0, 0, 0, 0, 0], // Placeholder data
         borderColor: '#20B2AA',
         backgroundColor: 'rgba(32, 178, 170, 0.1)',
         tension: 0.3
@@ -273,7 +280,6 @@ const TrainerDashboard = () => {
 
   return (
     <div className={styles.container}>
-      {/* Navigation */}
       <div className={styles.mainNavbar}>
         <header className={styles.header}>
           <div className={styles.brandLogo}>
@@ -284,7 +290,22 @@ const TrainerDashboard = () => {
           </div>
           <div className={styles.rightContainer}>
             <div className={styles.loginButton}>
-              <a href="/trainer_login">Logout</a>
+              {/* 3. UPDATED LOGOUT BUTTON */}
+              <button 
+                onClick={handleLogout} 
+                style={{
+                  backgroundColor: '#8A2BE2',
+                  padding: '8px 16px',
+                  borderRadius: '30px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
           <div className={styles.mobileMenuIcon} onClick={() => setSidebarOpen(true)}>
@@ -293,23 +314,20 @@ const TrainerDashboard = () => {
         </header>
       </div>
 
-      {/* Mobile Sidebar */}
       <div className={`${styles.mobileSidebar} ${sidebarOpen ? styles.open : ''}`}>
         <a href="#" className={styles.closeButton} onClick={() => setSidebarOpen(false)}>×</a>
         <a href="/trainer">Home</a>
-        <a href="/trainer_login">Logout</a>
+        <button onClick={handleLogout} className={styles.mobileLogoutBtn} style={{background:'transparent', border:'none', color:'white', fontSize:'18px', padding:'8px 8px 8px 32px', cursor:'pointer', textAlign:'left', width:'100%'}}>Logout</button>
       </div>
 
-      {/* Welcome Banner */}
       <div className={styles.welcomeBanner}>
         <h1>Welcome, {trainer.name}</h1>
         <p>Manage your clients and track their progress</p>
-        <a href="/trainer/assignment" className={styles.btn}>View Available Clients</a>
+        {/* 2. REMOVED "View Available Clients" BUTTON */}
       </div>
 
-      {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Client List Sidebar */}
+        {/* Client List */}
         <div className={styles.clientListContainer}>
           <h2>Client List</h2>
           <input
@@ -353,19 +371,13 @@ const TrainerDashboard = () => {
             <div className={styles.noSelection}>Select a client to view details</div>
           ) : (
             <>
-              {/* Top Row */}
               <div className={styles.topRow}>
-                {/* Client Profile */}
                 <div className={styles.clientProfile}>
                   <h2>Client Profile: {clientProfile?.full_name || selectedClient.full_name}</h2>
                   <div className={styles.profileStats}>
                     <div className={styles.statItem}>
                       <span className={styles.statLabel}>Age:</span>
                       <span className={styles.statValue}>{calculateAge(clientProfile?.dob)}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>Gender:</span>
-                      <span className={styles.statValue}>{clientProfile?.gender || 'N/A'}</span>
                     </div>
                     <div className={styles.statItem}>
                       <span className={styles.statLabel}>Weight:</span>
@@ -387,14 +399,6 @@ const TrainerDashboard = () => {
                       <span className={styles.statLabel}>Goal:</span>
                       <span className={styles.statValue}>{clientProfile?.goal || 'N/A'}</span>
                     </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>Workout Type:</span>
-                      <span className={styles.statValue}>{clientProfile?.workout_type || 'N/A'}</span>
-                    </div>
-                    <div className={styles.statItem}>
-                      <span className={styles.statLabel}>Weight Goal:</span>
-                      <span className={styles.statValue}>{clientProfile?.fitness_goals?.weight_goal ? `${clientProfile.fitness_goals.weight_goal} kg` : 'N/A'}</span>
-                    </div>
                   </div>
                   {shouldShowMeet && (
                     <button className={`${styles.btn} ${styles.meetButton}`} onClick={() => window.open('https://meet.google.com/xyz-abcd-123', '_blank')}>
@@ -403,7 +407,6 @@ const TrainerDashboard = () => {
                   )}
                 </div>
 
-                {/* Weekly Workout Schedule */}
                 <div className={styles.workoutPlan}>
                   <h2>Weekly Workout Schedule</h2>
                   <div className={styles.weeklySchedule}>
@@ -433,11 +436,15 @@ const TrainerDashboard = () => {
                       ))
                     )}
                   </div>
-                  <a href={`/edit_workout_plan/${selectedClient._id || selectedClient.id}`} className={styles.btn}>Edit Workout Plan</a>
+                  <Link 
+                    to={selectedClient ? `/trainer/workout/edit/${selectedClient._id || selectedClient.id}` : '#'}
+                    className={`${styles.btn} ${!selectedClient ? styles.disabled : ''}`}
+                  >
+                    Edit Workout Plan
+                  </Link>
                 </div>
               </div>
 
-              {/* Current Stats */}
               <div className={styles.currentStats}>
                 <h2>Current Stats</h2>
                 <div className={styles.statsGrid}>
@@ -460,7 +467,6 @@ const TrainerDashboard = () => {
                 </div>
               </div>
 
-              {/* Nutrition Plan */}
               {shouldShowNutrition && (
                 <div className={styles.nutritionPlan}>
                   <h2>Food Intake</h2>
@@ -488,13 +494,18 @@ const TrainerDashboard = () => {
                   </div>
                   <h3>Nutritional Breakdown</h3>
                   <div className={styles.pieChartContainer}>
-                    <Doughnut data={nutritionChartData} options={nutritionChartOptions} />
+                    {/* 1. UPDATED CHART RENDERING */}
+                    <Doughnut data={getNutritionChartData()} options={nutritionChartOptions} />
                   </div>
-                  <a href={`/edit_nutritional_plan/${selectedClient._id || selectedClient.id}`} className={styles.btn}>Edit Nutrition Plan</a>
+                  <Link 
+                    to={selectedClient ? `/trainer/nutrition/edit/${selectedClient._id || selectedClient.id}` : '#'}
+                    className={styles.btn}
+                  >
+                    Edit Nutrition Plan
+                  </Link>
                 </div>
               )}
 
-              {/* Exercise Ratings */}
               <div className={styles.exerciseRatings}>
                 <h2>Exercise Preferences & Ratings</h2>
                 <div className={styles.ratingsHeader}>
@@ -550,7 +561,6 @@ const TrainerDashboard = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className={styles.siteFooter}>
         <div className={styles.footerContent}>
           <div className={styles.footerColumn}>
