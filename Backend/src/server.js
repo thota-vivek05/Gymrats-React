@@ -5,27 +5,26 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const cors = require('cors'); // Add CORS for React frontend
+const cors = require('cors');
 const methodOverride = require('method-override');
-const JWT_SECRET = process.env.JWT_SECRET || 'gymrats-secret-key'; // Use environment variable in production
 
-
+// Configuration
 process.env.TZ = "Asia/Kolkata";
-
-const app = express();
+const JWT_SECRET = process.env.JWT_SECRET || 'gymrats-secret-key';
 const PORT = process.env.PORT || 3000;
 
-// Import routes
+const app = express();
+
+// --- 1. Imports Routes ---
 const adminRoutes = require("./Routes/adminRoutes");
 const userRoutes = require("./Routes/userRoutes");
 const trainerRoutes = require("./Routes/trainerRoutes");
 const verifierRoutes = require("./Routes/verifierRoutes");
-// In server.js - Add these lines after other route imports
 const authRoutes = require("./Routes/authRoutes");
 
-// Middleware setup
+// --- 2. Middleware ---
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite default port
+  origin: 'http://localhost:5173', // Allow Vite frontend
   credentials: true
 }));
 
@@ -33,25 +32,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-// Session setup
+// --- 3. Session Setup (FIXED) ---
 app.use(
   session({
     secret: "gymrats-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
-      maxAge: 3600000,
-    cookie: { 
-      secure: false, 
+      secure: false, // Set to true only if using HTTPS (Production)
       maxAge: 3600000, // 1 hour
-      httpOnly: true,
+      httpOnly: true, // Prevents XSS attacks
       sameSite: "lax",
     },
   })
 );
 
-// Connect to MongoDB
+// --- 4. Database Connection ---
 mongoose
   .connect("mongodb://localhost:27017/gymrats")
   .then(() => {
@@ -62,43 +58,29 @@ mongoose
     process.exit(1);
   });
 
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+// --- 5. Static Files & Uploads ---
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
-
-app.use("/uploads", express.static("uploads"));
-
-// Serve static files from React build (for production)
+// Serve static files from React build (Production)
+// Adjust '../Frontend/dist' if your folder structure differs
 app.use(express.static(path.join(__dirname, '../Frontend/dist')));
 
-// API Routes - Keep these before the React catch-all
+
+// --- 6. API Routes ---
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/verifier', verifierRoutes);
 app.use('/api/auth', authRoutes);
 
-// react signup
-// Add these before the catch-all handler
-const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer'];
-spaRoutes.forEach(route => {
-  app.get(route, (req, res) => {
-    res.sendFile(path.join(__dirname, "../Frontend/dist/index.html"));
-  });
-});
 
-// Redirect legacy admin URLs to new API routes
+// --- 7. Legacy/Helper Routes ---
+// Redirect legacy admin URLs to new API routes (Optional: keep if old links exist)
 app.get("/admin_dashboard", (req, res) => res.redirect("/api/admin/dashboard"));
+// ... (You can keep the other redirects if strictly necessary)
 app.get("/admin_user", (req, res) => res.redirect("/api/admin/users"));
+// ... (You can keep the other redirects if strictly necessary)
 app.get("/admin_trainers", (req, res) => res.redirect("/api/admin/trainers"));
 app.get("/admin_membership", (req, res) =>
   res.redirect("/api/admin/memberships")
@@ -109,7 +91,6 @@ app.get("/admin_nutrition", (req, res) =>
 app.get("/admin_exercises", (req, res) => res.redirect("/api/admin/exercises"));
 app.get("/admin_verifier", (req, res) => res.redirect("/api/admin/verifier"));
 app.get("/admin_settings", (req, res) => res.redirect("/api/admin/settings"));
-
 // API Routes for static pages data (if needed)
 const pages = [
   "about",
@@ -140,7 +121,6 @@ const pages = [
   "user_exercises",
   "userprofile",
 ];
-
 // Optional: Provide API endpoints for page data
 pages.forEach((page) => {
   app.get(`/api/${page}`, (req, res) => {
@@ -148,7 +128,6 @@ pages.forEach((page) => {
     res.json({ page: page, data: {} });
   });
 });
-
 // Logout API Route
 app.post("/api/logout", (req, res) => {
   req.session.destroy((err) => {
@@ -156,24 +135,21 @@ app.post("/api/logout", (req, res) => {
       console.error("Error destroying session:", err);
       return res.status(500).json({ error: "Error logging out" });
     }
+    res.clearCookie("connect.sid"); // Clear the cookie explicitly
     res.json({ message: "Logged out successfully" });
   });
 });
 
-
-// Catch-all handler: send back React's index.html file for SPA
+// --- 8. Catch-All Handler (React SPA) ---
+// This handles ALL non-API routes (/login, /dashboard, etc.)
+// You do NOT need the specific "spaRoutes" array anymore.
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/dist/index.html'));
 });
 
-// Start the server
+// --- 9. Start Server ---
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Backend API: http://localhost:${PORT}/api`);
-  console.log(`Frontend: http://localhost:5173`); // React dev server
+  console.log(`Frontend: http://localhost:5173`);
 });
-
-// // In your React components
-// fetch('/api/user/profile')
-//   .then(response => response.json())
-//   .then(data => console.log(data));
