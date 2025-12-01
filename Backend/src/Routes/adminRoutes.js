@@ -41,8 +41,6 @@ router.get('/api/trainers/stats', adminController.getTrainerStats);
 router.post('/trainers', adminController.createTrainer);
 router.put('/trainers/:id', adminController.updateTrainer);
 router.delete('/trainers/:id', adminController.deleteTrainer);
-// Add this route in adminRoutes.js - after the existing trainer routes
-// router.get('/api/trainers', adminController.searchTrainers);
 
 
 // Membership Routes
@@ -61,7 +59,7 @@ router.get('/api/exercises', adminController.searchExercises);
 
 // Verifier Routes
 router.get('/verifier', adminController.getVerifiers);
-// router.get('/verifier', adminController.getVerifierPage);
+
 // Add this before your routes in adminRoutes.js or server.js
 router.get('/verifier_form', (req, res) => {
     res.render('verifier_form'); // You might need to create this view
@@ -69,6 +67,10 @@ router.get('/verifier_form', (req, res) => {
 router.post('/verifier', adminController.createVerifier);
 router.put('/verifier/:id', adminController.updateVerifier);
 router.delete('/verifier/:id', adminController.deleteVerifier);
+
+// ✅ THESE ARE THE ROUTES FOR VERIFICATION DASHBOARD
+router.get('/verifications/dashboard', adminController.getVerificationDashboard);
+router.post('/verifications/action', adminController.verificationAction);
 
 
 // Debug route to check data
