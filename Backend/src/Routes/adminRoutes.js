@@ -47,6 +47,10 @@ router.get('/trainer-applications', adminController.getTrainerApplications);
 router.put('/trainer-applications/:id/approve', adminController.approveTrainerApplication);
 router.put('/trainer-applications/:id/reject', adminController.rejectTrainerApplication);
 
+// Trainer Assignment (Admin) - fetch unassigned users and trainers
+router.get('/trainer-assignment-data', adminController.getTrainerAssignmentData);
+router.post('/trainer-assign', adminController.assignTrainerToUserAdmin);
+
 // Membership Routes
 router.get('/memberships', adminController.getMemberships);
 router.post('/memberships', adminController.createMembership);

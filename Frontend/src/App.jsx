@@ -18,6 +18,7 @@ import AdminTrainers from './pages/Admin/AdminTrainers';
 import AdminMemberships from './pages/Admin/AdminMemberships';
 import AdminExercises from './pages/Admin/AdminExercises';
 import AdminVerifiers from './pages/Admin/AdminVerifiers';
+import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
 
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
             <Route path="/admin/memberships" element={<AdminMemberships />} />
             <Route path="/admin/exercises" element={<AdminExercises />} />
             <Route path="/admin/verifiers" element={<AdminVerifiers />} />
+            <Route path="/admin/trainer-assignment" element={<AdminTrainerAssignment />} />
           </Route>
 
         </Routes>

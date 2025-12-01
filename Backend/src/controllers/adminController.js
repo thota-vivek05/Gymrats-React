@@ -578,6 +578,64 @@ const adminController = {
     }
   },
 
+  // Trainer Assignment (Admin) - fetch trainers and unassigned users
+  getTrainerAssignmentData: async (req, res) => {
+    try {
+      if (!req.session.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      // Fetch active trainers
+      const trainers = await Trainer.find({ status: 'Active' }).select('name email specializations');
+
+      // Fetch unassigned users (trainer is null)
+      const unassignedUsers = await User.find({ trainer: null, status: 'Active' }).select('full_name email workout_type _id');
+
+      res.json({ success: true, trainers, unassignedUsers });
+    } catch (error) {
+      console.error('Get trainer assignment data error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  },
+
+  // Admin assigns trainer to user
+  assignTrainerToUserAdmin: async (req, res) => {
+    try {
+      if (!req.session.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const { userId, trainerId } = req.body;
+      if (!userId || !trainerId) return res.status(400).json({ success: false, message: 'Missing userId or trainerId' });
+
+      const user = await User.findById(userId);
+      const trainer = await Trainer.findById(trainerId);
+
+      if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+      if (!trainer) return res.status(404).json({ success: false, message: 'Trainer not found' });
+
+      if (user.trainer) return res.status(400).json({ success: false, message: 'User already has a trainer' });
+
+      // Optional: check specialization match
+      if (user.workout_type && trainer.specializations && trainer.specializations.length > 0) {
+        if (!trainer.specializations.includes(user.workout_type)) {
+          // allow assignment but warn (or reject) — here we'll allow but log
+          console.warn(`Assigning trainer ${trainerId} whose specializations ${trainer.specializations} do not include user's workout_type ${user.workout_type}`);
+        }
+      }
+
+      user.trainer = trainerId;
+      await user.save();
+
+      if (!trainer.clients) trainer.clients = [];
+      if (!trainer.clients.includes(userId)) {
+        trainer.clients.push(userId);
+        await trainer.save();
+      }
+
+      res.json({ success: true, message: 'User assigned to trainer', user: { id: user._id, name: user.full_name } });
+    } catch (error) {
+      console.error('Assign trainer to user (admin) error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  },
+
   // getTrainersApi: async (req, res) => {
   //     try {
   //       if (!req.session.userId) {

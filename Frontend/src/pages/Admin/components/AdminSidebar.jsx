@@ -6,6 +6,7 @@ const AdminSidebar = () => {
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
     { name: 'Users', path: '/admin/users', icon: '👥' },
     { name: 'Trainers', path: '/admin/trainers', icon: '💪' },
+      { name: 'Trainer Assignment', path: '/admin/trainer-assignment', icon: '🔗' },
     { name: 'Memberships', path: '/admin/memberships', icon: '💳' },
     { name: 'Exercises', path: '/admin/exercises', icon: '🏋️' },
     { name: 'Verify', path: '/admin/verifiers', icon: '✅' },
