@@ -246,4 +246,4 @@ const NutritionTracking = ({
   );
 };
 
-export default NutritionTracking;
+export default NutritionTracking; 
