@@ -64,7 +64,7 @@ const Login = () => {
                 setTimeout(() => {
                     closeModal();
                     if (data.user.role === 'trainer') {
-                        navigate('/trainer/dashboard');
+                        navigate('/trainer');
                     } else if (data.user.role === 'admin') {
                         navigate('/admin/dashboard');
                     } else {
