@@ -20,6 +20,7 @@ import AdminVerifications from './pages/Admin/AdminVerifications';
 
 import UserDashboard from './pages/User/UserDashboard';
 import UserProfile from './pages/User/UserProfile'; 
+import UserExercises from './pages/User/UserExercises';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/dashboard" element={<UserDashboard />} />
 
             <Route path="/userprofile" element={<UserProfile />} />
+            <Route path="/user_exercises" element={<UserExercises />} />
                {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
                {/* Add pages here like /profile, /workouts */}
             </Route>
