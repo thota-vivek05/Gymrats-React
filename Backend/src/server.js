@@ -110,8 +110,7 @@ const pages = [
   'about', 'blog', 'calculators', 'contact', 'home', 'isolation',
   'login_signup', 'nutrition', 'privacy_policy', 'schedule', 'signup',
   'terms', 'testimonial', 'trainer_form', 'trainer', 'trainers',
-  'verifier_form', 'verifier', 'workout_plans', 'userdashboard_b',
-  'userdashboard_g', 'userdashboard_p', 'trainer_login', 'edit_nutritional_plan',
+  'verifier_form', 'verifier', 'workout_plans', 'trainer_login', 'edit_nutritional_plan',
   'admin_login', 'pendingverifications', 'verifier_login', 'user_nutrition',
   'user_exercises', 'userprofile'
 ];

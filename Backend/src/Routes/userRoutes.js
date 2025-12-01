@@ -22,11 +22,6 @@ router.get('/login_signup', (req, res) => {
     res.render('login_signup', { form: req.query.form || 'login' });
 });
 
-router.get('/userdashboard_:type', userController.checkMembershipActive, (req, res, next) => {
-    const dashboardType = req.params.type;
-    userController.getUserDashboard(req, res, dashboardType);
-});
-
 // ========== NEW JSON API ENDPOINTS FOR REACT ==========
 
 // Get user profile data

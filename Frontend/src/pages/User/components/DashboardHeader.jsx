@@ -5,8 +5,7 @@ const DashboardHeader = ({ user, currentPage }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const getDashboardPath = () => {
-        if (!user?.membershipType) return '/userdashboard_b';
-        return `/userdashboard_${user.membershipType.charAt(0).toLowerCase()}`;
+        return '/dashboard';
     };
 
     const navLinkClasses = (page) => 
