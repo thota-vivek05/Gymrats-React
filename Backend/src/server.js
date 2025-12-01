@@ -5,7 +5,7 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const cors = require('cors');
+const cors = require('cors'); // Add CORS for React frontend
 const methodOverride = require('method-override');
 const JWT_SECRET = process.env.JWT_SECRET || 'gymrats-secret-key'; // Use environment variable in production
 
@@ -24,16 +24,11 @@ const verifierRoutes = require('./Routes/verifierRoutes');
 const authRoutes = require('./Routes/authRoutes');
 
 
-// Enhanced CORS configuration
+// Middleware setup
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  origin: 'http://localhost:5173', // Vite default port
+  credentials: true
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -47,7 +42,7 @@ app.use(
     saveUninitialized: false,
     cookie: { 
       secure: false, 
-      maxAge: 3600000,
+      maxAge: 3600000, // 1 hour
       httpOnly: true,
       sameSite: 'lax'
     }
@@ -74,12 +69,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
 app.use('/uploads', express.static('uploads'));
 
-// ========== API ROUTES (MUST COME FIRST) ==========
+// Serve static files from React build (for production)
+app.use(express.static(path.join(__dirname, '../Frontend/dist')));
+
+// API Routes - Keep these before the React catch-all
 app.use('/api/admin', adminRoutes);
 app.use('/', userRoutes);
 app.use('/api/trainer', trainerRoutes);
@@ -135,29 +133,17 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-// ========== STATIC FILES (AFTER API ROUTES) ==========
-app.use(express.static(path.join(__dirname, '../Frontend/dist'), {
-  index: false // Important: don't serve index.html for API routes
-}));
 
-// ========== CATCH-ALL FOR REACT APP ==========
-app.get('*', (req, res, next) => {
-  // Skip API routes - let them handle 404
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  
+// Catch-all handler: send back React's index.html file for SPA
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/dist/index.html'));
 });
 
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found' });
-});
-
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Backend API: http://localhost:${PORT}/api`);
-  console.log(`Frontend: http://localhost:5173`);
+  console.log(`Frontend: http://localhost:5173`); // React dev server
 });
 
 

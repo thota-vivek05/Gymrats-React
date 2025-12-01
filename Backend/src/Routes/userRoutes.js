@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const membershipController = require('../controllers/membershipController');
+
+// REYNA
+const membershipController = require('../controllers/membershipController'); // ADD THIS
+
+// Add this import at the top with other imports
 const NutritionHistory = require('../model/NutritionHistory');
 const WorkoutHistory = require('../model/WorkoutHistory');
 const User = require('../model/User');
@@ -22,8 +26,10 @@ router.get('/login_signup', (req, res) => {
     res.render('login_signup', { form: req.query.form || 'login' });
 });
 
+// Route for user dashboard with dynamic type (b, g, or p)
+// added checkactivemembership (for months left)              REYNA
 router.get('/userdashboard_:type', userController.checkMembershipActive, (req, res, next) => {
-    const dashboardType = req.params.type;
+    const dashboardType = req.params.type; // Extract 'b', 'g', or 'p' from URL
     userController.getUserDashboard(req, res, dashboardType);
 });
 
@@ -322,7 +328,8 @@ router.get('/api/debug/workouts', userController.checkMembershipActive, protect,
     }
 });
 
-// Membership routes
+
+// Membership management routes
 router.post('/membership/extend', membershipController.extendMembership);
 router.get('/membership/status', membershipController.getMembershipStatus);
 router.post('/membership/auto-renew', membershipController.toggleAutoRenew);
@@ -361,6 +368,8 @@ router.get('/user_exercises', userController.checkMembershipActive, protect, asy
         });
     }
 });
+
+// OMEN user rating system
 
 // Add to Routes/userRoutes.js (after the existing routes)
 const Exercise = require('../model/Exercise');
@@ -732,6 +741,7 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        // ✅ PERMANENT FIX: Use local time for week calculation
         const weekStart = new Date(today);
         const dayOfWeek = today.getDay();
         weekStart.setDate(today.getDate() - dayOfWeek);
@@ -740,12 +750,18 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
+        //  console.log('📅 Local Week range:', weekStart.toString(), 'to', weekEnd.toString());
+
+        // Find the WEEKLY nutrition entry
         let nutritionEntry = await NutritionHistory.findOne({
             userId: userId,
             date: { $gte: weekStart, $lt: weekEnd }
         });
         
+        //  console.log('🔍 Weekly nutrition found:', !!nutritionEntry);
+        
         if (!nutritionEntry) {
+            //  console.log('❌ No weekly nutrition plan found for this week');
             return res.status(404).json({
                 success: false,
                 message: 'No nutrition plan found for this week'
@@ -753,39 +769,59 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
         }
 
         const targetDay = day || ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today.getDay()];
-        const dayData = nutritionEntry.daily_nutrition[targetDay];
         
+        //  console.log('🎯 Target day:', targetDay);
+        //  console.log('📋 Available days:', Object.keys(nutritionEntry.daily_nutrition || {}));
+
+        // Get the day data
+        const dayData = nutritionEntry.daily_nutrition[targetDay];
         if (!dayData) {
+            //  console.log('❌ Day not found in weekly nutrition:', targetDay);
             return res.status(400).json({
                 success: false,
                 message: 'Day not found in nutrition plan: ' + targetDay
             });
         }
 
+        //  console.log('🍽️ Foods before update:', dayData.foods.length);
+        
+        // Find and update the food
         const foodIndex = dayData.foods.findIndex(food => 
             food.name === foodName && food.consumed === false
         );
 
         if (foodIndex === -1) {
+            //  console.log('❌ Food not found or already consumed:', foodName);
             return res.status(404).json({
                 success: false,
                 message: 'Food not found or already consumed: ' + foodName
             });
         }
 
+        // Update the food
         dayData.foods[foodIndex].consumed = true;
         dayData.foods[foodIndex].consumedAt = new Date();
 
+        // Update daily totals by adding the food's nutrients
         dayData.calories_consumed = (dayData.calories_consumed || 0) + parseInt(calories);
         dayData.protein_consumed = (dayData.protein_consumed || 0) + parseInt(protein);
         
+        // Update macros
         dayData.macros.protein = (dayData.macros.protein || 0) + parseInt(protein);
         dayData.macros.carbs = (dayData.macros.carbs || 0) + parseInt(carbs);
         dayData.macros.fats = (dayData.macros.fats || 0) + parseInt(fats);
 
+        //  console.log('✅ After update - calories_consumed:', dayData.calories_consumed);
+        //  console.log('✅ After update - protein_consumed:', dayData.protein_consumed);
+        //  console.log('✅ Food marked as consumed:', foodName);
+
+        // Mark the document as modified to ensure Mongoose saves the nested changes
         nutritionEntry.markModified('daily_nutrition');
+        
         await nutritionEntry.save();
         
+        //  console.log('💾 Saved to database successfully');
+
         res.json({
             success: true,
             message: 'Food marked as consumed successfully',
@@ -798,7 +834,7 @@ router.post('/api/nutrition/mark-consumed', userController.checkMembershipActive
         });
         
     } catch (error) {
-        console.error('Error marking food as consumed:', error);
+        console.error('❌ Error marking food as consumed:', error);
         res.status(500).json({
             success: false,
             message: 'Error marking food as consumed: ' + error.message

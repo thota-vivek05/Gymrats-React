@@ -1,7 +1,7 @@
-/*
-  WARNING: These global selectors MUST be moved to a global CSS file (e.g., index.css)
-  if you want them to apply to your entire app.
-*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 * {
