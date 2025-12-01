@@ -146,6 +146,23 @@ const UserDashboard = () => {
             .catch(console.error);
     };
 
+    // --- NEW HELPER FUNCTION FOR ACCESS CONTROL ---
+    const hasAccess = (requiredTier) => {
+        if (!user || !user.membershipType) return false;
+        
+        // Map membership types to levels
+        const plans = {
+            'Basic': 1,
+            'Gold': 2,
+            'Platinum': 3
+        };
+
+        const userTier = plans[user.membershipType] || 0;
+        const requiredLevel = plans[requiredTier] || 0;
+
+        return userTier >= requiredLevel;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-black text-[#f1f1f1] text-lg">
@@ -179,6 +196,7 @@ const UserDashboard = () => {
             <DashboardHero user={user} />
             
             <div className="max-w-7xl mx-auto px-5 pb-10">
+                {/* 1. Overview Cards - Visible to ALL */}
                 <OverviewCards 
                     todayNutrition={dashboardData.todayNutrition}
                     weeklyWorkouts={dashboardData.weeklyWorkouts}
@@ -186,25 +204,54 @@ const UserDashboard = () => {
                 />
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    {/* 2. Today's Workout - Visible to ALL */}
                     <TodaysWorkout 
                         todayWorkout={dashboardData.todayWorkout}
                         onExerciseComplete={handleExerciseComplete}
                     />
                     
-                    <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+                    {/* 3. Upcoming Class - PLATINUM ONLY */}
+                    {hasAccess('Platinum') ? (
+                        <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+                    ) : (
+                        // Placeholder for non-Platinum users
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[300px]">
+                            <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4 text-gray-500 text-2xl">
+                                <i className="fas fa-lock"></i>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-300 mb-2">Live Classes Locked</h3>
+                            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+                                Upgrade to our Platinum plan to access live classes with professional trainers.
+                            </p>
+                        </div>
+                    )}
                 </div>
                 
-                <ProgressTracking 
-                    exerciseProgress={dashboardData.exerciseProgress}
-                    nutritionChartData={dashboardData.nutritionChartData}
-                />
+                {/* 4. Progress Tracking - PLATINUM ONLY */}
+                {hasAccess('Platinum') && (
+                    <ProgressTracking 
+                        exerciseProgress={dashboardData.exerciseProgress}
+                        nutritionChartData={dashboardData.nutritionChartData}
+                    />
+                )}
                 
-                <NutritionTracking 
-                    todaysConsumedFoods={dashboardData.todaysConsumedFoods}
-                    todayNutrition={dashboardData.todayNutrition}
-                    user={user}
-                    onFoodComplete={handleFoodComplete}
-                />
+                {/* 5. Nutrition Tracking - GOLD & PLATINUM ONLY */}
+                {hasAccess('Gold') ? (
+                    <NutritionTracking 
+                        todaysConsumedFoods={dashboardData.todaysConsumedFoods}
+                        todayNutrition={dashboardData.todayNutrition}
+                        user={user}
+                        onFoodComplete={handleFoodComplete}
+                    />
+                ) : (
+                     // Optional: You can remove this 'else' block if you want it to just be invisible
+                     <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-center mt-10">
+                        <h3 className="text-xl font-bold text-gray-300 mb-2">Nutrition Tracking Locked</h3>
+                        <p className="text-sm text-gray-500">
+                            Upgrade to Gold or Platinum to unlock advanced nutrition tracking and meal logs.
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
