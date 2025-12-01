@@ -31,6 +31,107 @@ const UserProfile = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
 
+    const [paymentDetails, setPaymentDetails] = useState({
+        cardNumber: '',
+        expiryDate: '',
+        cvv: ''
+    });
+
+    const [paymentErrors, setPaymentErrors] = useState({});
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Helper: Format Card Number (Adds space every 4 digits)
+    const formatCardNumber = (value) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const parts = [];
+        for (let i = 0; i < v.length; i += 4) {
+            parts.push(v.substring(i, i + 4));
+        }
+        return parts.length > 1 ? parts.join(' ') : value;
+    };
+
+    // Helper: Format Expiry Date (Adds slash after 2 digits)
+    const formatExpiryDate = (value) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (v.length >= 2) {
+            return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
+        }
+        return v;
+    };
+
+    // Handle Payment Input Changes
+    const handlePaymentChange = (e) => {
+        const { name, value } = e.target;
+        let formattedValue = value;
+
+        if (name === 'cardNumber') {
+            formattedValue = formatCardNumber(value);
+        } else if (name === 'expiryDate') {
+            if (value.length < paymentDetails.expiryDate.length) {
+                formattedValue = value; 
+            } else {
+                formattedValue = formatExpiryDate(value);
+            }
+        } else if (name === 'cvv') {
+            formattedValue = value.replace(/\D/g, '').slice(0, 4);
+        }
+
+        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+        
+        if (paymentErrors[name]) {
+            setPaymentErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    // Validate Payment Fields
+    const validatePayment = () => {
+        const errors = {};
+        const { cardNumber, expiryDate, cvv } = paymentDetails;
+
+        const cleanCardNum = cardNumber.replace(/\s/g, '');
+        if (cleanCardNum.length !== 16) {
+            errors.cardNumber = 'Card number must be 16 digits';
+        }
+
+        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+            errors.expiryDate = 'Format must be MM/YY';
+        } else {
+            const [month, year] = expiryDate.split('/').map(Number);
+            const now = new Date();
+            const currentYear = now.getFullYear() % 100;
+            const currentMonth = now.getMonth() + 1;
+
+            if (month < 1 || month > 12) {
+                errors.expiryDate = 'Invalid month';
+            } else if (year < currentYear || (year === currentYear && month < currentMonth)) {
+                errors.expiryDate = 'Card has expired';
+            }
+        }
+
+        if (cvv.length < 3) {
+            errors.cvv = 'Invalid CVV';
+        }
+
+        setPaymentErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    // Handle Payment Submission
+    const handlePaymentSubmit = (e) => {
+        e.preventDefault();
+        
+        if (validatePayment()) {
+            setIsProcessing(true);
+            setTimeout(() => {
+                setIsProcessing(false);
+                alert('Payment Successful!');
+                setShowMembershipModal(false);
+                setShowPayment(false);
+                setPaymentDetails({ cardNumber: '', expiryDate: '', cvv: '' });
+            }, 2000);
+        }
+    };
+
     // Initialize data
     useEffect(() => {
         if (user) {
@@ -346,38 +447,76 @@ const UserProfile = () => {
                                 </div>
                             )}
 
-                            {/* Payment Section */}
-                            {showPayment && (
-                                <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
-                                    <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
-                                    <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200">
-                                        <p className="flex justify-between mb-1"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
-                                        <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
-                                    </div>
-                                    
-                                    <form onSubmit={(e) => { e.preventDefault(); alert('Integrate payment API here'); }} className="space-y-4">
-                                        <div>
-                                            <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
-                                            <input type="text" placeholder="1234 5678 9012 3456" maxLength="19" 
-                                                className="w-full bg-[#222] border border-[#444] rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-gray-400 mb-1 text-sm">Expiry</label>
-                                                <input type="text" placeholder="MM/YY" className="w-full bg-[#222] border border-[#444] rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-gray-400 mb-1 text-sm">CVV</label>
-                                                <input type="text" placeholder="123" maxLength="3" className="w-full bg-[#222] border border-[#444] rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]" />
-                                            </div>
-                                        </div>
-                                        <button className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-95 shadow-lg shadow-purple-900/40">
-                                            Process Payment
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
+                          {/* Payment Section */}
+                          {showPayment && (
+                              <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
+                                  <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
+                                  <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200">
+                                      <p className="flex justify-between mb-1"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
+                                      <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
+                                  </div>
+                                  
+                                  {/* UPDATED FORM: Connected to state and validation functions */}
+                                  <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                                      <div>
+                                          <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
+                                          <input 
+                                              type="text" 
+                                              name="cardNumber"
+                                              value={paymentDetails.cardNumber}
+                                              onChange={handlePaymentChange}
+                                              placeholder="1234 5678 9012 3456" 
+                                              maxLength="19" 
+                                              className={`w-full bg-[#222] border ${paymentErrors.cardNumber ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors`}
+                                          />
+                                          {paymentErrors.cardNumber && <p className="text-red-500 text-xs mt-1">{paymentErrors.cardNumber}</p>}
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-4">
+                                          <div>
+                                              <label className="block text-gray-400 mb-1 text-sm">Expiry</label>
+                                              <input 
+                                                  type="text" 
+                                                  name="expiryDate"
+                                                  value={paymentDetails.expiryDate}
+                                                  onChange={handlePaymentChange}
+                                                  placeholder="MM/YY" 
+                                                  maxLength="5"
+                                                  className={`w-full bg-[#222] border ${paymentErrors.expiryDate ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
+                                              />
+                                              {paymentErrors.expiryDate && <p className="text-red-500 text-xs mt-1">{paymentErrors.expiryDate}</p>}
+                                          </div>
+                                          <div>
+                                              <label className="block text-gray-400 mb-1 text-sm">CVV</label>
+                                              <input 
+                                                  type="text" 
+                                                  name="cvv"
+                                                  value={paymentDetails.cvv}
+                                                  onChange={handlePaymentChange}
+                                                  placeholder="123" 
+                                                  maxLength="3" 
+                                                  className={`w-full bg-[#222] border ${paymentErrors.cvv ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
+                                              />
+                                              {paymentErrors.cvv && <p className="text-red-500 text-xs mt-1">{paymentErrors.cvv}</p>}
+                                          </div>
+                                      </div>
+
+                                      <button 
+                                          type="submit"
+                                          disabled={isProcessing}
+                                          className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-[0.99] shadow-lg shadow-purple-900/40 flex justify-center items-center gap-2"
+                                      >
+                                          {isProcessing ? (
+                                              <>
+                                                  <i className="fas fa-circle-notch fa-spin"></i> Processing...
+                                              </>
+                                          ) : (
+                                              'Process Payment'
+                                          )}
+                                      </button>
+                                  </form>
+                              </div>
+                          )}
                         </div>
                     </div>
                 </div>
