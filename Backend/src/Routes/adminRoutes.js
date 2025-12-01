@@ -8,12 +8,13 @@ const adminController = require('../controllers/adminController');
 router.get('/login', adminController.getAdminLogin);
 router.post('/login', adminController.postAdminLogin);
 
-// Add admin authentication middleware
+// UPDATE: Middleware to return 401 instead of redirecting
 const isAdminAuthenticated = (req, res, next) => {
     if (req.session.userId && req.session.user && req.session.user.role === 'admin') {
         next();
     } else {
-        res.redirect('/admin/login');
+        // Send JSON error for React to handle
+        res.status(401).json({ success: false, message: 'Unauthorized: Please login as admin' });
     }
 };
 
