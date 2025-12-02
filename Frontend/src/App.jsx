@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
-// import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import HomePage from './pages/Home/HomePage';
 import Login from './pages/Auth/Login';
 import UserSignup from './pages/Auth/UserSignup';
@@ -34,10 +34,10 @@ import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
 
 function App() {
   return (
-    
-    <Router>
-      <div className="App">
-        <Routes>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
@@ -106,7 +106,7 @@ function App() {
         </Routes>
       </div>
     </Router>
-    
+    </AuthProvider>
   );
 }
 
