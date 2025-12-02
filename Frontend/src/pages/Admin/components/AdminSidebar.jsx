@@ -1,26 +1,30 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from "react-router-dom";
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
-  
+
   const menuItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-    { name: 'Users', path: '/admin/users', icon: '👥' },
-    { name: 'Trainers', path: '/admin/trainers', icon: '💪' },
-    { name: 'Trainer Assignment', path: '/admin/trainer-assignment', icon: '🔗' },
-    { name: 'Memberships', path: '/admin/memberships', icon: '💳' },
-    { name: 'Exercises', path: '/admin/exercises', icon: '🏋️' },
-    { name: 'Verify', path: '/admin/verifiers', icon: '✅' },
+    { name: "Dashboard", path: "/admin/dashboard", icon: "📊" },
+    { name: "Users", path: "/admin/users", icon: "👥" },
+    { name: "Trainers", path: "/admin/trainers", icon: "💪" },
+    {
+      name: "Trainer Assignment",
+      path: "/admin/trainer-assignment",
+      icon: "🔗",
+    },
+    { name: "Memberships", path: "/admin/memberships", icon: "💳" },
+    { name: "Exercises", path: "/admin/exercises", icon: "🏋️" },
+    { name: "Verify", path: "/admin/verifiers", icon: "✅" },
   ];
 
   const handleLogout = () => {
     // Clear any admin session/token
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     sessionStorage.clear();
-    
+
     // Redirect to home page
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -60,17 +64,13 @@ const AdminSidebar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-3 py-3 md:px-6 transition-all duration-300 ease-in-out border-r-4 justify-center md:justify-start ${
                     isActive
-                      ? 'bg-[#8A2BE2] text-white border-white font-semibold'
-                      : 'text-gray-400 border-transparent hover:bg-[#1a1a1a] hover:text-gray-100 hover:border-[#8A2BE2]'
+                      ? "bg-[#8A2BE2] text-white border-white font-semibold"
+                      : "text-gray-400 border-transparent hover:bg-[#1a1a1a] hover:text-gray-100 hover:border-[#8A2BE2]"
                   }`
                 }
               >
-                <span className="text-xl md:mr-3 md:text-lg">
-                  {item.icon}
-                </span>
-                <span className="hidden md:block">
-                  {item.name}
-                </span>
+                <span className="text-xl md:mr-3 md:text-lg">{item.icon}</span>
+                <span className="hidden md:block">{item.name}</span>
               </NavLink>
             </li>
           ))}
@@ -89,12 +89,8 @@ const AdminSidebar = () => {
             rounded border border-transparent hover:border-[#ff6b6b]
           "
         >
-          <span className="text-xl md:mr-3 md:text-lg">
-            🚪
-          </span>
-          <span className="hidden md:block font-semibold">
-            Logout
-          </span>
+          <span className="text-xl md:mr-3 md:text-lg">🚪</span>
+          <span className="hidden md:block font-semibold">Logout</span>
         </button>
       </div>
     </aside>
