@@ -89,14 +89,8 @@ app.use("/api/auth", authRoutes);
 
 // react signup
 // Add these before the catch-all handler
-const spaRoutes = [
-  "/login",
-  "/signup/user",
-  "/signup/trainer",
-  "/dashboard",
-  "/trainer/dashboard",
-];
-spaRoutes.forEach((route) => {
+const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer'];
+spaRoutes.forEach(route => {
   app.get(route, (req, res) => {
     res.sendFile(path.join(__dirname, "../Frontend/dist/index.html"));
   });

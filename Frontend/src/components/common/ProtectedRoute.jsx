@@ -19,7 +19,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     // If the route requires specific roles (e.g., only 'trainer') and user doesn't have it
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Redirect to their appropriate dashboard or an unauthorized page
-        return <Navigate to={user.role === 'trainer' ? '/trainer/dashboard' : '/dashboard'} replace />;
+        return <Navigate to={user.role === 'trainer' ? '/trainer' : '/dashboard'} replace />;
     }
 
     // 4. If all checks pass, render the child route (The Dashboard)

@@ -1,3 +1,7 @@
 to do 
 
-admin pages
+user profile logout 
+admin pages add
+try anvesh laptop lo npm i
+static pages 
+reducer
