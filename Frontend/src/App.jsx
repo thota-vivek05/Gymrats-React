@@ -21,6 +21,7 @@ import AdminVerifications from './pages/Admin/AdminVerifications';
 import UserDashboard from './pages/User/UserDashboard';
 import UserProfile from './pages/User/UserProfile'; 
 import UserExercises from './pages/User/UserExercises';
+import UserNutrition from './pages/User/UserNutrition';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
 
             <Route path="/userprofile" element={<UserProfile />} />
             <Route path="/user_exercises" element={<UserExercises />} />
+            <Route path="/user_nutrition" element={<UserNutrition />} />
                {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
                {/* Add pages here like /profile, /workouts */}
             </Route>
