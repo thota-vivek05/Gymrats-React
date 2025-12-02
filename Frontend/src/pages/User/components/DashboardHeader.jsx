@@ -1,8 +1,16 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 
 const DashboardHeader = ({ user, currentPage }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
   const getDashboardPath = () => {
     return "/dashboard";
@@ -43,6 +51,11 @@ const DashboardHeader = ({ user, currentPage }) => {
             <Link to="/userprofile">
               <span>{user?.full_name || "User"}</span>
             </Link>
+
+            <button 
+                 onClick={handleLogout}
+                className="text-gray-300 hover:text-red-500 transition-colors font-medium border border-gray-700 hover:border-red-500 rounded px-4 py-1.5 text-sm"
+                    >  Logout  </button>
           </div>
         </div>
 
