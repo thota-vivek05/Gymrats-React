@@ -66,7 +66,7 @@ router.get("/api/workout/today", protect, async (req, res) => {
 // Get today's nutrition data
 router.get("/api/nutrition/today", protect, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const todaysConsumedFoods = await userController.getTodaysFoods(userId);
 
     // Get user for goals
@@ -134,7 +134,7 @@ router.get("/api/nutrition/today", protect, async (req, res) => {
 // Get weekly workout stats
 router.get("/api/workout/weekly-stats", protect, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -172,7 +172,7 @@ router.get("/api/workout/weekly-stats", protect, async (req, res) => {
 // Get exercise progress data
 router.get("/api/exercise/progress", protect, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     // Get all workout history to find max weights
     const allWorkouts = await WorkoutHistory.find({ userId: userId });
@@ -252,7 +252,7 @@ router.get("/api/exercise/progress", protect, async (req, res) => {
 // Get upcoming class
 router.get("/api/class/upcoming", protect, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const user = await User.findById(userId).populate(
       "class_schedules.trainerId",
       "name"
@@ -326,7 +326,7 @@ router.get(
   protect,
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const workouts = await WorkoutHistory.find({ userId: userId });
 
       const today = new Date();
@@ -400,7 +400,7 @@ router.get(
   async (req, res) => {
     try {
       const User = require("../model/User");
-      const user = await User.findById(req.user.id);
+      const user = await User.findById(req.user._id);
 
       res.render("user_exercises", {
         user: {
@@ -430,7 +430,7 @@ router.get(
   protect,
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const User = require("../model/User");
       const user = await User.findById(userId);
 
@@ -482,7 +482,7 @@ router.post(
   protect,
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { exerciseId } = req.params;
       const { rating, effectiveness, notes } = req.body;
 
@@ -565,7 +565,7 @@ router.get(
   protect,
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const User = require("../model/User");
       const user = await User.findById(userId);
       const userWorkoutType = user?.workout_type;
@@ -702,7 +702,7 @@ router.get(
   protect,
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { exerciseId } = req.params;
 
       const exercise = await Exercise.findById(exerciseId);
@@ -757,7 +757,7 @@ router.get(
     try {
       //  console.log('=== DEBUG EXERCISES API ===');
 
-      const userId = req.user.id;
+      const userId = req.user._id;
       //  console.log('User ID:', userId);
 
       const User = require("../model/User");
@@ -798,7 +798,7 @@ router.get(
   async (req, res) => {
     try {
       const { query } = req.query;
-      const userId = req.user.id;
+      const userId = req.user._id;
 
       if (!query || query.trim() === "") {
         return res.json({ success: true, exercises: [] });
@@ -861,7 +861,7 @@ router.post(
   async (req, res) => {
     try {
       const { foodName, calories, protein, carbs, fats, day } = req.body;
-      const userId = req.user.id;
+      const userId = req.user._id;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
