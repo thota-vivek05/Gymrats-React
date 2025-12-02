@@ -24,54 +24,30 @@ const StatCard = ({ label, value }) => {
   );
 };
 
-const AdminUsers = () => {
-  const [users, setUsers] = useState([]);
+const AdminMemberships = () => {
+  const [memberships, setMemberships] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Users
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/admin/users", {
-        credentials: "include",
-      });
-      const data = await response.json();
-      if (data.success) {
-        setUsers(data.users);
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // Delete User Handler
-  const handleDelete = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const data = await response.json();
-      if (data.success) {
-        // Remove from UI immediately
-        setUsers(users.filter((u) => u._id !== userId));
-        alert("User deleted successfully");
-      } else {
-        alert("Failed to delete user");
+    const fetchMemberships = async () => {
+      try {
+        const response = await fetch("/api/admin/memberships", {
+          credentials: "include",
+        });
+        const data = await response.json();
+        if (data.success) {
+          setMemberships(data.memberships);
+          setStats(data.stats);
+        }
+      } catch (error) {
+        console.error("Error fetching memberships:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
-  };
+    };
+    fetchMemberships();
+  }, []);
 
   // Shared container classes
   const containerClasses =
@@ -83,7 +59,7 @@ const AdminUsers = () => {
         <AdminSidebar />
         <div className="flex flex-col items-center justify-center flex-1 p-8 text-[#cccccc]">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
-          <p>Loading Users...</p>
+          <p>Loading Memberships...</p>
         </div>
       </div>
     );
@@ -96,7 +72,7 @@ const AdminUsers = () => {
         {/* Page Header */}
         <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
           <h1 className="m-0 text-2xl font-bold md:text-3xl text-[#f1f1f1]">
-            User Management
+            Membership Management
           </h1>
           <button
             className="
@@ -111,22 +87,34 @@ const AdminUsers = () => {
             hover:-translate-y-0.5
           "
           >
-            + Add User
+            + Add Plan
           </button>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-5 mb-8 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total Users" value={stats?.totalUsers || 0} />
-          <StatCard label="Active Members" value={stats?.activeMembers || 0} />
-          <StatCard label="Platinum Users" value={stats?.platinumUsers || 0} />
-          <StatCard label="New Signups (7d)" value={stats?.newSignups || 0} />
+          <StatCard
+            label="Active Memberships"
+            value={stats?.activeMembers || 0}
+          />
+          <StatCard
+            label="Revenue (Monthly)"
+            value={`₹${stats?.monthlyRevenue || 0}`}
+          />
+          <StatCard
+            label="Renewals (30d)"
+            value={stats?.upcomingRenewals || 0}
+          />
+          <StatCard
+            label="Expiring Soon"
+            value={stats?.expiringMemberships || 0}
+          />
         </div>
 
-        {/* Users Table */}
+        {/* Memberships Table */}
         <div className="bg-[#111] rounded-lg border border-[#8A2BE2] p-5 shadow-[0_4px_8px_rgba(138,43,226,0.3)]">
           <h2 className="pb-3 mb-5 text-xl font-semibold border-b border-[#8A2BE2] text-[#f1f1f1]">
-            User List
+            Membership Plans
           </h2>
 
           <div className="overflow-x-auto">
@@ -137,16 +125,19 @@ const AdminUsers = () => {
                     User
                   </th>
                   <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
-                    Email
+                    Plan
+                  </th>
+                  <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
+                    Start Date
+                  </th>
+                  <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
+                    End Date
                   </th>
                   <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
                     Status
                   </th>
                   <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
-                    Membership
-                  </th>
-                  <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
-                    Joined
+                    Amount
                   </th>
                   <th className="p-3 text-sm font-semibold tracking-wider text-left uppercase text-[#f1f1f1]">
                     Actions
@@ -154,47 +145,35 @@ const AdminUsers = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {memberships.length > 0 ? (
+                  memberships.map((m) => (
                     <tr
-                      key={user._id}
+                      key={m._id}
                       className="border-b border-[#333] transition-colors duration-300 hover:bg-[#8A2BE2]/10"
                     >
-                      <td className="p-3 text-[#f1f1f1]">{user.full_name}</td>
-                      <td className="p-3 text-[#f1f1f1]">{user.email}</td>
-                      <td className="p-3">
-                        <span
-                          className={`
-                          inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full border
-                          ${
-                            user.status === "Active"
-                              ? "bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]"
-                              : "bg-[#ff6b6b]/20 text-[#ff6b6b] border-[#ff6b6b]"
-                          }
-                        `}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <span
-                          className={`
-                          inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full border
-                          ${
-                            user.membershipType === "Platinum"
-                              ? "bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]"
-                              : user.membershipType === "Gold"
-                              ? "bg-[#ffc107]/20 text-[#ffc107] border-[#ffc107]"
-                              : "bg-[#ff6b6b]/20 text-[#ff6b6b] border-[#ff6b6b]"
-                          }
-                        `}
-                        >
-                          {user.membershipType}
-                        </span>
+                      <td className="p-3 text-[#f1f1f1]">{m.userName}</td>
+                      <td className="p-3 text-[#f1f1f1]">{m.planType}</td>
+                      <td className="p-3 text-[#f1f1f1]">
+                        {new Date(m.startDate).toLocaleDateString()}
                       </td>
                       <td className="p-3 text-[#f1f1f1]">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(m.endDate).toLocaleDateString()}
                       </td>
+                      <td className="p-3">
+                        <span
+                          className={`
+                          inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full border
+                          ${
+                            m.status === "Active"
+                              ? "bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]"
+                              : "bg-[#ff6b6b]/20 text-[#ff6b6b] border-[#ff6b6b]"
+                          }
+                        `}
+                        >
+                          {m.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-[#f1f1f1]">₹{m.amount}</td>
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                           <button
@@ -206,13 +185,12 @@ const AdminUsers = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(user._id)}
                             className="
-                              px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
-                              bg-[#ff6b6b]/20 text-[#ff6b6b] hover:bg-[#ff6b6b]/30
-                            "
+                            px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
+                            bg-[#ff6b6b]/20 text-[#ff6b6b] hover:bg-[#ff6b6b]/30
+                          "
                           >
-                            Delete
+                            Revoke
                           </button>
                         </div>
                       </td>
@@ -220,8 +198,8 @@ const AdminUsers = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="p-10 text-center text-[#cccccc]">
-                      <p>No users found.</p>
+                    <td colSpan="7" className="p-10 text-center text-[#cccccc]">
+                      No memberships found.
                     </td>
                   </tr>
                 )}
@@ -234,4 +212,4 @@ const AdminUsers = () => {
   );
 };
 
-export default AdminUsers;
+export default AdminMemberships;

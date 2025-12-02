@@ -20,9 +20,11 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLayout from './pages/Admin/components/AdminLayout'; 
 import AdminUsers from './pages/Admin/AdminUsers';
 import AdminTrainers from './pages/Admin/AdminTrainers';
+import AdminMemberships from './pages/Admin/AdminMemberships';
+import AdminExercises from './pages/Admin/AdminExercises';
+import AdminVerifiers from './pages/Admin/AdminVerifiers';
 
-// ✅ 1. IMPORT THE VERIFICATIONS COMPONENT
-import AdminVerifications from './pages/Admin/AdminVerifications'; 
+import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
 
 import UserDashboard from './pages/User/UserDashboard';
 import UserProfile from './pages/User/UserProfile'; 
@@ -96,9 +98,11 @@ function App() {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/users" element={<AdminUsers />} />
                     <Route path="/admin/trainers" element={<AdminTrainers />} />
-                    
-                    {/* ✅ 2. ADD THIS ROUTE HERE */}
-                    <Route path="/admin/verifiers" element={<AdminVerifications />} />
+                    <Route path="/admin/memberships" element={<AdminMemberships />} />
+                    <Route path="/admin/exercises" element={<AdminExercises />} />
+                    <Route path="/admin/verifiers" element={<AdminVerifiers />} />
+                    {/* <Route path="/admin/verifiers" element={<AdminVerifications />} /> */}
+            <Route path="/admin/trainer-assignment" element={<AdminTrainerAssignment />} />
                     
                 </Route>
             </Route>  
