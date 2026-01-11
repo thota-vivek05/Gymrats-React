@@ -102,4 +102,4 @@ const ProgressTracking = ({ exerciseProgress, nutritionChartData }) => {
     );
 };
 
-export default ProgressTracking;
+export default ProgressTracking; 

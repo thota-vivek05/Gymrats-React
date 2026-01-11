@@ -90,7 +90,7 @@ const login = async (req, res) => {
             responseData.user.membershipType = user.membershipType;
             responseData.redirect = `/userdashboard_${user.membershipType.charAt(0).toLowerCase()}`;
         } else if (userType === 'trainer') {
-            responseData.redirect = '/trainer/dashboard';
+            responseData.redirect = '/trainer';
         }
 
         res.json(responseData);

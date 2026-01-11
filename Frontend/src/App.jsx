@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
-import { AuthProvider } from './context/AuthContext';
+// import { AuthProvider } from './context/AuthContext';
 import HomePage from './pages/Home/HomePage';
 import Login from './pages/Auth/Login';
 import UserSignup from './pages/Auth/UserSignup';
@@ -23,7 +23,7 @@ import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
 
 function App() {
   return (
-    <AuthProvider>
+    
     <Router>
       <div className="App">
         <Routes>
@@ -85,7 +85,7 @@ function App() {
         </Routes>
       </div>
     </Router>
-    </AuthProvider>
+    
   );
 }
 

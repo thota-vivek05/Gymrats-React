@@ -87,4 +87,4 @@ const UpcomingClass = ({ upcomingClass }) => {
     );
 };
 
-export default UpcomingClass;
+export default UpcomingClass; 
