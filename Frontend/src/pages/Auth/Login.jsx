@@ -64,8 +64,6 @@ const Login = () => {
 
                 if (user.role === 'trainer') {
                     navigate('/trainer');
-                } else if (user.role === 'admin') {
-                    navigate('/admin/dashboard');
                 } else {
                     navigate('/dashboard');
                 }
@@ -115,7 +113,6 @@ const Login = () => {
                             >
                                 <option value="user" className="text-black">Member</option>
                                 <option value="trainer" className="text-black">Trainer</option>
-                                <option value="admin" className="text-black">Admin</option>
                             </select>
                         </div>
 
