@@ -5,6 +5,9 @@ const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 //brimstone
 const Membership = require('../model/Membership'); // Add this line
+
+const moment = require('moment');
+
 //brimstone
 // for membership management           REYNA
 const Trainer = require('../model/Trainer');
@@ -763,6 +766,8 @@ const changeMembership = async (req, res) => {
         });
     }
 };
+
+
 //brimstone
 // brimstone
 // Add this function to userController.js
@@ -1631,6 +1636,137 @@ const getTodaysWorkout = async (userId) => {
     }
 };
 
+// const getUserProgress = async (req, res) => {
+//     try {
+//         // req.user is populated by the authMiddleware (protect)
+//         const userId = req.user._id; 
+
+//         const history = await WorkoutHistory.find({ userId: userId })
+//             .sort({ date: -1 })
+//             .limit(6);
+
+//         const chronologicalHistory = history.reverse();
+
+//         const labels = chronologicalHistory.map(entry => 
+//             moment(entry.date).format('MMM Do')
+//         );
+
+//         const getMaxWeight = (entry, exerciseName) => {
+//             if (!entry.exercises) return 0;
+//             const exercise = entry.exercises.find(ex => 
+//                 ex.name.toLowerCase() === exerciseName.toLowerCase()
+//             );
+//             return exercise ? (exercise.weight || 0) : 0;
+//         };
+
+//         const data = {
+//             labels: labels,
+//             datasets: [
+//                 {
+//                     label: 'Squat',
+//                     data: chronologicalHistory.map(h => getMaxWeight(h, 'Squat')),
+//                     borderColor: 'rgb(255, 99, 132)',
+//                     backgroundColor: 'rgba(255, 99, 132, 0.5)',
+//                     tension: 0.3
+//                 },
+//                 {
+//                     label: 'Deadlift',
+//                     data: chronologicalHistory.map(h => getMaxWeight(h, 'Deadlift')),
+//                     borderColor: 'rgb(53, 162, 235)',
+//                     backgroundColor: 'rgba(53, 162, 235, 0.5)',
+//                     tension: 0.3
+//                 },
+//                 {
+//                     label: 'Bench Press',
+//                     data: chronologicalHistory.map(h => getMaxWeight(h, 'Bench Press')),
+//                     borderColor: 'rgb(75, 192, 192)',
+//                     backgroundColor: 'rgba(75, 192, 192, 0.5)',
+//                     tension: 0.3
+//                 },
+//             ],
+//         };
+
+//         res.json(data);
+//     } catch (error) {
+//         console.error('Error fetching user progress:', error);
+//         res.status(500).json({ error: 'Server error fetching progress' });
+//     }
+// };
+
+const getUserProgressGraph = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Fetch Workout History (Last 6 entries/weeks)
+        const history = await WorkoutHistory.find({ userId: userId })
+            .sort({ date: -1 }) // Newest first
+            .limit(6);
+
+        // 2. Reverse to Chronological Order (Oldest -> Newest)
+        const chronologicalHistory = history.reverse();
+
+        // 3. Generate Labels (Dates)
+        const labels = chronologicalHistory.map(entry => 
+            moment(entry.date).format('MMM Do')
+        );
+
+        // 4. Helper to find max weight with fuzzy matching
+        // This handles "Barbell Squat" by matching "squat"
+        const getMaxWeight = (entry, searchTerm) => {
+            if (!entry.exercises || entry.exercises.length === 0) return 0;
+            
+            const relevantExercises = entry.exercises.filter(ex => 
+                ex.name && ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (relevantExercises.length === 0) return 0;
+
+            // Find max weight among matches
+            return Math.max(...relevantExercises.map(ex => ex.weight || 0));
+        };
+
+        // 5. Build Datasets
+        const graphData = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Bench Press',
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'bench')),
+                    borderColor: '#20B2AA', // Teal
+                    backgroundColor: 'rgba(32, 178, 170, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Squat', // Will match "Barbell Squat" via helper
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'squat')),
+                    borderColor: '#8A2BE2', // Purple
+                    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Deadlift',
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'deadlift')),
+                    borderColor: '#FF6347', // Tomato
+                    backgroundColor: 'rgba(255, 99, 71, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        };
+
+        res.json({
+            success: true,
+            exerciseProgress: graphData // Return as exerciseProgress to match your frontend structure
+        });
+
+    } catch (error) {
+        console.error('Error fetching user graph progress:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+
 module.exports = {
     //loginUser,
     signupUser,
@@ -1644,6 +1780,7 @@ module.exports = {
     changeMembership,
     getTodaysFoods,
     markExerciseCompleted,// Add this line
-    getTodaysWorkout
-
+    getTodaysWorkout,
+    // getUserProgress,
+    getUserProgressGraph
 };

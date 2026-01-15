@@ -8,6 +8,8 @@ const { protect } = require('../middleware/authMiddleware');
 // PUBLIC ROUTES (No Auth Required)
 // ========================================
 
+router.get('/client-progress/:clientId', protect, trainerController.getClientProgress);
+
 // Handle trainer signup submission
 router.post('/signup', trainerController.signupTrainer);
 
