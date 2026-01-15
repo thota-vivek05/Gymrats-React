@@ -18,7 +18,17 @@ import AdminTrainers from './pages/Admin/AdminTrainers';
 import AdminMemberships from './pages/Admin/AdminMemberships';
 import AdminExercises from './pages/Admin/AdminExercises';
 import AdminVerifiers from './pages/Admin/AdminVerifiers';
+<<<<<<< HEAD
 import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
+=======
+
+import AdminTrainerAssignment from './pages/Admin/AdminTrainerAssignment';
+
+import UserDashboard from './pages/User/UserDashboard';
+import UserProfile from './pages/User/UserProfile'; 
+import UserExercises from './pages/User/UserExercises';
+import UserNutrition from './pages/User/UserNutrition';
+>>>>>>> rahul-final
 
 import EditWorkoutPlan from './pages/Trainer/EditWorkoutPlan.jsx';
 import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
@@ -26,10 +36,16 @@ import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
 function App() {
   return (
     <AuthProvider>
+<<<<<<< HEAD
     <Router>
       <div className="App">
         <Routes>
           {/* Public Routes */}
+=======
+      <Router>
+        <div className="App">
+          <Routes>
+>>>>>>> rahul-final
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
@@ -73,6 +89,7 @@ function App() {
                 {/* Add other trainer pages here */}
             </Route>
 
+<<<<<<< HEAD
           {/* 3. Admin Routes - Protected */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -83,6 +100,22 @@ function App() {
             <Route path="/admin/verifiers" element={<AdminVerifiers />} />
             <Route path="/admin/trainer-assignment" element={<AdminTrainerAssignment />} />
           </Route>
+=======
+            {/* 3. Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/trainers" element={<AdminTrainers />} />
+                    <Route path="/admin/memberships" element={<AdminMemberships />} />
+                    <Route path="/admin/exercises" element={<AdminExercises />} />
+                    <Route path="/admin/verifiers" element={<AdminVerifiers />} />
+                    {/* <Route path="/admin/verifiers" element={<AdminVerifications />} /> */}
+            <Route path="/admin/trainer-assignment" element={<AdminTrainerAssignment />} />
+                    
+                </Route>
+            </Route>  
+>>>>>>> rahul-final
 
         </Routes>
       </div>
