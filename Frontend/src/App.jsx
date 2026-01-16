@@ -30,6 +30,7 @@ import UserDashboard from './pages/User/UserDashboard';
 import UserProfile from './pages/User/UserProfile'; 
 import UserExercises from './pages/User/UserExercises';
 import UserNutrition from './pages/User/UserNutrition';
+import TrainersPage from "./pages/Home/related/TrainersPage";
 
 import EditWorkoutPlan from './pages/Trainer/EditWorkoutPlan.jsx';
 import EditNutritionPlan from './pages/Trainer/EditNutritionPlan.jsx';
@@ -45,6 +46,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup/user" element={<UserSignup />} />
           <Route path="/signup/trainer" element={<TrainerSignup />} />
+          <Route path="/trainers" element={<TrainersPage />} /> {/* Add this route */}
           
           <Route path="/admin/login" element={<AdminLogin />} />
           

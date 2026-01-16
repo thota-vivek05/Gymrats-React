@@ -14,8 +14,8 @@ const Footer = () => {
           <ul className="list-none p-0">
             <li className="mb-3"><a href="/about" className={linkClasses}>About Us</a></li>
             <li className="mb-3"><a href="/trainers" className={linkClasses}>Our Trainers</a></li>
-            <li className="mb-3"><a href="/testimonial" className={linkClasses}>Testimonials</a></li>
-            <li className="mb-3"><a href="/blog" className={linkClasses}>Blog</a></li>
+            {/* <li className="mb-3"><a href="/testimonial" className={linkClasses}>Testimonials</a></li>
+            <li className="mb-3"><a href="/blog" className={linkClasses}>Blog</a></li> */}
           </ul>
         </div>
 
@@ -25,7 +25,7 @@ const Footer = () => {
           <ul className="list-none p-0">
             <li className="mb-3"><a href="/isolation" className={linkClasses}>Exercise Guide</a></li>
             <li className="mb-3"><a href="/nutrition" className={linkClasses}>Nutrition Tips</a></li>
-            <li className="mb-3"><a href="/workout_plans" className={linkClasses}>Workout Plans</a></li>
+            {/* <li className="mb-3"><a href="/workout_plans" className={linkClasses}>Workout Plans</a></li> */}
             <li className="mb-3"><a href="/calculators" className={linkClasses}>Calculators</a></li>
           </ul>
         </div>

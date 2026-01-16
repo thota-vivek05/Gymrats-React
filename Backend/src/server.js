@@ -92,7 +92,7 @@ app.use("/api/auth", authRoutes);
 const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer'];
 spaRoutes.forEach(route => {
   app.get(route, (req, res) => {
-    res.sendFile(path.join(__dirname, "../Frontend/dist/index.html"));
+    res.sendFile(path.join(__dirname, "../../Frontend/dist/index.html"));
   });
 });
 

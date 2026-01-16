@@ -59,7 +59,7 @@ const Header = () => {
           id="menuIcon" 
           onClick={handleMenuToggle}
         >
-          <img src="/home/menu.jpg" alt="Menu" height="25px" className="h-[25px]" />
+          <img src="/menu.jpg" alt="Menu" height="25px" className="h-[25px]" />
         </div>
 
         {/* Mobile Sidebar */}
