@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
   // Shared classes to keep the JSX clean
   const linkClasses = "text-[#cccccc] no-underline text-[0.95rem] transition-colors duration-200 hover:text-[#8A2BE2]";
@@ -45,9 +47,8 @@ const Footer = () => {
         <div className={columnClasses}>
           <h3 className={headingClasses}>Connect With Us</h3>
           <ul className="list-none p-0">
-            <li className="mb-3"><a href="/signup/trainer" className={linkClasses}>Become a Trainer</a></li>
+            <li className="mb-3"><Link to="/signup/trainer" className={linkClasses}>Become a Trainer</Link></li>
           </ul>
-
           <p className="text-[0.9rem] text-[#999] mt-2.5">
             GymRats © 2025. All rights reserved.
           </p>
