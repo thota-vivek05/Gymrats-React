@@ -25,6 +25,10 @@ const trainerSchema = new mongoose.Schema({
         required: true,
         enum: ['1-2', '3-5', '5-10', '10+']
     },
+    meetingLink: { 
+        type: String,
+        default: "" 
+    },
    // REYNA
     // In Trainer.js schema, update the specializations field:
     specializations: [{ 

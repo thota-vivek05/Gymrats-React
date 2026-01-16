@@ -691,34 +691,44 @@ const adminController = {
     }
   },
 
-  updateTrainer: async (req, res) => {
-    try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
+        updateTrainer: async (req, res) => {
+      try {
+        console.log("--- DEBUG START ---");
+        console.log("Request Body:", req.body); // Check if meetingLink is here
+        console.log("Trainer ID:", req.params.id);
+
+        const { name, email, phone, experience, specializations, status, meetingLink } = req.body;
+        
+        console.log("Extracted meetingLink:", meetingLink);
+
+        const updatedTrainer = await Trainer.findByIdAndUpdate(
+          req.params.id,
+          {
+            name,
+            email,
+            phone,
+            experience,
+            specializations: Array.isArray(specializations) ? specializations : specializations.split(','),
+            status,
+            meetingLink // Ensure this matches the Schema field name
+          },
+          { new: true, runValidators: true } // runValidators helps catch schema errors
+        );
+
+        if (!updatedTrainer) {
+            console.log("Update Failed: Trainer not found");
+            return res.status(404).json({ success: false });
+        }
+
+        console.log("Updated Trainer from DB:", updatedTrainer);
+        console.log("--- DEBUG END ---");
+
+        res.status(200).json({ success: true, trainer: updatedTrainer });
+      } catch (error) {
+        console.error("Backend Error:", error);
+        res.status(500).json({ success: false, error: error.message });
       }
-      const trainerId = req.params.id;
-      const { name, email, phone, experience, specializations, status } = req.body;
-      const updatedTrainer = await Trainer.findByIdAndUpdate(
-        trainerId,
-        {
-          name,
-          email,
-          phone,
-          experience,
-          specializations: specializations ? specializations.split(',').map(s => s.trim()) : [],
-          status
-        },
-        { new: true }
-      );
-      if (!updatedTrainer) {
-        return res.status(404).json({ success: false, message: 'Trainer not found' });
-      }
-      res.status(200).json({ success: true, message: 'Trainer updated successfully', trainer: updatedTrainer });
-    } catch (error) {
-      console.error('Update trainer error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  },
+    },
 
   deleteTrainer: async (req, res) => {
     try {

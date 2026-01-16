@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "./components/AdminSidebar";
 
+
 // Reusable StatCard Component
 const StatCard = ({ label, value }) => {
   return (
@@ -28,6 +29,10 @@ const AdminTrainers = () => {
   const [trainers, setTrainers] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingTrainer, setEditingTrainer] = useState(null);
+  const [editFormData, setEditFormData] = useState({ meetingLink: "" });
+  const [meetingLink, setMeetingLink] = useState("");
+
 
   useEffect(() => {
     const fetchTrainers = async () => {
@@ -76,6 +81,39 @@ const AdminTrainers = () => {
         </div>
       </div>
     );
+       const handleUpdate = async (e) => {
+          e.preventDefault();
+          console.log("Sending Link:", meetingLink);
+          
+          try {
+            const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                ...editingTrainer, 
+                meetingLink: meetingLink 
+              }),
+              credentials: "include",
+            });
+
+            const data = await response.json();
+            console.log("Server Response Data:", data);
+
+            if (data.success) {
+              setTrainers(trainers.map(t => 
+                t._id === editingTrainer._id ? { ...t, meetingLink: meetingLink } : t
+              ));
+              setEditingTrainer(null);
+              alert("Success!");
+            } else {
+              console.error("Server reported failure:", data.message);
+              alert("Server error: " + data.message);
+            }
+          } catch (err) {
+            console.error("Fetch Error:", err);
+            alert("Check Network Tab in F12");
+          }
+        };
 
   return (
     <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
@@ -193,14 +231,15 @@ const AdminTrainers = () => {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                          <button
-                            className="
-                            px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
-                            bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30
-                          "
-                          >
+                         <button
+                            onClick={() => {
+                            setEditingTrainer(t);
+                            setEditFormData({ meetingLink: t.meetingLink || "" });
+                            }}
+                            className="px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300 bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30"
+                            >
                             Edit
-                          </button>
+                            </button>
                           <button
                             onClick={() => handleDelete(t._id)}
                             className="
@@ -226,6 +265,42 @@ const AdminTrainers = () => {
           </div>
         </div>
       </main>
+       {editingTrainer && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                      <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
+                        <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit {editingTrainer.name}</h2>
+                        <form onSubmit={handleUpdate}>
+                          <div className="mb-6">
+                            <label className="block text-sm font-semibold text-[#cccccc] mb-2 uppercase">
+                              Google Meet / Meeting URL
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="https://meet.google.com/..."
+                              className="w-full bg-black border border-[#333] rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]"
+                              value={editFormData.meetingLink}
+                              onChange={(e) => setEditFormData({ ...editFormData, meetingLink: e.target.value })}
+                            />
+                          </div>
+                          <div className="flex gap-4">
+                            <button 
+                              type="submit" 
+                              className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]"
+                            >
+                              Save Details
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => setEditingTrainer(null)} 
+                              className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
     </div>
   );
 };
