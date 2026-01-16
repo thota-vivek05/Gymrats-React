@@ -31,7 +31,6 @@ const AdminTrainers = () => {
   const [loading, setLoading] = useState(true);
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [editFormData, setEditFormData] = useState({ meetingLink: "" });
-  const [meetingLink, setMeetingLink] = useState("");
 
 
   useEffect(() => {
@@ -83,7 +82,7 @@ const AdminTrainers = () => {
     );
        const handleUpdate = async (e) => {
           e.preventDefault();
-          console.log("Sending Link:", meetingLink);
+          console.log("Sending Link:", editFormData.meetingLink);
           
           try {
             const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
@@ -91,7 +90,7 @@ const AdminTrainers = () => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ 
                 ...editingTrainer, 
-                meetingLink: meetingLink 
+                meetingLink: editFormData.meetingLink
               }),
               credentials: "include",
             });
@@ -101,7 +100,7 @@ const AdminTrainers = () => {
 
             if (data.success) {
               setTrainers(trainers.map(t => 
-                t._id === editingTrainer._id ? { ...t, meetingLink: meetingLink } : t
+                t._id === editingTrainer._id ? { ...t, meetingLink: editFormData.meetingLink} : t
               ));
               setEditingTrainer(null);
               alert("Success!");
