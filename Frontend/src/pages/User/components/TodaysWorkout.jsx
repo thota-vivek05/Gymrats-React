@@ -2,6 +2,13 @@ import React from "react";
 
 const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
   const markExerciseAsDone = async (workoutId, exerciseName) => {
+    // Debugging check
+    if (!workoutId) {
+      alert("Error: Missing Workout ID. Please refresh the page.");
+      console.error("Missing workoutId", { todayWorkout });
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -22,13 +29,16 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
       });
 
       const data = await response.json();
+      
       if (data.success) {
         onExerciseComplete();
       } else {
-        alert("Error: " + data.error);
+        // Log the error for debugging
+        console.error("Server Error:", data.error);
+        alert("Error: " + (data.error || "Failed to update exercise"));
       }
     } catch (error) {
-      console.error("Error completing exercise:", error);
+      console.error("Network/Client Error completing exercise:", error);
       alert("Network error. Please try again.");
     }
   };
@@ -122,7 +132,7 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
                     }`}
                     onClick={() =>
                       markExerciseAsDone(
-                        todayWorkout.workoutPlanId,
+                        todayWorkout.id,
                         exercise.name
                       )
                     }
@@ -150,4 +160,4 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
   );
 };
 
-export default TodaysWorkout; 
+export default TodaysWorkout;

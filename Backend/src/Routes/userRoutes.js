@@ -298,13 +298,7 @@ router.post("/signup", userController.signupUser);
 router.get("/profile", userController.getUserProfile);
 router.post("/complete-workout", userController.completeWorkout);
 router.post("/api/workout/complete", userController.markWorkoutCompleted);
-router.post(
-  "/api/exercise/complete",
-  userController.checkMembershipActive,
-  protect,
-  userController.markExerciseCompleted
-);
-
+router.post('/api/exercise/complete', protect, userController.checkMembershipActive, userController.markExerciseCompleted);
 // Debug routes
 router.get("/api/debug/workout/:id", async (req, res) => {
   try {

@@ -502,132 +502,94 @@ const signupUser = async (req, res) => {
 // Add this function to userController.js for individual exercise completion
 const markExerciseCompleted = async (req, res) => {
     try {
-        //  console.log('🔍=== MARK EXERCISE COMPLETED START ===');
-        //  console.log('Request body:', req.body);
-        //  console.log('Session user:', req.user);
-        
         if (!req.user) {
-            //  console.log('❌ No user session');
             return res.status(401).json({ error: 'Please log in to complete the exercise' });
         }
 
         const userId = req.user.id;
         const { workoutPlanId, exerciseName } = req.body;
 
-        //  console.log('📝 Processing:', { workoutPlanId, exerciseName, userId });
-
         if (!workoutPlanId || !exerciseName) {
-            //  console.log('❌ Missing required fields');
             return res.status(400).json({ error: 'Workout ID and exercise name are required' });
         }
 
-        // ✅ ADD THIS: Calculate today's day name
-        // In markExerciseCompleted function - add timezone handling:
-const today = new Date();
-// Convert to Asia/Kolkata timezone (UTC+5:30)
-const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
-//  console.log('📅 Today is (local):', todayDayName);
+        // Calculate today's day name (Asia/Kolkata)
+        const today = new Date();
+        const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
 
         // Find the workout
-        //  console.log('🔍 Looking for workout:', workoutPlanId);
         const workout = await WorkoutHistory.findOne({ _id: workoutPlanId, userId });
         
         if (!workout) {
-            //  console.log('❌ Workout not found');
-            return res.status(404).json({ error: 'Workout not found' });
+            return res.status(404).json({ error: 'Workout not found. Please refresh your dashboard.' });
         }
 
-        // console.log('✅ Workout found:', {
-        //     id: workout._id,
-        //     exerciseCount: workout.exercises.length,
-        //     exercises: workout.exercises.map(e => ({ name: e.name, day: e.day, completed: e.completed }))
-        // });
-        
-        // --- START FIX FOR DAY MISMATCH ---
+        // --- FIND EXERCISE LOGIC ---
         let exerciseIndex = -1;
         
-        // 1. Strict Find: Match by name AND today's expected day
+        // 1. Strict Match: Name + Day
         exerciseIndex = workout.exercises.findIndex(ex => ex.name === exerciseName && ex.day === todayDayName);
 
+        // 2. Fallback Match: Name Only (ignoring Day and Status)
+        // This ensures we find the exercise even if the day is mismatched or if it's already done.
         if (exerciseIndex === -1) {
-             // 2. Fallback Find: If strict match fails (due to data error), match by name only
-             exerciseIndex = workout.exercises.findIndex(ex => ex.name === exerciseName && ex.completed === false);
-             
-             if (exerciseIndex !== -1) {
-                console.log(`⚠️ Fallback used! Exercise found at index ${exerciseIndex} by name, but day mismatch or already completed. Proceeding to mark.`);
-             } else {
-                 console.log('❌ Exercise not found or already completed by name:', exerciseName);
-                 return res.status(404).json({ error: `Exercise "${exerciseName}" not found in today's plan or already completed.` });
-             }
+             exerciseIndex = workout.exercises.findIndex(ex => ex.name === exerciseName);
+        }
+
+        if (exerciseIndex === -1) {
+             return res.status(404).json({ error: `Exercise "${exerciseName}" not found in today's plan.` });
         }
         
         const exercise = workout.exercises[exerciseIndex];
-        //  console.log('✅ Found exercise:', {
-        //     name: exercise.name,
-        //     day: exercise.day,
-        //     currentCompleted: exercise.completed,
-        //     index: exerciseIndex
-        // });
 
         if (exercise.completed) {
-            //  console.log('⚠️ Exercise already completed');
+            // It's already done, so we can return success (idempotent) or error.
+            // Returning error tells user why the button was confusing.
             return res.status(400).json({ error: 'Exercise already completed' });
         }
 
         // Mark as completed
         workout.exercises[exerciseIndex].completed = true;
-        //  console.log('✅ Marked exercise as completed');
 
-        // ✅ FIXED: Calculate progress for TODAY'S exercises only
+        // Recalculate progress for TODAY'S exercises
+        // We filter by todayDayName to keep the progress bar accurate for "Today"
         const todaysExercises = workout.exercises.filter(ex => ex.day === todayDayName);
+        
+        // If fallback was used and the exercise day is different, we should probably include it in stats?
+        // But for consistency, let's stick to the day filter.
         const completedExercises = todaysExercises.filter(ex => ex.completed).length;
         const totalExercises = todaysExercises.length;
         
-        // Handle division by zero for safety, though totalExercises should be > 0 if there are buttons
         const progress = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 100;
 
-        //  console.log('📊 Progress calculated (TODAY ONLY):', { 
-        //     today: todayDayName,
-        //     completed: completedExercises, 
-        //     total: totalExercises, 
-        //     progress,
-        //     todaysExercises: todaysExercises.map(e => ({ name: e.name, completed: e.completed }))
-        // });
-
         workout.progress = progress;
-        // Optionally mark the entire workout as completed if all today's exercises are done
-        if (progress === 100) {
+        
+        // Check if ENTIRE workout is done (all exercises in the history object)
+        const allExercisesCompleted = workout.exercises.every(ex => ex.completed);
+        if (allExercisesCompleted) {
             workout.completed = true; 
         }
 
-        // Save to database
-        // Mark the entire document as modified to ensure nested changes are saved
         workout.markModified('exercises'); 
         await workout.save();
         
-        //console.log('✅=== MARK EXERCISE COMPLETED SUCCESS ===');
-        
         res.json({ 
             success: true,
-            message: 'Exercise marked as completed successfully',
+            message: 'Exercise marked as completed',
             progress: progress,
             completedExercises: completedExercises,
             totalExercises: totalExercises
         });
 
     } catch (error) {
-        console.error('❌=== MARK EXERCISE COMPLETED ERROR ===');
-        console.error('Error:', error);
+        console.error('Error in markExerciseCompleted:', error);
         res.status(500).json({ 
             success: false,
             error: 'Server error: ' + error.message 
         });
     }
 };
-
-
-
 
 //brimstone
 // Add this function to userController.js
@@ -1561,70 +1523,84 @@ const getTodaysFoods = async (userId) => {
 
 const getTodaysWorkout = async (userId) => {
     try {
-        // ✅ Use local time instead of UTC for day calculation
+        // 1. Calculate the start and end of the CURRENT week
         const today = new Date();
-        // Convert to Asia/Kolkata timezone (UTC+5:30)
+        const dayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
+        // Calculate Monday of this week (assuming week starts Monday)
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; 
+        
+        const weekStart = new Date(today);
+        weekStart.setHours(0, 0, 0, 0);
+        weekStart.setDate(today.getDate() + diffToMonday);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        // 2. Determine "Today's" day name (e.g., "Monday")
+        // Use local time (Asia/Kolkata) to match your other logic
         const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
         const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
-        
-        // Look for ANY workout history that has exercises for today
-        const workouts = await WorkoutHistory.find({ 
-            userId: userId 
+
+        // 3. Find the workout history SPECIFICALLY for this week
+        const currentWorkout = await WorkoutHistory.findOne({
+            userId: userId,
+            date: { $gte: weekStart, $lt: weekEnd } // Only look at this week's folder
         }).lean();
 
-        let todaysExercises = [];
-        let workoutPlanId = null;
-        let workoutName = `${todayDayName} Workout`;
-
-        // Check each workout for today's exercises
-        for (const workout of workouts) {
-            if (workout.exercises && workout.exercises.length > 0) {
-                const exercisesForToday = workout.exercises.filter(ex => 
-                    ex.day === todayDayName
-                );
-                
-                if (exercisesForToday.length > 0) {
-                    todaysExercises = exercisesForToday;
-                    workoutPlanId = workout._id;
-                    workoutName = workout.name || `${todayDayName} Workout`;
-                    break;
-                }
-            }
-        }
-
-        if (todaysExercises.length > 0) {
-            const completedExercises = todaysExercises.filter(ex => ex.completed).length;
-            const totalExercises = todaysExercises.length;
-            const progress = Math.round((completedExercises / totalExercises) * 100);
-            
-            return {
-                name: workoutName,
-                exercises: todaysExercises,
-                progress: progress,
-                completed: completedExercises === totalExercises,
-                completedExercises: completedExercises,
-                totalExercises: totalExercises,
-                duration: todaysExercises.reduce((total, ex) => total + (ex.duration || 45), 0),
-                workoutPlanId: workoutPlanId
+        if (!currentWorkout) {
+             return {
+                name: 'No Workout Scheduled',
+                exercises: [],
+                progress: 0,
+                completed: false,
+                completedExercises: 0,
+                totalExercises: 0,
+                duration: 0,
+                workoutPlanId: null
             };
         }
 
-        // If no workouts found, return empty
+        // 4. Extract exercises for today
+        if (currentWorkout.exercises && currentWorkout.exercises.length > 0) {
+            const exercisesForToday = currentWorkout.exercises.filter(ex => 
+                ex.day === todayDayName
+            );
+
+            if (exercisesForToday.length > 0) {
+                // Calculate progress
+                const totalExercises = exercisesForToday.length;
+                const completedExercises = exercisesForToday.filter(ex => ex.completed).length;
+                const progress = totalExercises === 0 ? 0 : Math.round((completedExercises / totalExercises) * 100);
+
+                return {
+                    id: currentWorkout._id,
+                    name: currentWorkout.workoutName || "Weekly Workout",
+                    exercises: exercisesForToday,
+                    progress: progress,
+                    completed: completedExercises === totalExercises,
+                    completedExercises: completedExercises,
+                    totalExercises: totalExercises,
+                    duration: exercisesForToday.reduce((total, ex) => total + (ex.duration || 0), 0),
+                    workoutPlanId: currentWorkout.workoutPlanId
+                };
+            }
+        }
+
         return {
-            name: 'No Workout Scheduled',
+            name: 'Rest Day', // If history exists but no exercises for today
             exercises: [],
             progress: 0,
             completed: false,
             completedExercises: 0,
             totalExercises: 0,
             duration: 0,
-            workoutPlanId: null
+            workoutPlanId: currentWorkout.workoutPlanId
         };
 
     } catch (error) {
         console.error('❌ Error in getTodaysWorkout:', error);
         return {
-            name: 'No Workout Scheduled',
+            name: 'Error Loading Workout',
             exercises: [],
             progress: 0,
             completed: false,
