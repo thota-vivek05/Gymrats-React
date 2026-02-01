@@ -1,16 +1,33 @@
-# React + Vite
+# GymRats
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+install git :   https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.2/Git-2.47.1.2-64-bit.exe
 
-Currently, two official plugins are available:
+open git bash : use these comands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+`git config --global user.name “[firstname lastname]”` 
 
-## React Compiler
+`git config --global user.email “[valid-email]”`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<h2> Open vs code </h2> 
 
-## Expanding the ESLint configuration
+in command line use :-
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+` git clone https://github.com/thota-vivek05/Gymrats-React.git `
+
+and enter in to file using linux commands!!!!!
+
+`cd GYMRATS-REACT`
+ 
+ install required nodemodules <br/>
+
+ `npm install`
+
+now start the backend server
+
+`cd .\Backend\src\`
+`npm start`
+
+then start the frontend server
+
+`cd .\Frontend\src\`
+`npm run dev`
