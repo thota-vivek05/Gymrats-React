@@ -73,6 +73,13 @@ const NutritionTracking = ({
     }
   };
 
+  // --- NEW LOGIC: Check which columns have data ---
+  // If no food in the list has a value > 0 for a nutrient, we hide that column completely.
+  const showCalories = consumedFoods.some((f) => f.calories > 0);
+  const showProtein = consumedFoods.some((f) => f.protein > 0);
+  const showCarbs = consumedFoods.some((f) => f.carbs > 0);
+  const showFats = consumedFoods.some((f) => f.fats > 0);
+
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-5 col-span-full">
       <div className="flex justify-between items-center mb-6">
@@ -94,18 +101,23 @@ const NutritionTracking = ({
                 <div className="flex-1">
                   <h4 className="font-bold text-white mb-2">{food.name}</h4>
                   <div className="flex flex-wrap gap-2">
-                    <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
-                      {food.calories} kcal
-                    </span>
-                    <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
-                      {food.protein}g protein
-                    </span>
-                    {food.carbs && (
+                    {/* CHANGED: Checks for > 0 so "0" doesn't render */}
+                    {food.calories > 0 && (
+                      <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
+                        {food.calories} kcal
+                      </span>
+                    )}
+                    {food.protein > 0 && (
+                      <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
+                        {food.protein}g protein
+                      </span>
+                    )}
+                    {food.carbs > 0 && (
                       <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
                         {food.carbs}g carbs
                       </span>
                     )}
-                    {food.fats && (
+                    {food.fats > 0 && (
                       <span className="bg-white/10 px-2 py-1 rounded text-xs text-gray-300">
                         {food.fats}g fats
                       </span>
@@ -143,8 +155,7 @@ const NutritionTracking = ({
             ))
           ) : (
             <p className="text-gray-400 col-span-full">
-              No food goals set for today. Add some foods to your nutrition
-              plan.
+              No food goals set for today. Add some foods to your nutrition plan.
             </p>
           )}
         </div>
@@ -184,18 +195,27 @@ const NutritionTracking = ({
                 <th className="p-3 font-semibold border-b border-white/10">
                   Food
                 </th>
-                <th className="p-3 font-semibold border-b border-white/10">
-                  Calories
-                </th>
-                <th className="p-3 font-semibold border-b border-white/10">
-                  Protein
-                </th>
-                <th className="p-3 font-semibold border-b border-white/10">
-                  Carbs
-                </th>
-                <th className="p-3 font-semibold border-b border-white/10">
-                  Fats
-                </th>
+                {/* CHANGED: Conditionally Render Headers */}
+                {showCalories && (
+                  <th className="p-3 font-semibold border-b border-white/10">
+                    Calories
+                  </th>
+                )}
+                {showProtein && (
+                  <th className="p-3 font-semibold border-b border-white/10">
+                    Protein
+                  </th>
+                )}
+                {showCarbs && (
+                  <th className="p-3 font-semibold border-b border-white/10">
+                    Carbs
+                  </th>
+                )}
+                {showFats && (
+                  <th className="p-3 font-semibold border-b border-white/10">
+                    Fats
+                  </th>
+                )}
                 <th className="p-3 font-semibold border-b border-white/10">
                   Time
                 </th>
@@ -212,10 +232,13 @@ const NutritionTracking = ({
                     className="hover:bg-white/5 transition-colors border-b border-white/10 last:border-0"
                   >
                     <td className="p-3">{food.name}</td>
-                    <td className="p-3">{food.calories} kcal</td>
-                    <td className="p-3">{food.protein}g</td>
-                    <td className="p-3">{food.carbs}g</td>
-                    <td className="p-3">{food.fats}g</td>
+                    
+                    {/* CHANGED: Conditionally Render Data Cells */}
+                    {showCalories && <td className="p-3">{food.calories} kcal</td>}
+                    {showProtein && <td className="p-3">{food.protein}g</td>}
+                    {showCarbs && <td className="p-3">{food.carbs}g</td>}
+                    {showFats && <td className="p-3">{food.fats}g</td>}
+
                     <td className="p-3">
                       {food.consumedAt
                         ? new Date(food.consumedAt).toLocaleTimeString([], {
@@ -233,6 +256,7 @@ const NutritionTracking = ({
                 ))
               ) : (
                 <tr>
+                  {/* CHANGED: Adjusted colSpan dynamically or set to max possible */}
                   <td colSpan="7" className="p-4 text-center text-gray-500">
                     No foods consumed today yet
                   </td>
@@ -246,4 +270,4 @@ const NutritionTracking = ({
   );
 };
 
-export default NutritionTracking; 
+export default NutritionTracking;

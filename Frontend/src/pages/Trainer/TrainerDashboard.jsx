@@ -82,47 +82,62 @@ const TrainerDashboard = () => {
   };
 
   const handleClientSelect = async (client) => {
-    setSelectedClient(client);
-    setLoading(true);
-    setSidebarOpen(false);
+  setSelectedClient(client);
+  setLoading(true);
+  setSidebarOpen(false);
 
-    const clientId = client._id || client.id;
-    if (!clientId) {
-      setLoading(false);
-      return;
+  const clientId = client._id || client.id;
+  if (!clientId) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const headers = { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    }; 
+
+    // Add the progress fetch to the Promise.all array
+    const [profileRes, workoutRes, nutritionRes, ratingsRes, progressRes] = await Promise.all([
+      fetch(`${API_BASE}/client/${clientId}`, { headers }),
+      fetch(`${API_BASE}/workout/${clientId}`, { headers }),
+      fetch(`${API_BASE}/nutrition/${clientId}`, { headers }),
+      fetch(`${API_BASE}/exercise-ratings/${clientId}`, { headers }).catch(() => ({ json: () => ({ success: false, ratings: [] }) })),
+      // New Fetch for Graph
+      fetch(`/api/trainer/client-progress/${clientId}`, { headers }).catch(() => null)
+    ]);
+
+    const [profile, workout, nutrition, ratings] = await Promise.all([
+          profileRes.ok ? profileRes.json().catch(() => ({})) : ({}),
+          workoutRes.ok ? workoutRes.json().catch(() => ({ weeklySchedule: null })) : ({ weeklySchedule: null }),
+          nutritionRes.ok ? nutritionRes.json().catch(() => ({ nutrition: null })) : ({ nutrition: null }),
+          ratingsRes.ok ? ratingsRes.json().catch(() => ({ ratings: [] })) : ({ ratings: [] })
+    ]);
+
+    // Handle Progress Data
+    if (progressRes && progressRes.ok) {
+        const graphData = await progressRes.json();
+        setExerciseChartData(graphData);
+    } else {
+        // Fallback if no data
+        setExerciseChartData({
+            labels: ['No Data'],
+            datasets: [{ label: 'No Data', data: [0], borderColor: '#333' }]
+        });
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      const headers = { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-      }; 
-
-      const [profileRes, workoutRes, nutritionRes, ratingsRes] = await Promise.all([
-        fetch(`${API_BASE}/client/${clientId}`, { headers }),
-        fetch(`${API_BASE}/workout/${clientId}`, { headers }),
-        fetch(`${API_BASE}/nutrition/${clientId}`, { headers }),
-        fetch(`${API_BASE}/exercise-ratings/${clientId}`, { headers }).catch(() => ({ json: () => ({ success: false, ratings: [] }) }))
-      ]);
-
-      const [profile, workout, nutrition, ratings] = await Promise.all([
-            profileRes.ok ? profileRes.json().catch(() => ({})) : ({}),
-            workoutRes.ok ? workoutRes.json().catch(() => ({ weeklySchedule: null })) : ({ weeklySchedule: null }),
-            nutritionRes.ok ? nutritionRes.json().catch(() => ({ nutrition: null })) : ({ nutrition: null }),
-            ratingsRes.ok ? ratingsRes.json().catch(() => ({ ratings: [] })) : ({ ratings: [] })
-      ]);
-
-      setClientProfile(profile);
-      setWorkoutData(workout);
-      setNutritionData(nutrition);
-      setExerciseRatings(ratings.ratings || []);
-    } catch (error) {
-      console.error('Error fetching client data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setClientProfile(profile);
+    setWorkoutData(workout);
+    setNutritionData(nutrition);
+    setExerciseRatings(ratings.ratings || []);
+  } catch (error) {
+    console.error('Error fetching client data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -220,25 +235,10 @@ const TrainerDashboard = () => {
     }
   };
 
-  const exerciseChartData = {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
-    datasets: [
-      {
-        label: 'Bicep Curls (kg)',
-        data: [0, 0, 0, 0, 0, 0],
-        borderColor: '#8A2BE2',
-        backgroundColor: 'rgba(138, 43, 226, 0.1)',
-        tension: 0.3
-      },
-      {
-        label: 'Deadlift (kg)',
-        data: [0, 0, 0, 0, 0, 0],
-        borderColor: '#20B2AA',
-        backgroundColor: 'rgba(32, 178, 170, 0.1)',
-        tension: 0.3
-      }
-    ]
-  };
+  const [exerciseChartData, setExerciseChartData] = useState({
+  labels: [],
+  datasets: []
+});
 
   const exerciseChartOptions = {
     responsive: true,

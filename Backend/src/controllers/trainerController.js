@@ -6,9 +6,9 @@ const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 const Exercise = require('../model/Exercise'); 
 const UserExerciseRating = require('../model/UserExerciseRating'); // ADD THIS LINE
+const moment = require('moment');
 
 // ADD THESE HELPER FUNCTIONS AT THE TOP OF trainerController.js
-
 // ========================================
 // HELPER: Get Trainer ID from either Session or JWT
 // ========================================
@@ -744,7 +744,6 @@ const editNutritionPlan = async (req, res) => {
     }
 };
 
-
 const getClientData = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -1185,6 +1184,76 @@ const getUnassignedUsers = async (req, res) => {
     }
 };
 
+const getClientProgress = async (req, res) => {
+    try {
+        const clientId = req.params.clientId; // Get ID from URL param
+
+        // 1. Fetch last 6 weeks of history for this client
+        const history = await WorkoutHistory.find({ userId: clientId })
+            .sort({ date: -1 }) // Newest first
+            .limit(6);
+
+        // 2. Reverse to chronological order (Oldest -> Newest)
+        const chronologicalHistory = history.reverse();
+
+        // 3. Generate Labels
+        const labels = chronologicalHistory.map(entry => 
+            moment(entry.date).format('MMM Do')
+        );
+
+        // 4. Helper to find max weight with fuzzy matching
+        // This allows "Squat" to match "Barbell Squat"
+        const getMaxWeight = (entry, searchTerm) => {
+            if (!entry.exercises || entry.exercises.length === 0) return 0;
+            
+            // Filter for exercises that include the search term (e.g., "squat")
+            const relevantExercises = entry.exercises.filter(ex => 
+                ex.name && ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (relevantExercises.length === 0) return 0;
+
+            // Return the highest weight lifted for that exercise type in that session
+            return Math.max(...relevantExercises.map(ex => ex.weight || 0));
+        };
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Bench Press',
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'bench')), // Matches "Bench Press", "Dumbbell Bench", etc.
+                    borderColor: '#20B2AA', // Teal (matching user side)
+                    backgroundColor: 'rgba(32, 178, 170, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Squat',
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'squat')), // Matches "Barbell Squat"
+                    borderColor: '#8A2BE2', // Purple (matching user side)
+                    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Deadlift',
+                    data: chronologicalHistory.map(h => getMaxWeight(h, 'deadlift')),
+                    borderColor: '#FF6347', // Tomato (matching user side)
+                    backgroundColor: 'rgba(255, 99, 71, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+            ],
+        };
+
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching client progress:', error);
+        res.status(500).json({ error: 'Server error fetching progress' });
+    }
+};
+
 // END REYNA
 
 module.exports = { 
@@ -1204,5 +1273,6 @@ module.exports = {
     renderTrainerAssignment,    
     assignUserToTrainer,        
     getUnassignedUsers,          
-    getClientExerciseRatings 
+    getClientExerciseRatings,
+    getClientProgress
 };

@@ -8,9 +8,10 @@ const DashboardHeader = ({ user, currentPage }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login'); // Adjust this path if your login route is different
+  };
 
   const getDashboardPath = () => {
     return "/dashboard";
@@ -46,18 +47,24 @@ const DashboardHeader = ({ user, currentPage }) => {
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center">
-          <div className="text-gray-300 hover:text-white cursor-pointer">
-            <Link to="/userprofile">
-              <span>{user?.full_name || "User"}</span>
-            </Link>
+        {/* User Profile & Logout Section */}
+                <div className="hidden md:flex items-center gap-6">
+                    {/* User Name Link */}
+                    <Link 
+                        to="/userprofile" 
+                        className="text-gray-300 hover:text-[#8A2BE2] font-semibold transition-colors text-base"
+                    >
+                        {user?.full_name || 'User'}
+                    </Link>
 
-            <button 
-                 onClick={handleLogout}
-                className="text-gray-300 hover:text-red-500 transition-colors font-medium border border-gray-700 hover:border-red-500 rounded px-4 py-1.5 text-sm"
-                    >  Logout  </button>
-          </div>
-        </div>
+                    {/* Styled Logout Button */}
+                    <button 
+                        onClick={handleLogout}
+                        className="px-5 py-1.5 rounded-full border border-[#8A2BE2] text-[#8A2BE2] text-sm font-medium hover:bg-[#8A2BE2] hover:text-white transition-all duration-300 ease-in-out"
+                    >
+                        Logout
+                    </button>
+                </div>
 
         {/* Mobile Menu Icon */}
         <div

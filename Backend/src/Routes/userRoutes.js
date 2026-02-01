@@ -5,8 +5,10 @@ const membershipController = require("../controllers/membershipController");
 const NutritionHistory = require("../model/NutritionHistory");
 const WorkoutHistory = require("../model/WorkoutHistory");
 const User = require("../model/User");
-// IMPORT THE JWT MIDDLEWARE
 const { protect } = require("../middleware/authMiddleware");
+
+//router.get('/progress', protect, userController.getUserProgress);
+router.get('/api/exercise/progress', protect, userController.getUserProgressGraph);
 
 // const isAuthenticated = (req, res, next) => {
 //     if (req && req.session.user) {
@@ -296,13 +298,7 @@ router.post("/signup", userController.signupUser);
 router.get("/profile", userController.getUserProfile);
 router.post("/complete-workout", userController.completeWorkout);
 router.post("/api/workout/complete", userController.markWorkoutCompleted);
-router.post(
-  "/api/exercise/complete",
-  userController.checkMembershipActive,
-  protect,
-  userController.markExerciseCompleted
-);
-
+router.post('/api/exercise/complete', protect, userController.checkMembershipActive, userController.markExerciseCompleted);
 // Debug routes
 router.get("/api/debug/workout/:id", async (req, res) => {
   try {
