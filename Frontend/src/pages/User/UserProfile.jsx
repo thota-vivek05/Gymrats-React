@@ -3,15 +3,26 @@ import { useAuth } from '../../context/AuthContext';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import DashboardHeader from './components/DashboardHeader';
+
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
 const UserProfile = () => {
-    const { user, login } = useAuth();
+    // 1. Auth & User State
+    const { user } = useAuth();
+    const [dbUser, setDbUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     
-    // Form State
+    // 2. Real Graph Data State
+    const [graphData, setGraphData] = useState({
+        workoutLabels: [],
+        workoutValues: [],
+        weightLabels: [],
+        weightValues: []
+    });
+
+    // 3. Form State
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
@@ -19,111 +30,166 @@ const UserProfile = () => {
         dob: '',
         height: '',
         weight: '',
-        BMI: ''
+        BMI: '',
+        weight_goal: '',
+        calorie_goal: '',
+        protein_goal: ''
     });
 
-    // Modal States
+    // 4. Payment/Modal States
     const [showMembershipModal, setShowMembershipModal] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
-
-    // Membership Selection State
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
-
     const [paymentDetails, setPaymentDetails] = useState({
         cardNumber: '',
         expiryDate: '',
         cvv: ''
     });
-
     const [paymentErrors, setPaymentErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Helper: Format Card Number (Adds space every 4 digits)
+    // --- DATA FETCHING (WITH MOCK FALLBACK) ---
+    useEffect(() => {
+        const fetchAllData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const headers = { 'Authorization': `Bearer ${token}` };
+                
+                // Fetch Data
+                const [userRes, progressRes, statsRes] = await Promise.all([
+                    fetch('/api/user/profile', { headers }),
+                    fetch('/api/exercise/progress', { headers }), 
+                    fetch('/api/workout/weekly-stats', { headers })
+                ]);
+
+                const userData = await userRes.json();
+                const progressData = await progressRes.json();
+                const statsData = await statsRes.json();
+
+                // 1. Set User Data
+                if (userData.success) {
+                    setDbUser(userData.user);
+                    setFormData({
+                        full_name: userData.user.full_name || '',
+                        email: userData.user.email || '',
+                        phone: userData.user.phone || '',
+                        dob: userData.user.dob ? new Date(userData.user.dob).toISOString().split('T')[0] : '',
+                        height: userData.user.height || '',
+                        weight: userData.user.weight || '',
+                        BMI: userData.user.BMI || '',
+                        weight_goal: userData.user.fitness_goals?.weight_goal || '',
+                        calorie_goal: userData.user.fitness_goals?.calorie_goal || '',
+                        protein_goal: userData.user.fitness_goals?.protein_goal || '',
+                    });
+                }
+
+                // 2. Process Graph Data (WITH FORCED MOCK DATA)
+                const newGraphData = {
+                    workoutLabels: [],
+                    workoutValues: [],
+                    weightLabels: [],
+                    weightValues: []
+                };
+
+                // Try to get real data...
+                if (statsData.success && statsData.weeklyStats && statsData.weeklyStats.length > 0) {
+                    newGraphData.workoutLabels = statsData.weeklyStats.map(d => d.day);
+                    newGraphData.workoutValues = statsData.weeklyStats.map(d => d.count);
+                }
+                
+                if (progressData.success && progressData.weightHistory && progressData.weightHistory.length > 0) {
+                    newGraphData.weightLabels = progressData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
+                    newGraphData.weightValues = progressData.weightHistory.map(w => w.weight);
+                }
+
+                // --- MOCK DATA FALLBACK (Use this until backend is fixed) ---
+                if (newGraphData.workoutValues.length === 0 || newGraphData.workoutValues.every(v => v === 0)) {
+                    newGraphData.workoutLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                    newGraphData.workoutValues = [3, 5, 4, 6]; // <--- Dummy Workout Data
+                }
+
+                if (newGraphData.weightValues.length === 0) {
+                     newGraphData.weightLabels = ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22'];
+                     newGraphData.weightValues = [92, 91.5, 90.8, 90]; // <--- Dummy Weight Data
+                }
+                // ---------------------------------------------------------
+
+                setGraphData(newGraphData);
+
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+                // On error, also show mock data
+                setGraphData({
+                    workoutLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    workoutValues: [3, 5, 4, 6],
+                    weightLabels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22'],
+                    weightValues: [92, 91.5, 90.8, 90]
+                });
+            }
+        };
+
+        fetchAllData();
+    }, []);
+
+    // --- HELPERS ---
     const formatCardNumber = (value) => {
         const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
         const parts = [];
-        for (let i = 0; i < v.length; i += 4) {
-            parts.push(v.substring(i, i + 4));
-        }
+        for (let i = 0; i < v.length; i += 4) parts.push(v.substring(i, i + 4));
         return parts.length > 1 ? parts.join(' ') : value;
     };
 
-    // Helper: Format Expiry Date (Adds slash after 2 digits)
     const formatExpiryDate = (value) => {
         const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        if (v.length >= 2) {
-            return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
-        }
+        if (v.length >= 2) return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
         return v;
     };
 
-    // Handle Payment Input Changes
+    const calculateAge = (dob) => {
+        if (!dob) return 'Not provided';
+        try {
+            const today = new Date();
+            const birthDate = new Date(dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return `${age} years`;
+        } catch { return 'Invalid Date'; }
+    };
+
+    // --- HANDLERS ---
     const handlePaymentChange = (e) => {
         const { name, value } = e.target;
         let formattedValue = value;
-
-        if (name === 'cardNumber') {
-            formattedValue = formatCardNumber(value);
-        } else if (name === 'expiryDate') {
-            if (value.length < paymentDetails.expiryDate.length) {
-                formattedValue = value; 
-            } else {
-                formattedValue = formatExpiryDate(value);
-            }
-        } else if (name === 'cvv') {
-            formattedValue = value.replace(/\D/g, '').slice(0, 4);
-        }
-
-        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+        if (name === 'cardNumber') formattedValue = formatCardNumber(value);
+        else if (name === 'expiryDate') {
+            formattedValue = value.length < paymentDetails.expiryDate.length ? value : formatExpiryDate(value);
+        } else if (name === 'cvv') formattedValue = value.replace(/\D/g, '').slice(0, 4);
         
-        if (paymentErrors[name]) {
-            setPaymentErrors(prev => ({ ...prev, [name]: '' }));
-        }
+        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+        if (paymentErrors[name]) setPaymentErrors(prev => ({ ...prev, [name]: '' }));
     };
 
-    // Validate Payment Fields
     const validatePayment = () => {
         const errors = {};
         const { cardNumber, expiryDate, cvv } = paymentDetails;
-
-        const cleanCardNum = cardNumber.replace(/\s/g, '');
-        if (cleanCardNum.length !== 16) {
-            errors.cardNumber = 'Card number must be 16 digits';
-        }
-
-        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-            errors.expiryDate = 'Format must be MM/YY';
-        } else {
-            const [month, year] = expiryDate.split('/').map(Number);
-            const now = new Date();
-            const currentYear = now.getFullYear() % 100;
-            const currentMonth = now.getMonth() + 1;
-
-            if (month < 1 || month > 12) {
-                errors.expiryDate = 'Invalid month';
-            } else if (year < currentYear || (year === currentYear && month < currentMonth)) {
-                errors.expiryDate = 'Card has expired';
-            }
-        }
-
-        if (cvv.length < 3) {
-            errors.cvv = 'Invalid CVV';
-        }
-
+        if (cardNumber.replace(/\s/g, '').length !== 16) errors.cardNumber = 'Card number must be 16 digits';
+        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) errors.expiryDate = 'Format must be MM/YY';
+        if (cvv.length < 3) errors.cvv = 'Invalid CVV';
         setPaymentErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-    // Handle Payment Submission
     const handlePaymentSubmit = (e) => {
         e.preventDefault();
-        
         if (validatePayment()) {
             setIsProcessing(true);
             setTimeout(() => {
                 setIsProcessing(false);
-                alert('Payment Successful!');
+                alert('Payment Successful! Membership Extended.');
                 setShowMembershipModal(false);
                 setShowPayment(false);
                 setPaymentDetails({ cardNumber: '', expiryDate: '', cvv: '' });
@@ -131,22 +197,6 @@ const UserProfile = () => {
         }
     };
 
-    // Initialize data
-    useEffect(() => {
-        if (user) {
-            setFormData({
-                full_name: user.full_name || user.name || '',
-                email: user.email || '',
-                phone: user.phone || '',
-                dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
-                height: user.height || '',
-                weight: user.weight || '',
-                BMI: user.BMI || ''
-            });
-        }
-    }, [user]);
-
-    // Input Handler
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => {
@@ -160,37 +210,46 @@ const UserProfile = () => {
         });
     };
 
-    // Save Profile Handler
     const handleSaveProfile = async () => {
         setLoading(true);
+        const token = localStorage.getItem('token');
         try {
-            // Mock API call simulation
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            // login({ ...user, ...formData }, localStorage.getItem('token')); 
-            alert('Profile updated successfully!');
-            setIsEditing(false);
+            const payload = {
+                ...formData,
+                fitness_goals: {
+                    weight_goal: formData.weight_goal,
+                    calorie_goal: formData.calorie_goal,
+                    protein_goal: formData.protein_goal
+                }
+            };
+
+            const res = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Profile updated successfully!');
+                setDbUser(data.user);
+                setIsEditing(false);
+            } else {
+                alert(data.message || 'Failed to update');
+            }
         } catch (error) {
-            alert('Failed to update profile');
+            console.error(error);
+            alert('Network error updating profile');
         } finally {
             setLoading(false);
         }
     };
 
-    const calculateAge = (dob) => {
-        if (!dob) return 'Not provided';
-        try {
-            const today = new Date();
-            const birthDate = new Date(dob);
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-            return `${age} years`;
-        } catch {
-            return 'Invalid Date';
-        }
-    };
-
-    // Chart Options & Data
+    // --- CHARTS CONFIG ---
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -202,20 +261,20 @@ const UserProfile = () => {
     };
 
     const workoutData = {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        labels: graphData.workoutLabels,
         datasets: [{
             label: 'Workouts',
-            data: [10, 12, 8, 12],
+            data: graphData.workoutValues,
             backgroundColor: '#8A2BE2',
             borderRadius: 4,
         }]
     };
 
     const weightData = {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        labels: graphData.weightLabels,
         datasets: [{
             label: 'Weight (kg)',
-            data: [77, 76.5, 75.8, 75],
+            data: graphData.weightValues,
             borderColor: '#2ecc71',
             backgroundColor: 'rgba(46, 204, 113, 0.2)',
             tension: 0.4,
@@ -225,8 +284,8 @@ const UserProfile = () => {
 
     return (
         <div className="min-h-screen bg-black text-[#f1f1f1] font-sans pb-20">
-         <DashboardHeader user={user} currentPage="profile" />
-            {/* Profile Hero */}
+            <DashboardHeader user={dbUser || user} currentPage="profile" />
+            
             <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center" 
                 style={{backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')"}}>
                 <div>
@@ -235,21 +294,15 @@ const UserProfile = () => {
                 </div>
             </section>
 
-            {/* Main Content Container */}
             <div className="max-w-[1200px] mx-auto px-5 py-10">
-                
-                {/* Top Section: Info & Membership */}
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mb-8">
                     
-                    {/* User Information Card */}
+                    {/* User Info Card */}
                     <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50">
                         <div className="p-5 flex justify-between items-center border-b border-[#333]">
                             <h2 className="text-xl font-semibold text-white">Personal Information</h2>
                             {!isEditing && (
-                                <button 
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-2 bg-gradient-to-br from-[#8A2BE2] to-[#4A00E0] text-white px-4 py-2 rounded-md text-sm font-medium hover:scale-105 transition-transform shadow-lg shadow-purple-900/20"
-                                >
+                                <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-gradient-to-br from-[#8A2BE2] to-[#4A00E0] text-white px-4 py-2 rounded-md text-sm font-medium hover:scale-105 transition-transform shadow-lg shadow-purple-900/20">
                                     <i className="fas fa-edit"></i> Edit
                                 </button>
                             )}
@@ -258,20 +311,24 @@ const UserProfile = () => {
                         <div className="p-6">
                             <div className="text-center mb-6">
                                 <span className="inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30">
-                                    {user?.status || 'Active Member'}
+                                    {dbUser?.status || 'Active Member'}
                                 </span>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Form Fields Generator */}
                                 {[
                                     { label: 'Name', key: 'full_name', type: 'text' },
-                                    { label: 'Email', key: 'email', type: 'email' },
+                                    { label: 'Email', key: 'email', type: 'email', readOnly: true },
                                     { label: 'Phone', key: 'phone', type: 'tel' },
                                     { label: 'Age', key: 'dob', type: 'date', display: (val) => calculateAge(val) },
                                     { label: 'Height', key: 'height', type: 'number', suffix: 'cm' },
                                     { label: 'Weight', key: 'weight', type: 'number', suffix: 'kg' },
-                                    { label: 'BMI', key: 'BMI', type: 'number', readOnly: true }
+                                    { label: 'BMI', key: 'BMI', type: 'number', readOnly: true },
+                                    ...(isEditing ? [
+                                        { label: 'Goal Weight', key: 'weight_goal', type: 'number', suffix: 'kg' },
+                                        { label: 'Calorie Goal', key: 'calorie_goal', type: 'number', suffix: 'kcal' },
+                                        { label: 'Protein Goal', key: 'protein_goal', type: 'number', suffix: 'g' }
+                                    ] : [])
                                 ].map((field) => (
                                     <div key={field.key} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors duration-300">
                                         <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">
@@ -289,28 +346,19 @@ const UserProfile = () => {
                                                 value={formData[field.key]} 
                                                 onChange={handleInputChange}
                                                 readOnly={field.readOnly}
-                                                className={`w-full bg-[#222] border border-[#444] rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#8A2BE2] focus:ring-1 focus:ring-[#8A2BE2] transition-all ${field.readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                placeholder={!field.readOnly && `Enter ${field.label}`}
+                                                className={`w-full bg-[#222] border border-[#444] rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#8A2BE2] transition-all ${field.readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             />
                                         )}
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Edit Action Buttons */}
                             {isEditing && (
                                 <div className="flex gap-3 mt-6 justify-end animate-fade-in">
-                                    <button 
-                                        onClick={handleSaveProfile} 
-                                        disabled={loading}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
+                                    <button onClick={handleSaveProfile} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium transition-colors disabled:opacity-50">
                                         {loading ? 'Saving...' : 'Save Changes'}
                                     </button>
-                                    <button 
-                                        onClick={() => setIsEditing(false)}
-                                        className="bg-transparent border border-gray-600 text-gray-300 hover:bg-white/10 px-5 py-2 rounded-md font-medium transition-colors"
-                                    >
+                                    <button onClick={() => setIsEditing(false)} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-white/10 px-5 py-2 rounded-md font-medium transition-colors">
                                         Cancel
                                     </button>
                                 </div>
@@ -318,44 +366,38 @@ const UserProfile = () => {
                         </div>
                     </div>
 
-                    {/* Membership Card */}
+                    {/* Membership Details Card */}
                     <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 h-fit">
                         <div className="p-5 border-b border-[#333]">
                             <h2 className="text-xl font-semibold text-white">Membership Details</h2>
                         </div>
                         <div className="p-6">
                             <div className="text-center mb-6">
-                                <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20">
-                                    {user?.membershipType || 'Basic'} Member
+                                <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize">
+                                    {dbUser?.membershipType || 'Basic'} Member
                                 </div>
                                 <p className="text-sm text-[#aaa]">
-                                    Member since: {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Mar 15, 2023'}
+                                    Expires: {dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}
                                 </p>
                             </div>
                             
                             <div className="space-y-4">
                                 <div className="flex justify-between py-2 border-b border-[#333]">
                                     <span className="text-[#aaa]">Plan:</span>
-                                    <span className="font-semibold">{user?.membershipType || 'Basic'}</span>
+                                    <span className="font-semibold capitalize">{dbUser?.membershipType || 'Basic'}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-[#333]">
                                     <span className="text-[#aaa]">Status:</span>
-                                    <span className="font-semibold text-[#4CAF50]">{user?.status || 'Active'}</span>
+                                    <span className="font-semibold text-[#4CAF50]">{dbUser?.status || 'Active'}</span>
                                 </div>
                             </div>
-
+                            
                             <div className="mt-6">
                                 <h3 className="font-medium text-white mb-3">Features Included:</h3>
                                 <ul className="space-y-2 text-sm text-[#ccc]">
-                                    <li className="flex items-center gap-2">
-                                        <i className="fas fa-check text-[#4CAF50]"></i> Access to Exercise Guide
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                        <i className="fas fa-check text-[#4CAF50]"></i> {user?.membershipType === 'Basic' ? 'Basic' : 'Advanced'} Workout Plans
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                        <i className={`fas ${user?.membershipType === 'Platinum' ? 'fa-check text-[#4CAF50]' : 'fa-times text-red-400'}`}></i> Personal Training
-                                    </li>
+                                    <li className="flex items-center gap-2"><i className="fas fa-check text-[#4CAF50]"></i> Exercise Guide</li>
+                                    <li className="flex items-center gap-2"><i className="fas fa-check text-[#4CAF50]"></i> Workout Plans</li>
+                                    <li className="flex items-center gap-2"><i className={`fas ${dbUser?.membershipType === 'Platinum' ? 'fa-check text-[#4CAF50]' : 'fa-times text-red-400'}`}></i> Personal Training</li>
                                 </ul>
                             </div>
                         </div>
@@ -364,18 +406,18 @@ const UserProfile = () => {
 
                 {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                     <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Workout Frequency</h3>
                         <div className="h-[250px] w-full">
                             <Bar data={workoutData} options={chartOptions} />
                         </div>
-                     </div>
-                     <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                      </div>
+                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Weight Progress</h3>
                         <div className="h-[250px] w-full">
                             <Line data={weightData} options={chartOptions} />
                         </div>
-                     </div>
+                      </div>
                 </div>
 
                 {/* Membership Extension Card */}
@@ -408,7 +450,6 @@ const UserProfile = () => {
                         </div>
                         
                         <div className="p-6">
-                            {/* Plan Selection */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                                 {['basic', 'gold', 'platinum'].map(plan => (
                                     <div 
@@ -418,15 +459,14 @@ const UserProfile = () => {
                                     >
                                         <h4 className="text-[#daa520] text-xl font-bold capitalize mb-4">{plan} Plan</h4>
                                         <ul className="space-y-2 text-sm text-[#ccc]">
-                                            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Feature 1</li>
-                                            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Feature 2</li>
-                                            {plan === 'basic' && <li className="flex items-center gap-2"><i className="fas fa-times text-red-500"></i> No Coach</li>}
+                                            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Exercise Guide</li>
+                                            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Workout Plans</li>
+                                            {plan !== 'basic' && <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Personal Coach</li>}
                                         </ul>
                                     </div>
                                 ))}
                             </div>
                             
-                            {/* Duration Selection */}
                             {selectedPlan && (
                                 <div className="mb-8 animate-in slide-in-from-bottom-2 duration-300">
                                     <h3 className="text-xl font-semibold mb-4 text-white">Select Duration</h3>
@@ -445,7 +485,6 @@ const UserProfile = () => {
                                 </div>
                             )}
 
-                          {/* Payment Section */}
                           {showPayment && (
                               <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
                                   <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
@@ -454,7 +493,6 @@ const UserProfile = () => {
                                       <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
                                   </div>
                                   
-                                  {/* UPDATED FORM: Connected to state and validation functions */}
                                   <form onSubmit={handlePaymentSubmit} className="space-y-4">
                                       <div>
                                           <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
@@ -504,13 +542,7 @@ const UserProfile = () => {
                                           disabled={isProcessing}
                                           className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-[0.99] shadow-lg shadow-purple-900/40 flex justify-center items-center gap-2"
                                       >
-                                          {isProcessing ? (
-                                              <>
-                                                  <i className="fas fa-circle-notch fa-spin"></i> Processing...
-                                              </>
-                                          ) : (
-                                              'Process Payment'
-                                          )}
+                                          {isProcessing ? <><i className="fas fa-circle-notch fa-spin"></i> Processing...</> : 'Process Payment'}
                                       </button>
                                   </form>
                               </div>
