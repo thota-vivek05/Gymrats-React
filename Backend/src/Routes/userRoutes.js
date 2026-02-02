@@ -133,43 +133,10 @@ router.get("/api/nutrition/today", protect, async (req, res) => {
   }
 });
 
+router.put('/api/user/profile', protect, userController.updateUserProfile);
+
 // Get weekly workout stats
-router.get("/api/workout/weekly-stats", protect, async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const dayOfWeek = today.getDay();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - dayOfWeek);
-    weekStart.setHours(0, 0, 0, 0);
-
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 7);
-
-    const weeklyWorkoutHistory = await WorkoutHistory.find({
-      userId: userId,
-      date: { $gte: weekStart, $lt: weekEnd },
-    });
-
-    const workoutsCompleted = weeklyWorkoutHistory.filter(
-      (w) => w.completed
-    ).length;
-    const workoutsTotal = weeklyWorkoutHistory.length;
-
-    res.json({
-      success: true,
-      weeklyWorkouts: {
-        completed: workoutsCompleted,
-        total: workoutsTotal,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching weekly stats:", error);
-    res.status(500).json({ success: false, error: "Server error" });
-  }
-});
+router.get('/api/workout/weekly-stats', protect, userController.getWorkoutStats);
 
 // Get exercise progress data
 router.get("/api/exercise/progress", protect, async (req, res) => {
@@ -362,7 +329,7 @@ router.get(
 );
 
 // Membership routes
-router.post("/membership/extend", membershipController.extendMembership);
+router.post('/api/membership/extend', protect, membershipController.extendMembership);
 router.get("/membership/status", membershipController.getMembershipStatus);
 router.post("/membership/auto-renew", membershipController.toggleAutoRenew);
 router.post(

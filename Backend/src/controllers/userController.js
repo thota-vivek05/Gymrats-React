@@ -734,146 +734,80 @@ const changeMembership = async (req, res) => {
 // brimstone
 // Add this function to userController.js
 const updateUserProfile = async (req, res) => {
-// ... (omitted for brevity)
     try {
         if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
+            return res.status(401).json({ success: false, message: 'Authentication required' });
         }
 
         const userId = req.user.id;
         const { full_name, email, phone, dob, height, weight } = req.body;
 
-        //  console.log('Updating profile for user:', userId, 'Data:', req.body);
-
-        // Validate required fields
+        // Validation logic
         if (!full_name || !email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Name and email are required fields'
-            });
+            return res.status(400).json({ success: false, message: 'Name and email are required fields' });
         }
-
-        // Validate email format
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please enter a valid email address'
-            });
-        }
-
-        // Validate phone format
-        const phoneRegex = /^\+?[\d\s-]{10,}$/;
-        if (phone && !phoneRegex.test(phone)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please enter a valid phone number'
-            });
-        }
-
-        // Calculate BMI if height and weight are provided
-        let BMI = null;
-        if (height && weight && height > 0) {
-            const heightInMeters = height / 100;
-            BMI = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-        }
-
+        
         // Prepare update data
         const updateData = {
             full_name,
             email,
             phone,
             height: height ? Number(height) : null,
-            weight: weight ? Number(weight) : null,
-            BMI: BMI ? Number(BMI) : null
+            weight: weight ? Number(weight) : null
         };
-
-        // Only add dob if provided and valid
-        if (dob) {
-            const dobDate = new Date(dob);
-            if (!isNaN(dobDate.getTime())) {
-                updateData.dob = dobDate;
-            }
+        
+        // Recalculate BMI if needed
+        if (height && weight && height > 0) {
+            const heightInMeters = height / 100;
+            updateData.BMI = (weight / (heightInMeters * heightInMeters)).toFixed(1);
         }
 
-        // Remove undefined/null fields
-        Object.keys(updateData).forEach(key => {
-            if (updateData[key] === undefined || updateData[key] === null) {
-                delete updateData[key];
-            }
-        });
+        if (dob) updateData.dob = new Date(dob);
 
-        //  console.log('Update data:', updateData);
+        // Remove undefined fields
+        Object.keys(updateData).forEach(key => updateData[key] == null && delete updateData[key]);
 
-        // Update user in database
+        // --- NEW LOGIC START: Handle History ---
+        let updateOperation = { $set: updateData };
+
+        // If weight is being updated, push to weight_history
+        if (weight) {
+            updateOperation.$push = {
+                weight_history: {
+                    weight: Number(weight),
+                    date: new Date()
+                }
+            };
+        }
+        // --- NEW LOGIC END ---
+
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { $set: updateData },
-            { 
-                new: true, // Return updated document
-                runValidators: true // Run schema validators
-            }
+            updateOperation,
+            { new: true, runValidators: true }
         );
 
         if (!updatedUser) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Update session data
-        req.user = {
-            ...req.user,
-            full_name: updatedUser.full_name,
-            email: updatedUser.email,
-            phone: updatedUser.phone,
-            dob: updatedUser.dob,
-            height: updatedUser.height,
-            weight: updatedUser.weight,
-            BMI: updatedUser.BMI
-        };
-
-        //  console.log('Profile updated successfully for user:', userId);
+        // Update session/token data representation if needed
+        req.user = { ...req.user, ...updateData, BMI: updateData.BMI };
 
         res.json({
             success: true,
             message: 'Profile updated successfully',
             user: updatedUser,
-            BMI: BMI
+            BMI: updateData.BMI
         });
 
     } catch (error) {
         console.error('Error updating profile:', error);
-        
-        // Handle duplicate email error
-        if (error.code === 11000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email already exists'
-            });
-        }
-
-        // Handle validation errors
-        if (error.name === 'ValidationError') {
-            const errors = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({
-                success: false,
-                message: 'Validation error',
-                errors: errors
-            });
-        }
-
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
+        if (error.code === 11000) return res.status(400).json({ success: false, message: 'Email already exists' });
+        res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 };
+
 // Update the getUserDashboard function in userController.js to fetch nutrition data:
 // brimstone
 // Get user dashboard based on membership type
@@ -1743,6 +1677,81 @@ const getUserProgressGraph = async (req, res) => {
     }
 };
 
+const getWorkoutStats = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // --- A. Dashboard Logic (Weekly Totals) ---
+        // (This remains unchanged for the dashboard card)
+        const dayOfWeek = today.getDay();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - dayOfWeek);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        const weeklyWorkoutHistory = await WorkoutHistory.find({
+            userId: userId,
+            date: { $gte: weekStart, $lt: weekEnd }
+        });
+
+        // --- B. Profile Graph Logic (Daily Completion %) ---
+        const dailyStats = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const nextDay = new Date(date);
+            nextDay.setDate(date.getDate() + 1);
+
+            // CHANGED: Find the actual document instead of just counting it
+            const workout = await WorkoutHistory.findOne({
+                userId: userId,
+                date: { $gte: date, $lt: nextDay }
+            });
+
+            let percentage = 0;
+
+            // Calculate percentage based on exercises inside the workout
+            if (workout && workout.exercises && workout.exercises.length > 0) {
+                const totalExercises = workout.exercises.length;
+                const completedExercises = workout.exercises.filter(ex => ex.completed).length;
+                percentage = Math.round((completedExercises / totalExercises) * 100);
+            }
+
+            dailyStats.push({
+                day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                percentage: percentage // Sending % instead of count
+            });
+        }
+        
+        // --- C. Weight History ---
+        const user = await User.findById(userId).select('weight_history');
+        const formattedWeightHistory = (user.weight_history || [])
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .slice(-10)
+            .map(entry => ({
+                date: entry.date,
+                weight: entry.weight
+            }));
+
+        res.json({
+            success: true,
+            weeklyWorkouts: {
+                completed: weeklyWorkoutHistory.filter(w => w.completed).length,
+                total: weeklyWorkoutHistory.length
+            },
+            weeklyStats: dailyStats, 
+            weightHistory: formattedWeightHistory 
+        });
+
+    } catch (error) {
+        console.error("Error fetching stats:", error);
+        res.status(500).json({ success: false, error: "Server error" });
+    }
+};
+
 module.exports = {
     //loginUser,
     signupUser,
@@ -1758,5 +1767,6 @@ module.exports = {
     markExerciseCompleted,// Add this line
     getTodaysWorkout,
     // getUserProgress,
-    getUserProgressGraph
+    getUserProgressGraph,
+    getWorkoutStats
 };

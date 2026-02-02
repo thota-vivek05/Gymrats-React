@@ -5,50 +5,48 @@ const Trainer = require('../model/Trainer');
 // Extend user membership
 const extendMembership = async (req, res) => {
     try {
-        // console.log('=== MEMBERSHIP EXTENSION DEBUG ===');
-        const { additionalMonths, cardType, cardNumber, expiryDate, cvv, cardholderName, autoRenew } = req.body;
-        const userId = req.session.user.id;
+        const { additionalMonths, autoRenew } = req.body;
         
-        // console.log('1. User ID:', userId);
-        // console.log('2. Additional months:', additionalMonths);
+        // FIX: Support both JWT (req.user) and Session (req.session)
+        const userId = req.user ? req.user._id : (req.session?.user?.id);
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // console.log('3. Before extension - months_remaining:', user.membershipDuration.months_remaining);
-        // console.log('4. Before extension - status:', user.status);
-
+        // Use the model method to calculate new dates
+        // This updates months_remaining and end_date
         await user.extendMembership(parseInt(additionalMonths));
-        user.membershipDuration.auto_renew = autoRenew;
+        
+        if (typeof autoRenew !== 'undefined') {
+            user.membershipDuration.auto_renew = autoRenew;
+        }
+        
         await user.save();
 
-        // Refresh user data from database
-        const updatedUser = await User.findById(userId);
-        // console.log('5. After extension - months_remaining:', updatedUser.membershipDuration.months_remaining);
-        // console.log('6. After extension - status:', updatedUser.status);
+        // Update session if it exists (for legacy support)
+        if (req.session && req.session.user) {
+            req.session.user.membershipDuration = user.membershipDuration;
+            req.session.user.status = user.status;
+        }
 
-        // Update session
-        req.session.user = {
-            ...req.session.user,
-            ...updatedUser.toObject(),
-            membershipDuration: updatedUser.membershipDuration
-        };
-
-        // console.log('7. Session updated - months_remaining:', req.session.user.membershipDuration.months_remaining);
-
-        // ✅ RETURN JSON RESPONSE (instead of redirect)
-        res.json({ 
+        res.json({
             success: true,
-            message: `Membership extended by ${additionalMonths} months successfully!`,
-            months_remaining: updatedUser.membershipDuration.months_remaining,
-            end_date: updatedUser.membershipDuration.end_date
+            message: 'Membership extended successfully',
+            user: {
+                membershipDuration: user.membershipDuration,
+                status: user.status
+            }
         });
 
     } catch (error) {
         console.error('Error extending membership:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
 
