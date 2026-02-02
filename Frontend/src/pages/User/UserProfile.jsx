@@ -86,7 +86,7 @@ const UserProfile = () => {
                     });
                 }
 
-                // 2. Process Graph Data (WITH FORCED MOCK DATA)
+                // 2. Process Graph Data
                 const newGraphData = {
                     workoutLabels: [],
                     workoutValues: [],
@@ -94,40 +94,29 @@ const UserProfile = () => {
                     weightValues: []
                 };
 
-                // Try to get real data...
-                if (statsData.success && statsData.weeklyStats && statsData.weeklyStats.length > 0) {
+                // A. Workout Frequency (Bar Chart)
+                // We map the daily stats from the backend (Mon, Tue, etc.)
+                if (statsData.success && statsData.weeklyStats) {
                     newGraphData.workoutLabels = statsData.weeklyStats.map(d => d.day);
-                    newGraphData.workoutValues = statsData.weeklyStats.map(d => d.count);
-                }
-                
-                if (progressData.success && progressData.weightHistory && progressData.weightHistory.length > 0) {
-                    newGraphData.weightLabels = progressData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
-                    newGraphData.weightValues = progressData.weightHistory.map(w => w.weight);
+                    // CHANGED: Map to 'percentage' instead of 'count'
+                    newGraphData.workoutValues = statsData.weeklyStats.map(d => d.percentage);
                 }
 
-                // --- MOCK DATA FALLBACK (Use this until backend is fixed) ---
-                if (newGraphData.workoutValues.length === 0 || newGraphData.workoutValues.every(v => v === 0)) {
-                    newGraphData.workoutLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                    newGraphData.workoutValues = [3, 5, 4, 6]; // <--- Dummy Workout Data
+                // B. Weight Progress (Line Chart)
+                // FIX: Look in 'statsData' (not progressData) for weightHistory
+                if (statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
+                    newGraphData.weightLabels = statsData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
+                    newGraphData.weightValues = statsData.weightHistory.map(w => w.weight);
+                } else {
+                    // Fallback: If no history exists yet, show current weight as a single point
+                    newGraphData.weightLabels = ['Current'];
+                    newGraphData.weightValues = [userData.user?.weight || 0];
                 }
-
-                if (newGraphData.weightValues.length === 0) {
-                     newGraphData.weightLabels = ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22'];
-                     newGraphData.weightValues = [92, 91.5, 90.8, 90]; // <--- Dummy Weight Data
-                }
-                // ---------------------------------------------------------
 
                 setGraphData(newGraphData);
 
             } catch (error) {
                 console.error("Error fetching profile data:", error);
-                // On error, also show mock data
-                setGraphData({
-                    workoutLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    workoutValues: [3, 5, 4, 6],
-                    weightLabels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22'],
-                    weightValues: [92, 91.5, 90.8, 90]
-                });
             }
         };
 
@@ -161,17 +150,82 @@ const UserProfile = () => {
     };
 
     // --- HANDLERS ---
-    const handlePaymentChange = (e) => {
-        const { name, value } = e.target;
-        let formattedValue = value;
-        if (name === 'cardNumber') formattedValue = formatCardNumber(value);
-        else if (name === 'expiryDate') {
-            formattedValue = value.length < paymentDetails.expiryDate.length ? value : formatExpiryDate(value);
-        } else if (name === 'cvv') formattedValue = value.replace(/\D/g, '').slice(0, 4);
+const handlePayment = async (e) => {
+        e.preventDefault();
         
-        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
-        if (paymentErrors[name]) setPaymentErrors(prev => ({ ...prev, [name]: '' }));
+        // 1. Safety Check: Ensure a plan is selected
+        if (!selectedPlan) {
+            alert("Please select a duration plan (1, 3, or 6 months).");
+            return;
+        }
+
+        setIsProcessing(true);
+        setPaymentErrors({});
+
+        // Use the correct state object: paymentDetails (not paymentForm)
+        const errors = {};
+        if (!paymentDetails.cardNumber || paymentDetails.cardNumber.length < 16) errors.cardNumber = 'Invalid card number';
+        if (!paymentDetails.expiryDate) errors.expiryDate = 'Required';
+        if (!paymentDetails.cvv || paymentDetails.cvv.length < 3) errors.cvv = 'Invalid CVV';
+        
+        if (Object.keys(errors).length > 0) {
+            setPaymentErrors(errors);
+            setIsProcessing(false);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/membership/extend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    additionalMonths: selectedDuration, // Use the separate duration state
+                    autoRenew: false
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // --- FIX STARTS HERE ---
+                // Close the modal using the correct state setter name
+                setShowMembershipModal(false); 
+                setShowPayment(false); // Reset the internal payment view
+                // --- FIX ENDS HERE ---
+                
+                // Update Local User State
+                setDbUser(prev => ({
+                    ...prev,
+                    membershipDuration: data.user.membershipDuration,
+                    status: data.user.status
+                }));
+
+                alert(`Membership extended successfully! New end date: ${new Date(data.user.membershipDuration.end_date).toLocaleDateString()}`);
+            } else {
+                alert(data.message || 'Payment failed');
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Something went wrong. Please try again.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
+    
+    const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    let formattedValue = value;
+    
+    // Apply formatting helpers
+    if (name === 'cardNumber') formattedValue = formatCardNumber(value);
+    if (name === 'expiryDate') formattedValue = formatExpiryDate(value);
+    
+    setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+};
 
     const validatePayment = () => {
         const errors = {};
@@ -249,26 +303,32 @@ const UserProfile = () => {
         }
     };
 
-    // --- CHARTS CONFIG ---
+        // Optional: Update scales to force 0-100 range for better visualization
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#aaa' } },
+            y: { 
+                beginAtZero: true, 
+                max: 100, // Force max to 100%
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
+                ticks: { color: '#aaa' } 
+            },
             x: { grid: { display: false }, ticks: { color: '#aaa' } }
         }
     };
 
-    const workoutData = {
+   const workoutData = {
         labels: graphData.workoutLabels,
         datasets: [{
-            label: 'Workouts',
+            label: 'Completion (%)', // CHANGED Label
             data: graphData.workoutValues,
             backgroundColor: '#8A2BE2',
             borderRadius: 4,
         }]
     };
+    
 
     const weightData = {
         labels: graphData.weightLabels,
@@ -493,7 +553,7 @@ const UserProfile = () => {
                                       <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
                                   </div>
                                   
-                                  <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                                  <form onSubmit={handlePayment} className="space-y-4">
                                       <div>
                                           <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
                                           <input 

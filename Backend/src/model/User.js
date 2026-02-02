@@ -121,6 +121,11 @@ const userSchema = new mongoose.Schema({
     // Brimstone
     },
 
+    weight_history: [{
+        weight: { type: Number, required: true },
+        date: { type: Date, default: Date.now }
+    }],
+
     trainer: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Trainer',
