@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'; // Updated import to 'reac
 // REMOVE: import { useAuth } from '../../context/AuthContext'; 
 import { useDispatch, useSelector } from 'react-redux'; //
 import { loginUser, clearError } from '../../redux/slices/authSlice'; // Import Redux actions
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 import Modal from './Modal';
 import Header from '../../components/common/Header/Header';
@@ -29,6 +31,8 @@ const Login = () => {
         setModal({ visible: true, type, message });
         document.body.style.overflow = 'hidden';
     };
+    
+    const [showPassword, setShowPassword] = useState(false);
 
     const closeModal = () => {
         // Clear Redux errors when closing modal if strictly needed, or just close modal
@@ -77,8 +81,9 @@ const Login = () => {
     };
 
     // Shared Styles
-    const inputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] focus:border-[#8A2BE2] focus:outline-none transition-colors";
-    const labelClasses = "block mb-[8px] text-[#f1f1f1]";
+    // Suggested update to your existing shared style
+const inputClasses = "w-full p-[12px] bg-[#222222] border border-[#444444] rounded-[5px] text-white text-[1rem] focus:border-[#8A2BE2] focus:outline-none transition-colors pr-[45px]";
+const labelClasses = "block mb-[8px] text-[#f1f1f1]";
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -130,18 +135,26 @@ const Login = () => {
                             />
                         </div>
 
-                        <div className="mb-[20px]">
-                            <label htmlFor="password" className={labelClasses}>Password</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                className={inputClasses}
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="Enter your password"
-                                required
-                            />
+                        <div className="mb-[20px] relative"> {/* Add relative here for icon positioning */}
+                            <label className="block text-[#cccccc] mb-[8px] font-bold">Password</label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    className="w-full p-[12px] bg-[#222222] border border-[#444444] rounded-[5px] text-white focus:outline-none focus:border-[#8A2BE2] pr-[45px]" // Added padding-right for icon
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-[12px] top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#8A2BE2] transition-colors"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <FaEyeSlash size={18}/> : <FaEye size={18}/>}
+                                </button>
+                            </div>
                         </div>
 
                         <button 
