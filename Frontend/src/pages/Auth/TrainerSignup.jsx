@@ -16,7 +16,9 @@ const TrainerSignup = () => {
         specializations: [],
         termsAgree: false
     });
+    const [resumeFile, setResumeFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [fileError, setFileError] = useState('');
     
     // Modal State
     const [modal, setModal] = useState({ visible: false, type: '', message: '' });
@@ -52,6 +54,39 @@ const TrainerSignup = () => {
                 [name]: type === 'checkbox' ? checked : value
             }));
         }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setFileError('');
+        
+        if (!file) {
+            setResumeFile(null);
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        
+        if (!allowedTypes.includes(file.type)) {
+            setFileError('Only PDF and Word documents are allowed');
+            setResumeFile(null);
+            return;
+        }
+
+        // Validate file size (5MB max)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            setFileError('File size must be less than 5MB');
+            setResumeFile(null);
+            return;
+        }
+
+        setResumeFile(file);
     };
 
     const validateForm = () => {
@@ -98,6 +133,11 @@ const TrainerSignup = () => {
             return false;
         }
 
+        if (!resumeFile) {
+            showModal('error', 'Please upload your resume (PDF or Word document)');
+            return false;
+        }
+
         if (formData.specializations.length === 0) {
             showModal('error', 'Please select at least one specialization');
             return false;
@@ -121,15 +161,24 @@ const TrainerSignup = () => {
         }
 
         try {
-            const response = await fetch('/api/trainer/trainer-signup', {
+            // Create FormData object for file upload
+            const formDataToSend = new FormData();
+            formDataToSend.append('firstName', formData.firstName);
+            formDataToSend.append('lastName', formData.lastName);
+            formDataToSend.append('email', formData.email);
+            formDataToSend.append('password', formData.password);
+            formDataToSend.append('confirmPassword', formData.confirmPassword);
+            formDataToSend.append('phone', formData.phone.replace(/\D/g, ''));
+            formDataToSend.append('experience', formData.experience);
+            formDataToSend.append('specializations', JSON.stringify(formData.specializations));
+            formDataToSend.append('termsAgree', formData.termsAgree);
+            formDataToSend.append('resume', resumeFile); // Append the file
+
+            // Note: Don't set Content-Type header when using FormData
+            const response = await fetch('/api/trainer/signup', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    phone: formData.phone.replace(/\D/g, '')
-                }),
+                body: formDataToSend,
+                // Browser will automatically set the Content-Type with boundary
             });
 
             const data = await response.json();
@@ -139,11 +188,12 @@ const TrainerSignup = () => {
                 setTimeout(() => {
                     closeModal();
                     navigate('/login');
-                }, 1000);
+                }, 1500);
             } else {
                 showModal('error', data.error || 'Registration failed. Please try again.');
             }
         } catch (error) {
+            console.error('Error:', error);
             showModal('error', 'Network error. Please try again.');
         } finally {
             setLoading(false);
@@ -155,10 +205,18 @@ const TrainerSignup = () => {
         'Strength Training', 'Cardio', 'Flexibility', 'Bodybuilding'
     ];
 
+    // Format file size for display
+    const formatFileSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' bytes';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+    };
+
     // Shared Tailwind Styles
     const inputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] focus:border-[#8A2BE2] focus:outline-none transition-colors";
     const labelClasses = "block mb-[8px] text-[#f1f1f1]";
     const sectionTitleClasses = "text-[#f1f1f1] text-[1.2rem] mt-[20px] mb-[15px] border-b border-[#333] pb-[5px]";
+    const fileInputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#8A2BE2] file:text-white hover:file:bg-[#7B25C9]";
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -224,6 +282,36 @@ const TrainerSignup = () => {
                         </div>
 
                         <h3 className={sectionTitleClasses}>Professional Details</h3>
+                        
+                        <div className="mb-[20px]">
+                            <label htmlFor="resume" className={labelClasses}>
+                                Resume / CV *
+                                <span className="text-sm text-[#cccccc] ml-2">(PDF or Word document, max 5MB)</span>
+                            </label>
+                            <input 
+                                type="file" 
+                                id="resume" 
+                                name="resume"
+                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                className={fileInputClasses}
+                                onChange={handleFileChange}
+                                required
+                            />
+                            {fileError && (
+                                <p className="text-red-500 text-sm mt-2">{fileError}</p>
+                            )}
+                            {resumeFile && !fileError && (
+                                <div className="mt-2 p-3 bg-[#222] rounded border border-[#333]">
+                                    <p className="text-[#8A2BE2] font-medium">
+                                        ✓ File selected: {resumeFile.name}
+                                    </p>
+                                    <p className="text-[#cccccc] text-sm">
+                                        Size: {formatFileSize(resumeFile.size)} • Type: {resumeFile.type}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="mb-[20px]">
                             <label htmlFor="experience" className={labelClasses}>Years of Experience *</label>
                             <select id="experience" name="experience" className={inputClasses}
@@ -256,8 +344,20 @@ const TrainerSignup = () => {
                             </label>
                         </div>
 
-                        <button type="submit" className="w-full p-[12px] bg-[#8A2BE2] text-white border-none rounded font-bold text-[1rem] cursor-pointer transition-all duration-300 hover:bg-[#7B25C9] disabled:opacity-70 disabled:cursor-not-allowed" disabled={loading}>
-                            {loading ? 'Submitting Application...' : 'Apply as Trainer'}
+                        <button 
+                            type="submit" 
+                            className="w-full p-[12px] bg-[#8A2BE2] text-white border-none rounded font-bold text-[1rem] cursor-pointer transition-all duration-300 hover:bg-[#7B25C9] disabled:opacity-70 disabled:cursor-not-allowed" 
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Submitting Application...
+                                </span>
+                            ) : 'Apply as Trainer'}
                         </button>
 
                         <div className="text-center mt-[20px] text-[#cccccc]">

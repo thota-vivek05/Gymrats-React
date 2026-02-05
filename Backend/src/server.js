@@ -13,6 +13,13 @@ const morgan = require("morgan");
 const rfs = require("rotating-file-stream");
 const fs = require("fs");
 
+// Ensure upload directories exist
+const uploadDirs = ['uploads/', 'uploads/trainer-resumes/'];
+uploadDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
 
 process.env.TZ = "Asia/Kolkata";
 
@@ -30,12 +37,14 @@ fs.mkdirSync(logDir, { recursive: true });
 const accessLogStream = rfs.createStream("access.log", {
   interval: "1d", // rotates daily
   path: logDir,
+  maxFiles: 7,
 });
 
 // create error log stream
 const errorLogStream = rfs.createStream("error.log", {
   interval: "1d",
   path: logDir,
+  maxFiles: 7,
 });
 
 
@@ -62,7 +71,7 @@ app.use(
 app.options("*", cors());
 
 // log to console (developer friendly)
-app.use(morgan("dev"));
+// app.use(morgan("dev"));     use if some error occurs later
 
 // log to file (production logging)
 app.use(
