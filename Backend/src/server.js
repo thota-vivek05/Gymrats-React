@@ -42,7 +42,7 @@ app.use(methodOverride("_method"));
 // Session setup
 app.use(
   session({
-    secret: "gymrats-secret-key",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -179,6 +179,15 @@ app.get("*", (req, res, next) => {
 
 app.use("/api/*", (req, res) => {
   res.status(404).json({ error: "API endpoint not found" });
+});
+
+// GLOBAL ERROR HANDLER
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    success:false,
+    message: err.message || "Internal Server Error"
+  });
 });
 
 app.listen(PORT, () => {
