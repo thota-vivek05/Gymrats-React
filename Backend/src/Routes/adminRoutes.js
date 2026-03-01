@@ -30,6 +30,8 @@ router.get('/', (req, res) => res.redirect('/admin/dashboard'));
 
 // User Routes
 router.get('/users', adminController.getUsers);
+router.get('/users/dropped', adminController.getDroppedUsers); 
+router.get('/users/:id/details', adminController.getUserDetails);
 router.post('/users', adminController.createUser);
 router.put('/users/:id', adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);

@@ -7,6 +7,7 @@ const NutritionHistory = require('../model/NutritionHistory');
 const Exercise = require('../model/Exercise'); 
 const UserExerciseRating = require('../model/UserExerciseRating'); // ADD THIS LINE
 const moment = require('moment');
+const multer = require('multer');
 
 // ADD THESE HELPER FUNCTIONS AT THE TOP OF trainerController.js
 // ========================================
@@ -46,14 +47,41 @@ const signupTrainer = async (req, res) => {
             termsAgree
         } = req.body;
 
-        // console.log('Trainer signup request received:', {
-        //     firstName,
-        //     lastName,
-        //     email,
-        //     phone,
-        //     experience,
-        //     specializations
-        // });
+        // Parse specializations - they come as JSON string from frontend
+        let parsedSpecializations;
+        if (typeof specializations === 'string') {
+            try {
+                // Try to parse as JSON first
+                parsedSpecializations = JSON.parse(specializations);
+            } catch (e) {
+                // Fall back to comma-separated string
+                parsedSpecializations = specializations.split(',').map(s => s.trim());
+            }
+        } else if (Array.isArray(specializations)) {
+            parsedSpecializations = specializations;
+        } else {
+            parsedSpecializations = [];
+        }
+
+        // console.log('Parsed specializations:', parsedSpecializations);
+
+        const isTermsAgreed = termsAgree === 'true' || termsAgree === true;
+
+        // Check if resume file was uploaded
+        if (!req.file) {
+            return res.status(400).json({ error: 'Resume file is required' });
+        }
+
+        // Validate file type
+        const allowedMimeTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+
+        if (!allowedMimeTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({ error: 'Only PDF and Word documents are allowed' });
+        }
 
         if (
             !firstName ||
@@ -63,33 +91,33 @@ const signupTrainer = async (req, res) => {
             !confirmPassword ||
             !phone ||
             !experience ||
-            !specializations ||
-            !termsAgree
+            parsedSpecializations.length === 0 ||
+            !isTermsAgreed
         ) {
-            // console.log('Validation failed: Missing fields');
+            console.log('Validation failed: Missing fields');
             return res.status(400).json({ error: 'All fields are required, including terms agreement' });
         }
 
         if (password !== confirmPassword) {
-            // console.log('Validation failed: Passwords do not match');
+            //console.log('Validation failed: Passwords do not match');
             return res.status(400).json({ error: 'Passwords do not match' });
         }
 
         const emailRegex = /^\S+@\S+\.\S+$/;
         if (!emailRegex.test(email)) {
-            // console.log('Validation failed: Invalid email:', email);
+            //console.log('Validation failed: Invalid email:', email);
             return res.status(400).json({ error: 'Invalid email address' });
         }
 
         const phoneRegex = /^\+?[\d\s-]{10,}$/;
         if (!phoneRegex.test(phone)) {
-            // console.log('Validation failed: Invalid phone number:', phone);
+            //console.log('Validation failed: Invalid phone number:', phone);
             return res.status(400).json({ error: 'Invalid phone number' });
         }
 
         const validExperience = ['1-2', '3-5', '5-10', '10+'];
         if (!validExperience.includes(experience)) {
-            // console.log('Validation failed: Invalid experience:', experience);
+            //console.log('Validation failed: Invalid experience:', experience);
             return res.status(400).json({ error: 'Invalid experience selection' });
         }
 
@@ -103,26 +131,31 @@ const signupTrainer = async (req, res) => {
             'Flexibility',
             'Bodybuilding'
         ];
-        if (!Array.isArray(specializations) || specializations.length === 0) {
-            // console.log('Validation failed: No specializations selected');
+        
+        if (!Array.isArray(parsedSpecializations) || parsedSpecializations.length === 0) {
+            console.log('Validation failed: No specializations selected');
             return res.status(400).json({ error: 'At least one specialization must be selected' });
         }
-        for (const spec of specializations) {
+        
+        for (const spec of parsedSpecializations) {
             if (!validSpecializations.includes(spec)) {
-                // console.log('Validation failed: Invalid specialization:', spec);
+                console.log('Validation failed: Invalid specialization:', spec);
                 return res.status(400).json({ error: `Invalid specialization: ${spec}` });
             }
         }
 
         const existingApplication = await TrainerApplication.findOne({ email });
         if (existingApplication) {
-            // console.log('Validation failed: Email already registered:', email);
+            console.log('Validation failed: Email already registered:', email);
             return res.status(400).json({ error: 'Email already registered' });
         }
 
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(password, saltRounds);
-        // console.log('Password hashed for:', email);
+        console.log('Password hashed for:', email);
+
+        // Create the resume file path
+        const resumePath = `uploads/trainer-resumes/${req.file.filename}`;
 
         const newApplication = new TrainerApplication({
             firstName,
@@ -131,13 +164,15 @@ const signupTrainer = async (req, res) => {
             password_hash,
             phone,
             experience,
-            specializations,
+            specializations: parsedSpecializations, // Use parsedSpecializations, not normalizedSpecs
+            resume: resumePath,
             status: 'Pending'
         });
-        // console.log('New trainer application created:', newApplication);
+        
+        console.log('New trainer application created:', newApplication);
 
         await newApplication.save();
-        // console.log('Trainer application saved to MongoDB:', email);
+        console.log('Trainer application saved to MongoDB:', email);
 
         if (req.session) {
             req.session.trainerApplication = {
@@ -146,22 +181,37 @@ const signupTrainer = async (req, res) => {
                 firstName: newApplication.firstName,
                 lastName: newApplication.lastName
             };
-            // console.log('Session set for trainer application:', email);
+            console.log('Session set for trainer application:', email);
         }
 
-        res.status(201).json({ message: 'Trainer application submitted successfully', redirect: '/trainer_login' });
+        res.status(201).json({ 
+            message: 'Trainer application submitted successfully', 
+            redirect: '/login', // Changed from '/trainer_login' to '/login'
+            resumePath: resumePath // Optional: return the path if needed
+        });
     } catch (error) {
         console.error('Trainer signup error:', error);
+        
+        // Handle Multer errors
+        if (error instanceof multer.MulterError) {
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size too large. Maximum size is 5MB.' });
+            }
+            return res.status(400).json({ error: 'File upload error: ' + error.message });
+        }
+        
         if (error.code === 11000) {
-            // console.log('MongoDB error: Duplicate email:', email);
+            console.log('MongoDB error: Duplicate email');
             return res.status(400).json({ error: 'Email already registered' });
         }
+        
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
-            // console.log('MongoDB validation errors:', messages);
+            console.log('MongoDB validation errors:', messages);
             return res.status(400).json({ error: messages.join(', ') });
         }
-        res.status(500).json({ error: 'Server error' });
+        
+        res.status(500).json({ error: 'Server error: ' + error.message });
     }
 };
 

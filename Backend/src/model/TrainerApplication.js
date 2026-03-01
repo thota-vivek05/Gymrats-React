@@ -33,6 +33,10 @@ const trainerApplicationSchema = new mongoose.Schema({
         type: String, 
         enum: ['Calisthenics', 'Weight Loss', 'HIIT', 'Competitive', 'Strength Training', 'Cardio', 'Flexibility', 'Bodybuilding'] // Removed 'Nutrition'
     }],
+    resume: {  // NEW FIELD: Store the file path
+        type: String,
+        default: null
+    },
     status: { 
         type: String, 
         enum: ['Pending', 'In Progress', 'Approved', 'Rejected'],
