@@ -32,8 +32,9 @@ const AdminMemberships = () => {
   useEffect(() => {
     const fetchMemberships = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch("/api/admin/memberships", {
-          credentials: "include",
+          headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await response.json();
         if (data.success) {

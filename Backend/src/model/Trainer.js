@@ -115,7 +115,7 @@ const trainerSchema = new mongoose.Schema({
 
 // Virtual — tells Manager instantly if trainer can take more Platinum users
 trainerSchema.virtual('isAvailable').get(function () {
-    const activeCount = this.clients.filter(c => c.isActive).length;
+    const activeCount = (this.clients || []).filter(c => c.isActive).length;
     return activeCount < this.maxClients;
 });
 

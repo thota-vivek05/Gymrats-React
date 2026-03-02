@@ -29,11 +29,12 @@ const AdminExercises = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchExercises = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch("/api/admin/exercises", {
-          credentials: "include",
+          headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await response.json();
         if (data.success) {
@@ -49,12 +50,13 @@ const AdminExercises = () => {
     fetchExercises();
   }, []);
 
-  const handleDelete = async (id) => {
+ const handleDelete = async (id) => {
     if (!confirm("Delete this exercise?")) return;
     try {
+      const token = localStorage.getItem("token");
       await fetch(`/api/admin/exercises/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       setExercises(exercises.filter((e) => e._id !== id));
     } catch (err) {

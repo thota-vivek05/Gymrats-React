@@ -41,20 +41,18 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
-      // Determine URL based on viewMode and searchTerm
       let url = viewMode === 'dropped' 
         ? '/api/admin/users/dropped' 
         : `/api/admin/users?search=${encodeURIComponent(searchTerm)}`;
 
+      const token = localStorage.getItem("token");
       const response = await fetch(url, {
-        credentials: "include",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
       
       if (data.success) {
         setUsers(data.users || []);
-        // Only update stats if they exist (dropped API might not return global stats)
         if (data.stats) setStats(data.stats);
       }
     } catch (error) {
@@ -79,13 +77,15 @@ const AdminUsers = () => {
   // NEW: Fetch Detailed User Data
   const handleViewDetails = async (userId) => {
     try {
-      // Show loading state or open modal immediately if you prefer
-      const response = await fetch(`/api/admin/users/${userId}/details`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/users/${userId}/details`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       const data = await response.json();
       
       if (data.success) {
         setSelectedUser(userId);
-        setUserDetails(data); // Stores profile, trainer, membership history, etc.
+        setUserDetails(data); 
         setIsModalOpen(true);
       } else {
         alert("Could not load user details.");
@@ -100,13 +100,13 @@ const AdminUsers = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
       if (data.success) {
-        // Remove from UI immediately
         setUsers(users.filter((u) => u._id !== userId));
         alert("User deleted successfully");
       } else {

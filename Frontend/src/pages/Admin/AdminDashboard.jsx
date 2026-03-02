@@ -43,17 +43,21 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        // 1. Grab the token from localStorage
+        const token = localStorage.getItem("token");
+
         const response = await fetch("/api/admin/dashboard", {
           method: "GET",
-          credentials: "include", // Important for session auth
+          // 2. Remove credentials: "include" and add the Authorization header
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
           },
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
-            // Unauthorized - redirect to admin login
+          if (response.status === 401 || response.status === 403) {
+            // Unauthorized or Forbidden - redirect to admin login
             navigate("/admin/login");
             return;
           }

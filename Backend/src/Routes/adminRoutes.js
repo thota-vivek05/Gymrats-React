@@ -1,28 +1,15 @@
-// Import dependencies
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const { admin_Protect } = require('../middleware/authMiddleware');
 
-//server
-// Admin Authentication Routes
+// Public Admin Login Route (No protection needed)
 router.get('/login', adminController.getAdminLogin);
 router.post('/login', adminController.postAdminLogin);
-
-// UPDATE: Middleware to return 401 instead of redirecting
-const isAdminAuthenticated = (req, res, next) => {
-    if (req.session.userId && req.session.user && req.session.user.role === 'admin') {
-        next();
-    } else {
-        // Send JSON error for React to handle
-        res.status(401).json({ success: false, message: 'Unauthorized: Please login as admin' });
-    }
-};
-
-// Protect all admin routes with authentication
-router.use(isAdminAuthenticated);
-
 router.get('/logout', adminController.adminLogout);
-//server end
+
+// Apply admin_Protect middleware to all routes below this line
+router.use(admin_Protect);
 
 // Dashboard Route
 router.get('/dashboard', adminController.getDashboard);
@@ -38,33 +25,33 @@ router.delete('/users/:id', adminController.deleteUser);
 
 // Trainer Routes
 router.get('/trainers', adminController.getTrainers);
-router.get('/api/trainers', adminController.searchTrainers);
-router.get('/api/trainers/stats', adminController.getTrainerStats);
 router.post('/trainers', adminController.createTrainer);
 router.put('/trainers/:id', adminController.updateTrainer);
 router.delete('/trainers/:id', adminController.deleteTrainer);
+router.get('/trainers/search', adminController.searchTrainers);
+router.get('/trainer-stats', adminController.getTrainerStats);
 
-// Trainer Applications Routes
+// Trainer Application Routes
 router.get('/trainer-applications', adminController.getTrainerApplications);
 router.put('/trainer-applications/:id/approve', adminController.approveTrainerApplication);
 router.put('/trainer-applications/:id/reject', adminController.rejectTrainerApplication);
 
-// Trainer Assignment (Admin) - fetch unassigned users and trainers
+// Trainer Assignment Routes
 router.get('/trainer-assignment-data', adminController.getTrainerAssignmentData);
-router.post('/trainer-assign', adminController.assignTrainerToUserAdmin);
+router.post('/assign-trainer-admin', adminController.assignTrainerToUserAdmin);
+
+// Exercise Routes
+router.get('/exercises', adminController.getExercises);
+router.get('/exercises/search', adminController.searchExercises);
+router.post('/exercises', adminController.createExercise);
+router.put('/exercises/:id', adminController.updateExercise);
+router.delete('/exercises/:id', adminController.deleteExercise);
 
 // Membership Routes
 router.get('/memberships', adminController.getMemberships);
 router.post('/memberships', adminController.createMembership);
 router.put('/memberships/:id', adminController.updateMembership);
 router.delete('/memberships/:id', adminController.deleteMembership);
-
-// Exercise Routes
-router.get('/exercises', adminController.getExercises);
-router.post('/exercises', adminController.createExercise);
-router.put('/exercises/:id', adminController.updateExercise);
-router.delete('/exercises/:id', adminController.deleteExercise);
-router.get('/api/exercises', adminController.searchExercises);
 
 // Verifier Routes
 router.get('/verifiers', adminController.getVerifiers);
@@ -73,62 +60,5 @@ router.put('/verifiers/:id', adminController.updateVerifier);
 router.delete('/verifiers/:id', adminController.deleteVerifier);
 router.put('/verifiers/:id/approve', adminController.approveVerifier);
 router.put('/verifiers/:id/reject', adminController.rejectVerifier);
-
-// Debug route to check data
-router.get('/debug/trainer-stats', async (req, res) => {
-    try {
-        const Membership = require('../model/Membership');
-        const Trainer = require('../model/Trainer');
-        const TrainerApplication = require('../model/TrainerApplication');
-
-        const activeMemberships = await Membership.find({ status: 'Active' });
-        const trainers = await Trainer.find({});
-        const pendingApps = await TrainerApplication.countDocuments({ status: 'Pending' });
-
-        let revenue = 0;
-        const allSpecializations = new Set();
-
-        activeMemberships.forEach(membership => {
-            let monthlyPrice = 0;
-            switch (membership.plan) {
-                case 'basic': monthlyPrice = 299; break;
-                case 'gold': monthlyPrice = 599; break;
-                case 'platinum': monthlyPrice = 999; break;
-                default: monthlyPrice = 0;
-            }
-
-            const currentDate = new Date();
-            const endDate = new Date(membership.end_date);
-
-            if (endDate > currentDate) {
-                const monthsDiff = (endDate.getFullYear() - currentDate.getFullYear()) * 12 +
-                    (endDate.getMonth() - currentDate.getMonth());
-                const remainingMonths = Math.max(1, monthsDiff);
-                revenue += monthlyPrice * remainingMonths;
-            }
-        });
-
-        trainers.forEach(trainer => {
-            if (trainer.specializations) {
-                trainer.specializations.forEach(spec => {
-                    if (spec) allSpecializations.add(spec);
-                });
-            }
-        });
-
-        res.json({
-            activeMembershipsCount: activeMemberships.length,
-            revenue,
-            specializations: Array.from(allSpecializations),
-            specializationCount: allSpecializations.size,
-            pendingApplications: pendingApps,
-            trainersCount: trainers.length,
-            sampleMembership: activeMemberships.length > 0 ? activeMemberships[0] : 'No memberships found',
-            sampleTrainer: trainers.length > 0 ? trainers[0] : 'No trainers found'
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 module.exports = router;
