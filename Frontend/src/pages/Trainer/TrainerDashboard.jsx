@@ -14,9 +14,16 @@ const TrainerDashboard = () => {
   const [workoutData, setWorkoutData] = useState(null);
   const [nutritionData, setNutritionData] = useState(null);
   const [exerciseRatings, setExerciseRatings] = useState([]);
+  const [activeTab, setActiveTab] = useState('active');
   
   // NEW: State for Revenue & History
-  const [trainerStats, setTrainerStats] = useState({ totalRevenue: 0, activeUsers: 0, expiringSoon: [] });
+  const [trainerStats, setTrainerStats] = useState({ 
+    totalRevenue: 0, 
+    monthlyRevenue: 0, 
+    revenuePerUser: 0, 
+    activeUsers: 0, 
+    expiringSoon: [] 
+  });
   const [clientHistory, setClientHistory] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   
@@ -171,11 +178,17 @@ const TrainerDashboard = () => {
     navigate('/login');
   };
 
-  const filteredClients = clients.filter(client =>
+  // First filter by Active/Inactive tab
+  const tabFilteredClients = clients.filter(client => {
+    if (activeTab === 'active') return client.status === 'Active';
+    return client.status !== 'Active'; // Shows Inactive, Suspended, Expired
+  });
+
+  // Then filter by Search Term
+  const filteredClients = tabFilteredClients.filter(client =>
     client.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const calculateStats = () => {
     let workoutsCompleted = 0;
     let totalCalories = 0;
@@ -336,6 +349,25 @@ const TrainerDashboard = () => {
                 </span>
               </div>
             </div>
+            {/* Add Payment History Section inside the modal, right below the subscription details */}
+              <div className="mt-[20px] pt-[15px] border-t border-[#333]">
+                <h3 className="text-[1.1rem] font-bold text-[#f1f1f1] mb-[10px]">Payment History</h3>
+                <div className="max-h-[150px] overflow-y-auto pr-2">
+                  {!clientHistory.payments || clientHistory.payments.length === 0 ? (
+                    <p className="text-[#888] text-sm">No payment history found.</p>
+                  ) : (
+                    clientHistory.payments.map((payment, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-sm mb-2 p-2 bg-[#111] rounded border border-[#333]">
+                        <div>
+                          <p className="font-semibold text-white">{payment.paymentFor || 'Membership'} {payment.isRenewal ? '(Renewal)' : ''}</p>
+                          <p className="text-xs text-[#888]">{new Date(payment.paymentDate).toLocaleDateString()}</p>
+                        </div>
+                        <span className="text-[#8A2BE2] font-bold">₹{payment.amount}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
 
             <button 
               onClick={() => setShowHistoryModal(false)}
@@ -390,9 +422,12 @@ const TrainerDashboard = () => {
         
         {/* Total Revenue Card */}
         <div className="bg-[#111] p-[20px] rounded-lg border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.2)]">
-            <h3 className="text-[#cccccc] text-[0.9rem] uppercase tracking-wider mb-[5px]">Total Monthly Revenue</h3>
-            <p className="text-[2rem] font-bold text-[#f1f1f1]">${trainerStats.totalRevenue}</p>
-            <p className="text-[0.8rem] text-[#888]">Estimated based on active clients</p>
+            <h3 className="text-[#cccccc] text-[0.9rem] uppercase tracking-wider mb-[5px]">Monthly Revenue</h3>
+            <p className="text-[2rem] font-bold text-[#f1f1f1]">₹{trainerStats.monthlyRevenue || 0}</p>
+            <div className="flex justify-between mt-2 text-[0.8rem] text-[#888] border-t border-[#333] pt-2">
+                <span>Total All-Time: ₹{trainerStats.totalRevenue || 0}</span>
+                <span>Per User: ₹{trainerStats.revenuePerUser || 0}</span>
+            </div>
         </div>
 
         {/* Active Users Card */}
@@ -424,6 +459,21 @@ const TrainerDashboard = () => {
         {/* UPDATED: Client List / Table - REVERTED TO CARD STYLE */}
         <div className="flex-none w-full md:w-[350px] flex flex-col bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)] mb-[20px] md:mb-0">
           <h2 className="mb-[15px] text-[#f1f1f1] text-[1.5rem]">Your Clients</h2>
+          {/* Add Tabs Here */}
+          <div className="flex mb-[15px] bg-[#1e1e3a] p-1 rounded-[5px]">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`flex-1 py-2 text-sm font-semibold rounded-[3px] transition-colors ${activeTab === 'active' ? 'bg-[#8A2BE2] text-white shadow-md' : 'text-[#888] hover:text-white'}`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setActiveTab('inactive')}
+              className={`flex-1 py-2 text-sm font-semibold rounded-[3px] transition-colors ${activeTab === 'inactive' ? 'bg-[#333] border border-[#555] text-white shadow-md' : 'text-[#888] hover:text-white'}`}
+            >
+              Past / Inactive
+            </button>
+          </div>
           <input
             type="text"
             placeholder="Search clients..."
