@@ -25,6 +25,8 @@ import AdminExercises from "./pages/Admin/AdminExercises";
 import AdminVerifiers from "./pages/Admin/AdminVerifiers";
 
 import AdminTrainerAssignment from "./pages/Admin/AdminTrainerAssignment";
+import AdminTrainerDetail from "./pages/Admin/AdminTrainerDetail";
+import AdminUserDetail from "./pages/Admin/AdminUserDetail";
 
 import UserDashboard from "./pages/User/UserDashboard";
 import UserProfile from "./pages/User/UserProfile";
@@ -108,6 +110,8 @@ function App() {
                   path="/admin/trainer-assignment"
                   element={<AdminTrainerAssignment />}
                 />
+                <Route path="/admin/trainer/:id" element={<AdminTrainerDetail />} />
+                <Route path="/admin/user/:id" element={<AdminUserDetail />} />  
               </Route>
             </Route>
 
