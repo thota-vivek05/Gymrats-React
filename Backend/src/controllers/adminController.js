@@ -398,22 +398,39 @@ const adminController = {
   },
 
   // User Management
-  getUsers: async (req, res) => {
+getUsers: async (req, res) => {
     try {
       if (!req.session.userId) {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
       }
-      const users = await User.find().sort({ created_at: -1 });
+
+      const { search } = req.query;
+      let query = {};
+
+      // Global Search Logic
+      if (search && search.trim() !== '') {
+        const searchRegex = new RegExp(search, 'i');
+        query = {
+          $or: [
+            { full_name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex }
+          ]
+        };
+      }
+
+      const users = await User.find(query)
+        .sort({ created_at: -1 })
+        .populate('trainer', 'name'); // Populate trainer name for the list view
+
+      // existing stats calculation logic (can remain or be optimized)
       const totalUsers = await User.countDocuments();
       const activeMembers = await User.countDocuments({ status: 'Active' });
       const platinumUsers = await User.countDocuments({ membershipType: 'Platinum' });
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      const newSignups = await User.countDocuments({
-        created_at: { $gte: oneWeekAgo }
-      });
+      const newSignups = await User.countDocuments({ created_at: { $gte: oneWeekAgo } });
 
-      // SEND JSON
       res.json({
         success: true,
         users,
@@ -421,12 +438,7 @@ const adminController = {
           totalUsers,
           activeMembers,
           platinumUsers,
-          newSignups,
-          // You can calculate these dynamically later if you wish
-          totalUsersChange: '+12%',
-          activeMembersChange: '+5%',
-          platinumUsersChange: '+12%',
-          newSignupsChange: '+5%'
+          newSignups
         }
       });
     } catch (error) {
@@ -435,6 +447,92 @@ const adminController = {
     }
   },
 
+  // 2. NEW: Dropped Users API (Expired Subscriptions)
+  getDroppedUsers: async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+
+      const today = new Date();
+      
+      // Logic: End date is in the past OR status is explicitly 'Inactive'/'Dropped'
+      const droppedUsers = await User.find({
+        $or: [
+          { 'membershipDuration.end_date': { $lt: today } },
+          { status: 'Inactive' }
+        ]
+      }).select('full_name email phone membershipType membershipDuration status');
+
+      res.json({
+        success: true,
+        count: droppedUsers.length,
+        users: droppedUsers
+      });
+    } catch (error) {
+      console.error('Error fetching dropped users:', error);
+      res.status(500).json({ success: false, message: 'Error fetching dropped users' });
+    }
+  },
+
+  // 3. NEW: Detailed User View API
+  getUserDetails: async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+
+      const { id } = req.params;
+
+      // Fetch basic user data + assigned trainer
+      const user = await User.findById(id).populate('trainer', 'name email specializations phone');
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      // Fetch Membership History (Payment History)
+      const membershipHistory = await Membership.find({ user_id: id }).sort({ start_date: -1 });
+
+      // Determine Renewal Status
+      const today = new Date();
+      const endDate = user.membershipDuration?.end_date ? new Date(user.membershipDuration.end_date) : null;
+      let renewalStatus = 'Active';
+      let daysUntilRenewal = 0;
+
+      if (!endDate) {
+        renewalStatus = 'No Plan';
+      } else if (endDate < today) {
+        renewalStatus = 'Expired'; // Dropped
+      } else {
+        const diffTime = Math.abs(endDate - today);
+        daysUntilRenewal = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        if (daysUntilRenewal <= 7) renewalStatus = 'Renew Soon';
+      }
+
+      res.json({
+        success: true,
+        profile: user,
+        trainer: user.trainer,
+        membership: {
+          currentType: user.membershipType,
+          startDate: user.membershipDuration?.start_date,
+          endDate: user.membershipDuration?.end_date,
+          history: membershipHistory,
+          status: renewalStatus,
+          daysRemaining: daysUntilRenewal
+        },
+        lifecycle: {
+          joinDate: user.created_at,
+          lastActive: user.updatedAt // Assuming updatedAt tracks activity or login
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ success: false, message: 'Error fetching user details' });
+    }
+  },
   createUser: async (req, res) => {
     try {
       if (!req.session.userId) {

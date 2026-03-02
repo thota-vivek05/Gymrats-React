@@ -1,8 +1,53 @@
 const express = require('express');
 const router = express.Router();
 const trainerController = require('../controllers/trainerController');
+const multer = require('multer');
+const path = require('path');
 
 const { protect } = require('../middleware/authMiddleware');
+
+// Configure Multer specifically for trainer applications
+const trainerStorage = multer.diskStorage({
+    destination: 'uploads/trainer-resumes/', // Separate folder for resumes
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'resume-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+// File filter to accept only PDF and document files
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only PDF and Word documents are allowed'), false);
+    }
+};
+
+const uploadResume = multer({
+    storage: trainerStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: fileFilter
+});
+
+// Serve uploaded resumes (add this after your routes)
+router.get('/resume/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, '../uploads/trainer-resumes', filename);
+    
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Error sending file:', err);
+            res.status(404).json({ error: 'File not found' });
+        }
+    });
+});
 
 // ========================================
 // PUBLIC ROUTES (No Auth Required)
@@ -10,8 +55,8 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.get('/client-progress/:clientId', protect, trainerController.getClientProgress);
 
-// Handle trainer signup submission
-router.post('/signup', trainerController.signupTrainer);
+// Handle trainer signup submission WITH file upload
+router.post('/signup', uploadResume.single('resume'), trainerController.signupTrainer);
 
 // ========================================
 // EJS ROUTES (Session-based, Keep for backward compatibility)

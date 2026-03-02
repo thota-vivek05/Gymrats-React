@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "./components/AdminSidebar";
+import UserDetailsModal from "./components/UserDetailsModal";
+
 
 // Reusable StatCard Component
 const StatCard = ({ label, value }) => {
@@ -29,16 +31,31 @@ const AdminUsers = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Users
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('all');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+ // Fetch Users (UPDATED)
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users", {
+      setLoading(true);
+      
+      // Determine URL based on viewMode and searchTerm
+      let url = viewMode === 'dropped' 
+        ? '/api/admin/users/dropped' 
+        : `/api/admin/users?search=${encodeURIComponent(searchTerm)}`;
+
+      const response = await fetch(url, {
         credentials: "include",
       });
       const data = await response.json();
+      
       if (data.success) {
-        setUsers(data.users);
-        setStats(data.stats);
+        setUsers(data.users || []);
+        // Only update stats if they exist (dropped API might not return global stats)
+        if (data.stats) setStats(data.stats);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -47,9 +64,36 @@ const AdminUsers = () => {
     }
   };
 
+  // Add Debounce Effect for Search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchUsers();
+    }, 500); // Wait 500ms after typing stops
+    return () => clearTimeout(timer);
+  }, [searchTerm, viewMode]); // Re-run when search or mode changes
+
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // NEW: Fetch Detailed User Data
+  const handleViewDetails = async (userId) => {
+    try {
+      // Show loading state or open modal immediately if you prefer
+      const response = await fetch(`/api/admin/users/${userId}/details`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSelectedUser(userId);
+        setUserDetails(data); // Stores profile, trainer, membership history, etc.
+        setIsModalOpen(true);
+      } else {
+        alert("Could not load user details.");
+      }
+    } catch (error) {
+      console.error("Failed to load details", error);
+    }
+  };
 
   // Delete User Handler
   const handleDelete = async (userId) => {
@@ -113,6 +157,43 @@ const AdminUsers = () => {
           >
             + Add User
           </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6 bg-[#111] p-4 rounded-lg border border-[#333]">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search by Name, Email, or Phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              disabled={viewMode === 'dropped'} 
+              className={`w-full bg-[#1e1e3a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#8A2BE2] ${viewMode === 'dropped' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            />
+            <span className="absolute right-3 top-3 text-gray-500">🔍</span>
+          </div>
+          
+          <div className="flex gap-2">
+             <button
+              onClick={() => { setViewMode('all'); setSearchTerm(''); }}
+              className={`px-4 py-2 rounded transition-colors font-medium ${
+                viewMode === 'all' 
+                ? 'bg-[#8A2BE2] text-white' 
+                : 'bg-[#222] text-gray-400 hover:bg-[#333]'
+              }`}
+            >
+              All Users
+            </button>
+            <button
+              onClick={() => { setViewMode('dropped'); setSearchTerm(''); }}
+              className={`px-4 py-2 rounded transition-colors font-medium ${
+                viewMode === 'dropped' 
+                ? 'bg-red-600 text-white' 
+                : 'bg-[#222] text-gray-400 hover:bg-[#333]'
+              }`}
+            >
+              Dropped Users
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -198,6 +279,15 @@ const AdminUsers = () => {
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                           <button
+                              onClick={() => handleViewDetails(user._id)}
+                              className="
+                              px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
+                              bg-[#2e8b57]/20 text-[#2e8b57] hover:bg-[#2e8b57]/30 border border-[#2e8b57]/50
+                              "
+                            >
+                              View
+                          </button>
+                          <button
                             className="
                             px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
                             bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30
@@ -230,6 +320,13 @@ const AdminUsers = () => {
           </div>
         </div>
       </main>
+      {isModalOpen && userDetails && (
+        <UserDetailsModal 
+          user={selectedUser} 
+          details={userDetails} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </div>
   );
 };

@@ -8,11 +8,46 @@ const path = require("path");
 const cors = require("cors");
 const methodOverride = require("method-override");
 const JWT_SECRET = process.env.JWT_SECRET || "gymrats-secret-key"; // Use environment variable in production
+//logs 
+const morgan = require("morgan");
+const rfs = require("rotating-file-stream");
+const fs = require("fs");
+
+// Ensure upload directories exist
+const uploadDirs = ['uploads/', 'uploads/trainer-resumes/'];
+uploadDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
 
 process.env.TZ = "Asia/Kolkata";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ===== LOGGING SETUP =====
+
+// create logs directory if it doesn't exist
+const logDir = path.join(__dirname, "logs");
+
+fs.mkdirSync(logDir, { recursive: true });
+
+// create rotating stream
+const accessLogStream = rfs.createStream("access.log", {
+  interval: "1d", // rotates daily
+  path: logDir,
+  maxFiles: 7,
+});
+
+// create error log stream
+const errorLogStream = rfs.createStream("error.log", {
+  interval: "1d",
+  path: logDir,
+  maxFiles: 7,
+});
+
+
 
 // Import routes
 const adminRoutes = require("./Routes/adminRoutes");
@@ -34,6 +69,29 @@ app.use(
 
 // Handle preflight requests
 app.options("*", cors());
+
+// log to console (developer friendly)
+// app.use(morgan("dev"));     use if some error occurs later
+
+// log to file (production logging)
+app.use(
+  morgan("combined", {
+    stream: accessLogStream,
+  })
+);
+
+// log only failed requests to error.log
+app.use(
+  morgan("combined", {
+    stream: errorLogStream,
+    skip: function (req, res) {
+      return res.statusCode < 400; 
+      // log only 4xx and 5xx errors
+    },
+  })
+);
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -183,12 +241,25 @@ app.use("/api/*", (req, res) => {
 
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+
+  const errorMessage = `
+[${new Date().toISOString()}]
+MESSAGE: ${err.message}
+STACK: ${err.stack}
+-------------------------------------
+`;
+
+  fs.appendFileSync(
+    path.join(logDir, "error.log"),
+    errorMessage
+  );
+
   res.status(err.status || 500).json({
     success:false,
     message: err.message || "Internal Server Error"
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
