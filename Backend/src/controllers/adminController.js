@@ -6,114 +6,38 @@ const Verifier = require('../model/Verifier');
 const TrainerApplication = require('../model/TrainerApplication');
 const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
+const Manager = require('../model/Manager'); 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// fixing server
-const sqlite3 = require('sqlite3').verbose();
-
-// Initialize SQLite database for admins
-const db = new sqlite3.Database(':memory:', (err) => {
-  if (err) {
-    console.error('Error initializing SQLite database:', err);
-    process.exit(1);
-  }
-  console.log('Connected to SQLite database for admins');
-});
-
-// Create admins table and insert static admin data
-const initializeAdminDatabase = async () => {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      // Create table
-      db.run(`CREATE TABLE IF NOT EXISTS admins (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                full_name TEXT NOT NULL
-            )`, (err) => {
-        if (err) {
-          console.error('Error creating admins table:', err);
-          reject(err);
-          return;
+// Auto-seed MongoDB with a default Admin if none exist
+const seedAdmin = async () => {
+    try {
+        const count = await Manager.countDocuments();
+        if (count === 0) {
+            console.log('No admins found. Seeding default Admin...');
+            const hashedPwd = await bcrypt.hash('Password123', 10);
+            await Manager.create({
+                full_name: 'Super Admin',
+                email: 'admin1@gymrats.com',
+                password_hash: hashedPwd,
+                role: 'admin',
+                permissions: ['manage_exercises', 'approve_trainers', 'manage_users', 'view_trainer_ratings'],
+                isActive: true
+            });
+            console.log('Default Admin seeded successfully!');
         }
-
-        // Insert static admin users (passwords are hashed)
-        const adminUsers = [
-          {
-            email: 'admin1@gymrats.com',
-            password: 'Password123',
-            full_name: 'Admin One'
-          },
-          {
-            email: 'admin2@gymrats.com',
-            password: 'Password123',
-            full_name: 'Admin Two'
-          }
-        ];
-
-        // Use a counter to track completion
-        let insertedCount = 0;
-        const totalAdmins = adminUsers.length;
-
-        adminUsers.forEach((admin) => {
-          bcrypt.hash(admin.password, 10).then(hashedPassword => {
-            db.run(
-              'INSERT OR IGNORE INTO admins (email, password_hash, full_name) VALUES (?, ?, ?)',
-              [admin.email, hashedPassword, admin.full_name],
-              function (err) {
-                if (err) {
-                  console.error('Error inserting admin:', err);
-                } else {
-                  console.log(`Admin '${admin.email}' inserted/verified in database`);
-                }
-
-                insertedCount++;
-                if (insertedCount === totalAdmins) {
-                  // Verify admins are in database
-                  db.all('SELECT email, full_name FROM admins', (err, rows) => {
-                    if (err) {
-                      console.error('Error verifying admins:', err);
-                    } else {
-                      console.log('Admins in database:', rows);
-                    }
-                    resolve();
-                  });
-                }
-              }
-            );
-          }).catch(hashError => {
-            console.error('Error hashing password:', hashError);
-            insertedCount++;
-            if (insertedCount === totalAdmins) {
-              resolve();
-            }
-          });
-        });
-      });
-    });
-  });
+    } catch (error) {
+        console.error('Failed to seed admin:', error);
+    }
 };
+seedAdmin();
 
-// Initialize database on startup
-initializeAdminDatabase().catch(err => {
-  console.error('Failed to initialize admin database:', err);
-});
-// server end
-
-// server
-// Admin Login Methods
 const adminAuthController = {
-  // Admin Login Route (GET)
   getAdminLogin: (req, res) => {
-    res.render('admin_login', {
-      pageTitle: 'Admin Login',
-      errorMessage: null,
-      successMessage: null,
-      email: ''
-    });
+    res.json({ success: true, message: 'Please login via POST /api/admin/login' });
   },
 
-  // Admin Login Route (POST)
   postAdminLogin: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -122,89 +46,60 @@ const adminAuthController = {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
       }
 
-      console.log(`Admin login attempt for email: ${email}`);
+      const adminUser = await Manager.findOne({ email });
+      if (!adminUser) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
 
-      // Query SQLite database for admin
-      db.get(
-        'SELECT * FROM admins WHERE email = ?',
-        [email],
-        async (err, admin) => {
-          if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ success: false, message: 'Internal server error' });
-          }
+      if (adminUser.isActive === false) {
+        return res.status(403).json({ success: false, message: 'Account deactivated' });
+      }
 
-          if (!admin) {
-            console.log(`Admin not found with email: ${email}`);
-            // Return a generic message to avoid revealing which emails exist
-            return res.status(401).json({ success: false, message: 'Invalid email or password' });
-          }
+      const isMatch = await bcrypt.compare(password, adminUser.password_hash);
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
 
-          console.log(`Admin found: ${admin.email}, attempting password verification`);
-
-          // Compare password
-          try {
-            const passwordMatch = await bcrypt.compare(password, admin.password_hash);
-
-            if (!passwordMatch) {
-              console.log(`Password mismatch for admin: ${email}`);
-              return res.status(401).json({ success: false, message: 'Invalid email or password' });
-            }
-
-            console.log(`Password match successful for admin: ${email}`);
-
-            // Store admin in session
-            req.session.userId = admin.id;
-            req.session.email = admin.email;
-            req.session.fullName = admin.full_name;
-            req.session.user = {
-              id: admin.id,
-              name: admin.full_name,
-              email: admin.email,
-              role: 'admin'
-            };
-
-            console.log(`Admin session created for: ${email}`);
-
-            // Return success with user data for React Context
-            return res.json({
-              success: true,
-              message: 'Admin login successful',
-              user: req.session.user
-            });
-          } catch (bcryptError) {
-            console.error('Error comparing passwords:', bcryptError);
-            return res.status(500).json({ success: false, message: 'Internal server error during password verification' });
-          }
-        }
+      const token = jwt.sign(
+        { 
+            id: adminUser._id, 
+            email: adminUser.email, 
+            role: adminUser.role,
+            name: adminUser.full_name 
+        },
+        process.env.JWT_SECRET || 'gymrats-secret-key',
+        { expiresIn: '24h' }
       );
+
+      return res.json({
+        success: true,
+        message: 'Admin login successful',
+        token,
+        user: {
+          id: adminUser._id,
+          name: adminUser.full_name,
+          email: adminUser.email,
+          role: adminUser.role
+        }
+      });
+
     } catch (err) {
       console.error('Admin login error:', err);
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   },
 
-  // Admin Logout
   adminLogout: (req, res) => {
-    req.session.destroy(err => {
-      if (err) {
-        console.error('Error destroying session:', err);
-        return res.status(500).json({ success: false, message: 'Error logging out' });
-      }
-      res.redirect('/admin_login');
-    });
+    res.json({ success: true, message: 'Logged out successfully. Please clear your token.' });
   }
 };
-// server end
 
 const adminController = {
   // Dashboard
   getDashboard: async (req, res) => {
     try {
       // Check for authentication (return 401 JSON if not logged in)
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const now = new Date();
       const oneMonthAgo = new Date(now);
@@ -400,9 +295,6 @@ const adminController = {
   // User Management
 getUsers: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
 
       const { search } = req.query;
       let query = {};
@@ -450,9 +342,7 @@ getUsers: async (req, res) => {
   // 2. NEW: Dropped Users API (Expired Subscriptions)
   getDroppedUsers: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+
 
       const today = new Date();
       
@@ -478,10 +368,7 @@ getUsers: async (req, res) => {
   // 3. NEW: Detailed User View API
   getUserDetails: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-
+      
       const { id } = req.params;
 
       // Fetch basic user data + assigned trainer
@@ -535,9 +422,7 @@ getUsers: async (req, res) => {
   },
   createUser: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const { fullName, email, password, dob, gender, phone, status, membershipType, weight, height } = req.body;
       if (!fullName || !email || !password || !dob || !gender || !phone || !weight || !height) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -573,9 +458,7 @@ getUsers: async (req, res) => {
 
   updateUser: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const userId = req.params.id;
       const { fullName, email, dob, gender, phone, weight, height, status, membershipType } = req.body;
       let bmi = null;
@@ -611,9 +494,7 @@ getUsers: async (req, res) => {
 
   deleteUser: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const userId = req.params.id;
       const deletedUser = await User.findByIdAndDelete(userId);
       if (!deletedUser) {
@@ -631,9 +512,7 @@ getUsers: async (req, res) => {
   // Trainer Management
   getTrainers: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const trainers = await Trainer.find().sort({ createdAt: -1 });
       const trainerCount = await Trainer.countDocuments({ status: 'Active' });
       const pendingApprovals = await TrainerApplication.countDocuments({ status: 'Pending' });
@@ -679,7 +558,6 @@ getUsers: async (req, res) => {
   // Trainer Assignment (Admin) - fetch trainers and unassigned users
   getTrainerAssignmentData: async (req, res) => {
     try {
-      if (!req.session.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
       // Fetch active trainers
       const trainers = await Trainer.find({ status: 'Active' }).select('name email specializations');
@@ -697,7 +575,6 @@ getUsers: async (req, res) => {
   // Admin assigns trainer to user
   assignTrainerToUserAdmin: async (req, res) => {
     try {
-      if (!req.session.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
       const { userId, trainerId } = req.body;
       if (!userId || !trainerId) return res.status(400).json({ success: false, message: 'Missing userId or trainerId' });
@@ -760,9 +637,7 @@ getUsers: async (req, res) => {
 
   createTrainer: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const { name, email, password, phone, experience, specializations } = req.body;
       if (!name || !email || !password || !phone || !experience) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -830,9 +705,7 @@ getUsers: async (req, res) => {
 
   deleteTrainer: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const trainerId = req.params.id;
       const deletedTrainer = await Trainer.findByIdAndDelete(trainerId);
       if (!deletedTrainer) {
@@ -849,9 +722,7 @@ getUsers: async (req, res) => {
   // Membership Management - UPDATED TO WORK WITH USER MODEL
   getMemberships: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       // Get ALL USERS with membership information
       const users = await User.find()
@@ -1005,9 +876,7 @@ getUsers: async (req, res) => {
   },
   createMembership: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const { userId, type, startDate, endDate, price } = req.body;
       if (!userId || !type || !startDate || !endDate || !price) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -1035,9 +904,7 @@ getUsers: async (req, res) => {
 
   updateMembership: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const membershipId = req.params.id;
       const { type, startDate, endDate, price, status } = req.body;
       const updatedMembership = await Membership.findByIdAndUpdate(
@@ -1066,9 +933,7 @@ getUsers: async (req, res) => {
 
   deleteMembership: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const membershipId = req.params.id;
       const membership = await Membership.findById(membershipId);
       if (!membership) {
@@ -1088,9 +953,7 @@ getUsers: async (req, res) => {
   // Exercise Management - UPDATED
   getExercises: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const exercises = await Exercise.find().sort({ name: 1 });
 
@@ -1146,9 +1009,7 @@ getUsers: async (req, res) => {
   },
   createExercise: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const {
         name,
@@ -1209,9 +1070,7 @@ getUsers: async (req, res) => {
 
   updateExercise: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const exerciseId = req.params.id;
       const {
@@ -1269,9 +1128,7 @@ getUsers: async (req, res) => {
 
   deleteExercise: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const exerciseId = req.params.id;
       const deletedExercise = await Exercise.findByIdAndDelete(exerciseId);
@@ -1289,9 +1146,7 @@ getUsers: async (req, res) => {
 
   searchExercises: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const { search } = req.query;
       let query = {};
@@ -1327,9 +1182,7 @@ getUsers: async (req, res) => {
   // Verifier Management
   getVerifiers: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       
       // Get all verifiers
       const verifiers = await Verifier.find().sort({ createdAt: -1 });
@@ -1382,9 +1235,7 @@ getUsers: async (req, res) => {
 
   createVerifier: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const { name, email, password, phone, experienceYears } = req.body;
 
@@ -1450,9 +1301,7 @@ getUsers: async (req, res) => {
 
   updateVerifier: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const verifierId = req.params.id;
       const { name, email, phone } = req.body;
       const updatedVerifier = await Verifier.findByIdAndUpdate(
@@ -1476,9 +1325,7 @@ getUsers: async (req, res) => {
 
   deleteVerifier: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const verifierId = req.params.id;
       const deletedVerifier = await Verifier.findByIdAndDelete(verifierId);
       if (!deletedVerifier) {
@@ -1493,9 +1340,7 @@ getUsers: async (req, res) => {
 
   approveVerifier: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const verifierId = req.params.id;
       const updatedVerifier = await Verifier.findByIdAndUpdate(
         verifierId,
@@ -1514,9 +1359,7 @@ getUsers: async (req, res) => {
 
   rejectVerifier: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       const verifierId = req.params.id;
       const updatedVerifier = await Verifier.findByIdAndUpdate(
         verifierId,
@@ -1536,10 +1379,7 @@ getUsers: async (req, res) => {
   // Get Trainer Statistics API
   getTrainerStats: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-
+      
       // Total active trainers
       const totalTrainers = await Trainer.countDocuments({ status: 'Active' });
 
@@ -1586,9 +1426,7 @@ getUsers: async (req, res) => {
   // Search Trainers API
   searchTrainers: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
       
       const { search } = req.query;
       let query = {};
@@ -1629,9 +1467,7 @@ getUsers: async (req, res) => {
   // Trainer Applications Management
   getTrainerApplications: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const applications = await TrainerApplication.find().sort({ createdAt: -1 });
       const totalApplications = applications.length;
@@ -1682,9 +1518,7 @@ getUsers: async (req, res) => {
 
   approveTrainerApplication: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const applicationId = req.params.id;
       console.log('Approving trainer application:', applicationId);
@@ -1741,9 +1575,7 @@ getUsers: async (req, res) => {
 
   rejectTrainerApplication: async (req, res) => {
     try {
-      if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
+      
 
       const applicationId = req.params.id;
       const { reason } = req.body;

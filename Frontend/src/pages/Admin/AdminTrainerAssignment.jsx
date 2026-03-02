@@ -13,8 +13,9 @@ const AdminTrainerAssignment = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const res = await fetch("/api/admin/trainer-assignment-data", {
-          credentials: "include",
+          headers: { "Authorization": `Bearer ${token}` }
         });
         if (!res.ok) {
           if (res.status === 401) return navigate("/admin/login");
@@ -37,13 +38,17 @@ const AdminTrainerAssignment = () => {
     fetchData();
   }, [navigate]);
 
+
   const handleAssign = async (userId, trainerId) => {
     if (!trainerId) return alert("Select a trainer");
     try {
-      const res = await fetch("/api/admin/trainer-assign", {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/admin/assign-trainer-admin", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ userId, trainerId }),
       });
       if (!res.ok) {
@@ -63,6 +68,7 @@ const AdminTrainerAssignment = () => {
       alert("Server error");
     }
   };
+  
 
   // Shared container styles
   const containerClasses =

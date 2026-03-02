@@ -56,6 +56,7 @@ const trainerRoutes = require("./Routes/trainerRoutes");
 const verifierRoutes = require("./Routes/verifierRoutes");
 // In server.js - Add these lines after other route imports
 const authRoutes = require("./Routes/authRoutes");
+const adminAnalyticsRoutes = require("./Routes/adminAnalyticsRoutes");
 
 // Enhanced CORS configuration
 app.use(
@@ -144,6 +145,7 @@ app.use("/", userRoutes);
 app.use("/api/trainer", trainerRoutes);
 app.use("/api/verifier", verifierRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
 
 // react signup
 // Add these before the catch-all handler

@@ -41,6 +41,11 @@ const managerSchema = new mongoose.Schema({
         ref: 'Admin',
         default: null
     },
+    role: {
+        type: String,
+        enum: ['admin', 'manager'],
+        default: 'manager' // Anyone created normally defaults to a manager
+    },
     // Running counters — fast to read on Admin's Manager overview card
     actionsPerformed: {
         trainers_approved: { type: Number, default: 0 },

@@ -32,33 +32,22 @@ const AdminVerifiers = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch("/api/admin/trainer-applications", {
-          credentials: "include",
+          headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await response.json();
-        console.log("Trainer applications data:", data);
         if (data.success) {
           setApplications(data.applications || []);
           setStats(data.stats || {});
         } else {
-          console.error("Failed to fetch applications:", data.message);
           setApplications([]);
-          setStats({
-            totalApplications: 0,
-            pendingApplications: 0,
-            approvedApplications: 0,
-            rejectedApplications: 0,
-          });
+          setStats({ totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 });
         }
       } catch (error) {
         console.error("Error fetching trainer applications:", error);
         setApplications([]);
-        setStats({
-          totalApplications: 0,
-          pendingApplications: 0,
-          approvedApplications: 0,
-          rejectedApplications: 0,
-        });
+        setStats({ totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 });
       } finally {
         setLoading(false);
       }
@@ -66,25 +55,21 @@ const AdminVerifiers = () => {
     fetchApplications();
   }, []);
 
+
   const handleApprove = async (id) => {
     try {
-      const response = await fetch(
-        `/api/admin/trainer-applications/${id}/approve`,
-        {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/trainer-applications/${id}/approve`, {
           method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+      });
       const data = await response.json();
-      console.log("Approve response:", data, "Status:", response.status);
 
       if (response.ok && data.success) {
-        setApplications(
-          applications.map((app) =>
-            app._id === id ? { ...app, status: "Approved" } : app
-          )
-        );
+        setApplications(applications.map((app) => app._id === id ? { ...app, status: "Approved" } : app));
         if (stats) {
           setStats({
             ...stats,
@@ -98,32 +83,26 @@ const AdminVerifiers = () => {
       }
     } catch (err) {
       alert("Failed to approve application: " + err.message);
-      console.error("Approve error:", err);
     }
   };
 
   const handleReject = async (id) => {
     const reason = prompt("Enter rejection reason (optional):");
-    if (reason === null) return; // User cancelled
+    if (reason === null) return;
     try {
-      const response = await fetch(
-        `/api/admin/trainer-applications/${id}/reject`,
-        {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/trainer-applications/${id}/reject`, {
           method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ reason: reason || "" }),
-        }
-      );
+      });
       const data = await response.json();
-      console.log("Reject response:", data, "Status:", response.status);
 
       if (response.ok && data.success) {
-        setApplications(
-          applications.map((app) =>
-            app._id === id ? { ...app, status: "Rejected" } : app
-          )
-        );
+        setApplications(applications.map((app) => app._id === id ? { ...app, status: "Rejected" } : app));
         if (stats) {
           setStats({
             ...stats,
@@ -137,7 +116,6 @@ const AdminVerifiers = () => {
       }
     } catch (err) {
       alert("Failed to reject application: " + err.message);
-      console.error("Reject error:", err);
     }
   };
 

@@ -36,8 +36,9 @@ const AdminTrainers = () => {
   useEffect(() => {
     const fetchTrainers = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await fetch("/api/admin/trainers", {
-          credentials: "include",
+          headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await response.json();
         if (data.success) {
@@ -53,18 +54,21 @@ const AdminTrainers = () => {
     fetchTrainers();
   }, []);
 
+
   const handleDelete = async (id) => {
     if (!confirm("Delete this trainer?")) return;
     try {
+      const token = localStorage.getItem("token");
       await fetch(`/api/admin/trainers/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { "Authorization": `Bearer ${token}` }
       });
       setTrainers(trainers.filter((t) => t._id !== id));
     } catch (err) {
       alert("Failed to delete");
     }
   };
+
 
   // Shared container classes
   const containerClasses =
@@ -80,39 +84,40 @@ const AdminTrainers = () => {
         </div>
       </div>
     );
-       const handleUpdate = async (e) => {
-          e.preventDefault();
-          console.log("Sending Link:", editFormData.meetingLink);
-          
-          try {
-            const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ 
-                ...editingTrainer, 
-                meetingLink: editFormData.meetingLink
-              }),
-              credentials: "include",
-            });
 
-            const data = await response.json();
-            console.log("Server Response Data:", data);
 
-            if (data.success) {
-              setTrainers(trainers.map(t => 
-                t._id === editingTrainer._id ? { ...t, meetingLink: editFormData.meetingLink} : t
-              ));
-              setEditingTrainer(null);
-              alert("Success!");
-            } else {
-              console.error("Server reported failure:", data.message);
-              alert("Server error: " + data.message);
-            }
-          } catch (err) {
-            console.error("Fetch Error:", err);
-            alert("Check Network Tab in F12");
-          }
-        };
+    const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          ...editingTrainer, 
+          meetingLink: editFormData.meetingLink
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setTrainers(trainers.map(t => 
+          t._id === editingTrainer._id ? { ...t, meetingLink: editFormData.meetingLink} : t
+        ));
+        setEditingTrainer(null);
+        alert("Success!");
+      } else {
+        alert("Server error: " + data.message);
+      }
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      alert("Check Network Tab in F12");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
