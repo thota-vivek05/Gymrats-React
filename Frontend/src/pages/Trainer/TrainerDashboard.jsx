@@ -14,6 +14,12 @@ const TrainerDashboard = () => {
   const [workoutData, setWorkoutData] = useState(null);
   const [nutritionData, setNutritionData] = useState(null);
   const [exerciseRatings, setExerciseRatings] = useState([]);
+  
+  // NEW: State for Revenue & History
+  const [trainerStats, setTrainerStats] = useState({ totalRevenue: 0, activeUsers: 0, expiringSoon: [] });
+  const [clientHistory, setClientHistory] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,9 +44,25 @@ const TrainerDashboard = () => {
 
   useEffect(() => {
     fetchClients();
+    fetchTrainerStats(); // NEW: Fetch Stats on Load
     const trainerData = JSON.parse(localStorage.getItem('user') || '{}');
     if (trainerData.name) setTrainer(trainerData);
   }, []);
+
+  const fetchTrainerStats = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/stats`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setTrainerStats(data);
+        }
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+  };
 
   const fetchClients = async () => {
     try {
@@ -82,62 +104,66 @@ const TrainerDashboard = () => {
   };
 
   const handleClientSelect = async (client) => {
-  setSelectedClient(client);
-  setLoading(true);
-  setSidebarOpen(false);
+    setSelectedClient(client);
+    setLoading(true);
+    setSidebarOpen(false);
 
-  const clientId = client._id || client.id;
-  if (!clientId) {
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem('token');
-    const headers = { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    }; 
-
-    // Add the progress fetch to the Promise.all array
-    const [profileRes, workoutRes, nutritionRes, ratingsRes, progressRes] = await Promise.all([
-      fetch(`${API_BASE}/client/${clientId}`, { headers }),
-      fetch(`${API_BASE}/workout/${clientId}`, { headers }),
-      fetch(`${API_BASE}/nutrition/${clientId}`, { headers }),
-      fetch(`${API_BASE}/exercise-ratings/${clientId}`, { headers }).catch(() => ({ json: () => ({ success: false, ratings: [] }) })),
-      // New Fetch for Graph
-      fetch(`/api/trainer/client-progress/${clientId}`, { headers }).catch(() => null)
-    ]);
-
-    const [profile, workout, nutrition, ratings] = await Promise.all([
-          profileRes.ok ? profileRes.json().catch(() => ({})) : ({}),
-          workoutRes.ok ? workoutRes.json().catch(() => ({ weeklySchedule: null })) : ({ weeklySchedule: null }),
-          nutritionRes.ok ? nutritionRes.json().catch(() => ({ nutrition: null })) : ({ nutrition: null }),
-          ratingsRes.ok ? ratingsRes.json().catch(() => ({ ratings: [] })) : ({ ratings: [] })
-    ]);
-
-    // Handle Progress Data
-    if (progressRes && progressRes.ok) {
-        const graphData = await progressRes.json();
-        setExerciseChartData(graphData);
-    } else {
-        // Fallback if no data
-        setExerciseChartData({
-            labels: ['No Data'],
-            datasets: [{ label: 'No Data', data: [0], borderColor: '#333' }]
-        });
+    const clientId = client._id || client.id;
+    if (!clientId) {
+        setLoading(false);
+        return;
     }
 
-    setClientProfile(profile);
-    setWorkoutData(workout);
-    setNutritionData(nutrition);
-    setExerciseRatings(ratings.ratings || []);
-  } catch (error) {
-    console.error('Error fetching client data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+        const token = localStorage.getItem('token');
+        const headers = { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }; 
+
+        const [profileRes, workoutRes, nutritionRes, ratingsRes, progressRes, historyRes] = await Promise.all([
+        fetch(`${API_BASE}/client/${clientId}`, { headers }),
+        fetch(`${API_BASE}/workout/${clientId}`, { headers }),
+        fetch(`${API_BASE}/nutrition/${clientId}`, { headers }),
+        fetch(`${API_BASE}/exercise-ratings/${clientId}`, { headers }).catch(() => ({ json: () => ({ success: false, ratings: [] }) })),
+        fetch(`/api/trainer/client-progress/${clientId}`, { headers }).catch(() => null),
+        fetch(`${API_BASE}/client-history/${clientId}`, { headers }).catch(() => null) // NEW: Fetch History
+        ]);
+
+        const [profile, workout, nutrition, ratings] = await Promise.all([
+            profileRes.ok ? profileRes.json().catch(() => ({})) : ({}),
+            workoutRes.ok ? workoutRes.json().catch(() => ({ weeklySchedule: null })) : ({ weeklySchedule: null }),
+            nutritionRes.ok ? nutritionRes.json().catch(() => ({ nutrition: null })) : ({ nutrition: null }),
+            ratingsRes.ok ? ratingsRes.json().catch(() => ({ ratings: [] })) : ({ ratings: [] })
+        ]);
+
+        // Handle History Data
+        if (historyRes && historyRes.ok) {
+            const historyData = await historyRes.json();
+            setClientHistory(historyData.history);
+        }
+
+        // Handle Progress Data
+        if (progressRes && progressRes.ok) {
+            const graphData = await progressRes.json();
+            setExerciseChartData(graphData);
+        } else {
+            setExerciseChartData({
+                labels: ['No Data'],
+                datasets: [{ label: 'No Data', data: [0], borderColor: '#333' }]
+            });
+        }
+
+        setClientProfile(profile);
+        setWorkoutData(workout);
+        setNutritionData(nutrition);
+        setExerciseRatings(ratings.ratings || []);
+    } catch (error) {
+        console.error('Error fetching client data:', error);
+    } finally {
+        setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -236,9 +262,9 @@ const TrainerDashboard = () => {
   };
 
   const [exerciseChartData, setExerciseChartData] = useState({
-  labels: [],
-  datasets: []
-});
+    labels: [],
+    datasets: []
+  });
 
   const exerciseChartOptions = {
     responsive: true,
@@ -269,12 +295,57 @@ const TrainerDashboard = () => {
   const shouldShowNutrition = clientProfile?.membershipType === 'Platinum' || clientProfile?.membershipType === 'Gold';
   const shouldShowMeet = clientProfile?.membershipType === 'Platinum';
 
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-[#f1f1f1] text-sm font-['Outfit',_sans-serif]">
       {/* Inject Font */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
       `}</style>
+
+      {/* History Modal */}
+      {showHistoryModal && clientHistory && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-80">
+          <div className="bg-[#1e1e3a] p-[30px] rounded-lg w-[90%] max-w-[500px] border border-[#8A2BE2] shadow-[0_0_20px_rgba(138,43,226,0.5)]">
+            <div className="flex justify-between items-center mb-[20px] border-b border-[#333] pb-[10px]">
+              <h2 className="text-[1.5rem] font-bold text-[#f1f1f1]">Subscription History</h2>
+              <button onClick={() => setShowHistoryModal(false)} className="text-[1.5rem] text-[#8A2BE2] hover:text-white">&times;</button>
+            </div>
+            
+            <div className="space-y-[15px]">
+              <div className="flex justify-between">
+                <span className="text-[#cccccc]">Plan Type:</span>
+                <span className="font-bold text-[#8A2BE2]">{clientHistory.currentSubscription.plan}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#cccccc]">Joined On:</span>
+                <span className="text-white">{new Date(clientHistory.joinedDate).toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#cccccc]">Start Date:</span>
+                <span className="text-white">{new Date(clientHistory.currentSubscription.startDate).toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#cccccc]">Renewal Date:</span>
+                <span className="text-white">{clientHistory.currentSubscription.endDate ? new Date(clientHistory.currentSubscription.endDate).toLocaleDateString() : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#cccccc]">Status:</span>
+                <span className={`px-2 py-1 rounded text-xs ${clientHistory.currentSubscription.status === 'Active' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                    {clientHistory.currentSubscription.status}
+                </span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowHistoryModal(false)}
+              className="mt-[25px] w-full py-[10px] bg-[#8A2BE2] text-white rounded hover:bg-[#7020a0] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navbar */}
       <div className="m-0 bg-black border-b border-[#333]">
@@ -314,10 +385,45 @@ const TrainerDashboard = () => {
         <p className="text-[1rem] sm:text-[1.2rem] text-[#cccccc] mb-[10px]">Manage your clients and track their progress</p>
       </div>
 
+      {/* NEW: Trainer Revenue & Stats Section */}
+      <div className="max-w-[1200px] w-[90%] mx-auto mb-[30px] grid grid-cols-1 md:grid-cols-3 gap-[20px]">
+        
+        {/* Total Revenue Card */}
+        <div className="bg-[#111] p-[20px] rounded-lg border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.2)]">
+            <h3 className="text-[#cccccc] text-[0.9rem] uppercase tracking-wider mb-[5px]">Total Monthly Revenue</h3>
+            <p className="text-[2rem] font-bold text-[#f1f1f1]">${trainerStats.totalRevenue}</p>
+            <p className="text-[0.8rem] text-[#888]">Estimated based on active clients</p>
+        </div>
+
+        {/* Active Users Card */}
+        <div className="bg-[#111] p-[20px] rounded-lg border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.2)]">
+            <h3 className="text-[#cccccc] text-[0.9rem] uppercase tracking-wider mb-[5px]">Active Clients</h3>
+            <p className="text-[2rem] font-bold text-[#f1f1f1]">{trainerStats.activeUsers}</p>
+            <p className="text-[0.8rem] text-[#888]">Currently enrolled members</p>
+        </div>
+
+        {/* Expiring Soon Card */}
+        <div className="bg-[#111] p-[20px] rounded-lg border border-[#ff6347] shadow-[0_4px_8px_rgba(255,99,71,0.2)]">
+            <h3 className="text-[#cccccc] text-[0.9rem] uppercase tracking-wider mb-[5px]">Expiring Soon (7 Days)</h3>
+            <div className="max-h-[80px] overflow-y-auto">
+                {trainerStats.expiringSoon.length === 0 ? (
+                    <p className="text-[1.2rem] text-[#f1f1f1] mt-2">None</p>
+                ) : (
+                    <ul className="list-disc pl-5 text-[#ff6347]">
+                        {trainerStats.expiringSoon.map(u => (
+                            <li key={u.id}>{u.name} ({new Date(u.endDate).toLocaleDateString()})</li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row my-[30px] mx-auto gap-[30px] flex-1 max-w-[1200px] w-[90%]">
-        {/* Client List */}
-        <div className="flex-none w-full md:w-[300px] flex flex-col bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)] mb-[20px] md:mb-0">
-          <h2 className="mb-[15px] text-[#f1f1f1] text-[1.5rem]">Client List</h2>
+        
+        {/* UPDATED: Client List / Table - REVERTED TO CARD STYLE */}
+        <div className="flex-none w-full md:w-[350px] flex flex-col bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)] mb-[20px] md:mb-0">
+          <h2 className="mb-[15px] text-[#f1f1f1] text-[1.5rem]">Your Clients</h2>
           <input
             type="text"
             placeholder="Search clients..."
@@ -337,10 +443,10 @@ const TrainerDashboard = () => {
                     ${(selectedClient?._id || selectedClient?.id) === (client._id || client.id) ? 'bg-[rgba(138,43,226,0.3)] border-[#8A2BE2]' : ''}`}
                   onClick={() => handleClientSelect(client)}
                 >
-                  <div className="font-bold text-[1.1rem] mb-[5px]">
-                    {client.full_name}
+                  <div className="font-bold text-[1.1rem] mb-[5px] flex items-center justify-between">
+                    <span>{client.full_name}</span>
                     {/* Membership Badge Logic */}
-                    <span className={`inline-block px-[10px] py-[4px] rounded-[15px] text-[0.75em] font-bold ml-[8px] uppercase tracking-[0.5px] border-[2px] border-transparent shadow-[0_2px_4px_rgba(0,0,0,0.1)]
+                    <span className={`inline-block px-[10px] py-[4px] rounded-[15px] text-[0.75em] font-bold uppercase tracking-[0.5px] border-[2px] border-transparent shadow-[0_2px_4px_rgba(0,0,0,0.1)]
                       ${(!client.membershipType || client.membershipType === 'Basic') ? 'bg-gradient-to-br from-[#6c757d] to-[#495057] text-white border-[#495057]' : ''}
                       ${client.membershipType === 'Gold' ? 'bg-gradient-to-br from-[#ffd700] to-[#daa520] text-[#333] border-[#daa520]' : ''}
                       ${client.membershipType === 'Platinum' ? 'bg-gradient-to-br from-[#e5e4e2] to-[#c0c0c0] text-[#333] border-[#c0c0c0]' : ''}
@@ -348,9 +454,23 @@ const TrainerDashboard = () => {
                       {client.membershipType || 'Basic'}
                     </span>
                   </div>
-                  <div className="flex flex-col text-[0.9rem] text-[#cccccc]">
-                    <span>Progress: {client.progress || 0}%</span>
-                    <span>Status: {client.status || 'Active'}</span>
+                  
+                  {/* Enhanced Data Display in Card Style */}
+                  <div className="flex flex-col text-[0.85rem] text-[#cccccc] gap-1 mt-2">
+                    <div className="flex justify-between items-center">
+                        <span>Status:</span>
+                        <span className={`font-semibold ${client.status === 'Active' ? 'text-green-400' : 'text-red-400'}`}>
+                            {client.status || 'Active'}
+                        </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[#888] text-xs">
+                        <span>Joined:</span>
+                        <span>{client.joinedDate ? new Date(client.joinedDate).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                     <div className="flex justify-between items-center text-[#888] text-xs">
+                        <span>Renews:</span>
+                        <span>{client.renewalDate !== 'N/A' ? new Date(client.renewalDate).toLocaleDateString() : 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
               ))
@@ -369,7 +489,14 @@ const TrainerDashboard = () => {
               {/* Top Row */}
               <div className="flex flex-col lg:flex-row gap-[20px] flex-wrap">
                 {/* Client Profile */}
-                <div className="flex-1 min-w-[300px] bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)]">
+                <div className="flex-1 min-w-[300px] bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)] relative">
+                  <button 
+                    onClick={() => setShowHistoryModal(true)}
+                    className="absolute top-[20px] right-[20px] text-xs bg-[#1e1e3a] px-3 py-1 rounded border border-[#8A2BE2] hover:bg-[#8A2BE2] hover:text-white transition-colors"
+                  >
+                    View History
+                  </button>
+
                   <h2 className="text-[#f1f1f1] mb-[15px] text-[1.5rem] border-b border-[#8A2BE2] pb-[10px]">
                     Client Profile: {clientProfile?.full_name || selectedClient.full_name}
                   </h2>
@@ -568,36 +695,17 @@ const TrainerDashboard = () => {
 
       <footer className="bg-[#0A0A0A] text-white py-[60px] pb-[40px] mt-auto border-t border-[#222]">
         <div className="flex justify-between flex-wrap max-w-[1200px] mx-auto px-[20px]">
-          <div className="flex-1 min-w-[200px] mx-[15px] mb-[30px]">
+          {/* ... (Footer content remains unchanged) ... */}
+           <div className="flex-1 min-w-[200px] mx-[15px] mb-[30px]">
             <h3 className="mb-[20px] text-[#f1f1f1] text-[1.2rem] relative pb-[10px] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[40px] after:h-[2px] after:bg-[#8A2BE2]">GymRats</h3>
             <ul className="list-none p-0">
               <li className="mb-[12px]"><a href="/about" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">About Us</a></li>
               <li className="mb-[12px]"><a href="/trainers" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Our Trainers</a></li>
-              <li className="mb-[12px]"><a href="/testimonial" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Testimonials</a></li>
-              <li className="mb-[12px]"><a href="/blog" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Blog</a></li>
-            </ul>
-          </div>
-          <div className="flex-1 min-w-[200px] mx-[15px] mb-[30px]">
-            <h3 className="mb-[20px] text-[#f1f1f1] text-[1.2rem] relative pb-[10px] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[40px] after:h-[2px] after:bg-[#8A2BE2]">Resources</h3>
-            <ul className="list-none p-0">
-              <li className="mb-[12px]"><a href="/isolation" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Exercise Guide</a></li>
-              <li className="mb-[12px]"><a href="/nutrition" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Nutrition Tips</a></li>
-              <li className="mb-[12px]"><a href="/workout_plans" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Workout Plans</a></li>
-              <li className="mb-[12px]"><a href="/calculators" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Calculators</a></li>
-            </ul>
-          </div>
-          <div className="flex-1 min-w-[200px] mx-[15px] mb-[30px]">
-            <h3 className="mb-[20px] text-[#f1f1f1] text-[1.2rem] relative pb-[10px] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[40px] after:h-[2px] after:bg-[#8A2BE2]">Support</h3>
-            <ul className="list-none p-0">
-              <li className="mb-[12px]"><a href="/contact" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Contact Us</a></li>
-              <li className="mb-[12px]"><a href="/terms" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Terms of Service</a></li>
-              <li className="mb-[12px]"><a href="/privacy_policy" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Privacy Policy</a></li>
             </ul>
           </div>
           <div className="flex-1 min-w-[200px] mx-[15px] mb-[30px]">
             <h3 className="mb-[20px] text-[#f1f1f1] text-[1.2rem] relative pb-[10px] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[40px] after:h-[2px] after:bg-[#8A2BE2]">Connect With Us</h3>
             <ul className="list-none p-0">
-              <li className="mb-[12px]"><a href="/trainer_form" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Become a Trainer</a></li>
               <li className="mb-[12px]"><a href="/contact" className="text-[#cccccc] no-underline transition-all duration-200 hover:text-[#8A2BE2] hover:pl-[5px]">Contact Us</a></li>
             </ul>
           </div>
