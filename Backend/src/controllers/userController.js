@@ -5,33 +5,107 @@ const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 //brimstone
 const Membership = require('../model/Membership'); // Add this line
-
+const Payment = require('../model/Payment');
 const moment = require('moment');
-
+const TrainerReview = require('../model/TrainerReview');
 //brimstone
 // for membership management           REYNA
 const Trainer = require('../model/Trainer');
 
 const checkMembershipActive = async (req, res, next) => {
-// ... (omitted for brevity)
     try {
         if (!req.user) {
-            return next();
+            return res.status(401).json({ success: false, message: 'Authentication required' });
         }
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id || req.user._id);
+        
         if (user && !user.isMembershipActive()) {
-            // Redirect to renewal page if membership expired
+            // ✅ THE FIX IS HERE: Handling React API requests natively
+            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+                return res.status(403).json({ 
+                    success: false, 
+                    error: 'Membership expired', 
+                    action: 'redirect_renewal' // <--- This is the flag the frontend needs
+                });
+            }
+            // Fallback for EJS/direct browser hits
             return res.redirect('/membership/renewal');
         }
 
         next();
     } catch (error) {
         console.error('Membership check error:', error);
-        next();
+        res.status(500).json({ success: false, error: 'Server error during membership validation' });
     }
 };
+const rateTrainer = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const { trainerId, rating, feedback } = req.body;
 
+        if (!trainerId || !rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ success: false, error: 'Valid trainer ID and rating (1-5) are required.' });
+        }
+
+        // Flag for reassignment if rating is critically low
+        const flaggedForReassignment = rating <= 2;
+
+        const review = await TrainerReview.findOneAndUpdate(
+            { userId, trainerId },
+            { 
+                rating, 
+                feedback, 
+                reviewedAt: Date.now(),
+                flaggedForReassignment 
+            },
+            { upsert: true, new: true } // Creates if it doesn't exist, updates if it does
+        );
+
+        res.json({ success: true, message: 'Trainer rated successfully', review });
+    } catch (error) {
+        console.error('Error rating trainer:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+const requestTrainerChange = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const { reason } = req.body;
+
+        const user = await User.findById(userId);
+        if (user.membershipType.toLowerCase() !== 'platinum') {
+            return res.status(403).json({ success: false, error: 'Trainer reassignment is a Platinum exclusive feature.' });
+        }
+
+        const activeMembership = await Membership.findOne({ user_id: userId, status: 'Active' });
+        
+        if (!activeMembership || !activeMembership.trainer_id) {
+            return res.status(400).json({ success: false, error: 'No active trainer found to change.' });
+        }
+
+        // Example logic assuming you add `trainerHistory` array to the Membership schema
+        if (activeMembership.trainerHistory) {
+            activeMembership.trainerHistory.push({
+                trainer_id: activeMembership.trainer_id,
+                removedAt: new Date(),
+                reason: reason
+            });
+        }
+
+        // Unassign current trainer so Manager/Admin knows to reassign
+        activeMembership.trainer_id = null;
+        await activeMembership.save();
+
+        user.trainer = null;
+        await user.save();
+
+        res.json({ success: true, message: 'Trainer change requested successfully. A new trainer will be assigned shortly.' });
+    } catch (error) {
+        console.error('Error requesting trainer change:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
 const checkTrainerSubscription = async (req, res, next) => {
 // ... (omitted for brevity)
     try {
@@ -50,7 +124,32 @@ const checkTrainerSubscription = async (req, res, next) => {
         next();
     }
 };
+const getPurchaseHistory = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        
+        // Fetch payments sorted by most recent
+        const payments = await Payment.find({ userId })
+            .populate('membershipId', 'plan duration end_date')
+            .sort({ paymentDate: -1 });
 
+        const formattedHistory = payments.map(payment => ({
+            id: payment._id,
+            plan: payment.membershipPlan || 'N/A',
+            amount: payment.amount,
+            currency: payment.currency,
+            date: payment.paymentDate,
+            status: payment.status,
+            type: payment.paymentFor,
+            isRenewal: payment.isRenewal
+        }));
+
+        res.json({ success: true, history: formattedHistory });
+    } catch (error) {
+        console.error('Error fetching purchase history:', error);
+        res.status(500).json({ success: false, error: 'Failed to load purchase history' });
+    }
+};
 const getUserId = (req) => {
     if (req.user) return req.user.id; // JWT Token
     if (req.session && req.session.user) return req.session.user.id; // Session Cookie
@@ -204,6 +303,69 @@ const getUserProfile = async (req, res) => {
             return res.status(500).json({ success: false, error: 'Server error' });
         }
         res.status(500).json({ error: 'Server error' });
+    }
+};
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const { currentPassword, newPassword } = req.body;
+
+        // 1. Basic validation
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, error: 'Please provide both current and new passwords' });
+        }
+
+        // 2. Fetch user and explicitly select password_hash in case the schema hides it
+        const user = await User.findById(userId).select('+password_hash');
+        
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        if (!user.password_hash) {
+            return res.status(400).json({ success: false, error: 'No password found for this account. Did you sign up with Google?' });
+        }
+
+        // 3. Compare passwords
+        const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, error: 'Incorrect current password' });
+        }
+
+        // 4. Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        // 5. Use findByIdAndUpdate to avoid triggering strict Mongoose validations on other fields
+        await User.findByIdAndUpdate(userId, { 
+            password_hash: hashedPassword 
+        });
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error changing password:', error);
+        res.status(500).json({ success: false, error: 'Server error: ' + error.message });
+    }
+};
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        
+        // Soft delete implementation
+        await User.findByIdAndUpdate(userId, { 
+            status: 'Inactive', 
+            deletedAt: new Date() 
+        });
+
+        // Optionally, cancel their active membership
+        await Membership.updateMany(
+            { user_id: userId, status: 'Active' },
+            { status: 'Cancelled' }
+        );
+
+        res.json({ success: true, message: 'Account has been deactivated.' });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 // Removing the login function as it's now in authController.js
@@ -594,53 +756,57 @@ const markExerciseCompleted = async (req, res) => {
 //brimstone
 // Add this function to userController.js
 const changeMembership = async (req, res) => {
-// ... (omitted for brevity)
     try {
         if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
+            return res.status(401).json({ success: false, message: 'Authentication required' });
         }
 
-        const userId = req.user.id;
-        const { newMembershipType, duration, amount, cardLastFour } = req.body;
-
-        //  console.log('Changing membership for user:', userId, 'Data:', req.body);
+        const userId = req.user.id || req.user._id;
+        const { newMembershipType, duration, cardLastFour } = req.body;
 
         // Validate input
-        if (!newMembershipType || !duration || !amount) {
-            return res.status(400).json({
-                success: false,
-                message: 'All fields are required'
-            });
+        if (!newMembershipType || !duration) {
+            return res.status(400).json({ success: false, message: 'Plan type and duration are required' });
         }
 
         // Validate membership type
         const validMembershipTypes = ['Basic', 'Gold', 'Platinum'];
         if (!validMembershipTypes.includes(newMembershipType)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid membership type'
-            });
+            return res.status(400).json({ success: false, message: 'Invalid membership type' });
         }
 
         // Validate duration
         const validDurations = [1, 3, 6];
         if (!validDurations.includes(duration)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid duration'
-            });
+            return res.status(400).json({ success: false, message: 'Invalid duration' });
         }
+
+        // ==========================================
+        // DYNAMIC AMOUNT CALCULATION (SECURED)
+        // ==========================================
+        const planKey = newMembershipType.toLowerCase();
+        const monthlyRates = {
+            basic: 299,     // ₹299/month
+            gold: 599,      // ₹599/month
+            platinum: 999   // ₹999/month
+        };
+
+        const ratePerMonth = monthlyRates[planKey] || 299;
+        let finalAmount = ratePerMonth * duration;
+
+        // Apply Discounts
+        if (duration === 3) {
+            finalAmount = finalAmount * 0.85; // 15% Discount
+        } else if (duration === 6) {
+            finalAmount = finalAmount * 0.75; // 25% Discount
+        }
+        
+        finalAmount = Math.round(finalAmount); // Round to whole rupee
 
         // Find user
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
 
@@ -672,6 +838,7 @@ const changeMembership = async (req, res) => {
         }
 
         // Create membership record
+        // Create membership record
         const membershipRecord = new Membership({
             user_id: userId,
             plan: newMembershipType.toLowerCase(),
@@ -684,10 +851,23 @@ const changeMembership = async (req, res) => {
             status: 'Active'
         });
 
-        // Save both user and membership record
+        // ---> ADD THIS NEW PAYMENT RECORD <---
+        const paymentRecord = new Payment({
+            userId: userId,
+            membershipId: membershipRecord._id, // Link it to the membership
+            amount: amount,
+            paymentFor: 'Membership',
+            paymentMethod: 'Card', // Assuming Card from frontend
+            status: 'Success',
+            membershipPlan: newMembershipType.toLowerCase(),
+            isRenewal: false
+        });
+
+        // ---> UPDATE PROMISE.ALL TO SAVE THE PAYMENT TOO <---
         await Promise.all([
             user.save(),
-            membershipRecord.save()
+            membershipRecord.save(),
+            paymentRecord.save() 
         ]);
 
         // Update session
@@ -733,28 +913,34 @@ const changeMembership = async (req, res) => {
 //brimstone
 // brimstone
 // Add this function to userController.js
+// Add this function to userController.js
 const updateUserProfile = async (req, res) => {
     try {
         if (!req.user) {
             return res.status(401).json({ success: false, message: 'Authentication required' });
         }
 
-        const userId = req.user.id;
-        const { full_name, email, phone, dob, height, weight } = req.body;
+        // Fix 1: Handle both .id and ._id depending on how the JWT/Session is structured
+        const userId = req.user.id || req.user._id;
+        
+        // Fix 2: Accept fitness_goals from the frontend
+        const { full_name, email, phone, dob, height, weight, fitness_goals } = req.body;
 
-        // Validation logic
-        if (!full_name || !email) {
-            return res.status(400).json({ success: false, message: 'Name and email are required fields' });
+        // Fix 3: Remove the strict email check, only require full_name
+        if (!full_name) {
+            return res.status(400).json({ success: false, message: 'Name is a required field' });
         }
         
         // Prepare update data
         const updateData = {
             full_name,
-            email,
             phone,
             height: height ? Number(height) : null,
             weight: weight ? Number(weight) : null
         };
+
+        // Only update email if it was actually provided
+        if (email) updateData.email = email;
         
         // Recalculate BMI if needed
         if (height && weight && height > 0) {
@@ -764,10 +950,19 @@ const updateUserProfile = async (req, res) => {
 
         if (dob) updateData.dob = new Date(dob);
 
+        // Include fitness goals if provided
+        if (fitness_goals) {
+            updateData.fitness_goals = {
+                weight_goal: fitness_goals.weight_goal ? Number(fitness_goals.weight_goal) : null,
+                calorie_goal: fitness_goals.calorie_goal ? Number(fitness_goals.calorie_goal) : 2200,
+                protein_goal: fitness_goals.protein_goal ? Number(fitness_goals.protein_goal) : 90
+            };
+        }
+
         // Remove undefined fields
         Object.keys(updateData).forEach(key => updateData[key] == null && delete updateData[key]);
 
-        // --- NEW LOGIC START: Handle History ---
+        // --- Handle History ---
         let updateOperation = { $set: updateData };
 
         // If weight is being updated, push to weight_history
@@ -779,13 +974,12 @@ const updateUserProfile = async (req, res) => {
                 }
             };
         }
-        // --- NEW LOGIC END ---
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             updateOperation,
             { new: true, runValidators: true }
-        );
+        ).select('-password_hash'); // Don't send password hash back to frontend
 
         if (!updatedUser) {
             return res.status(404).json({ success: false, message: 'User not found' });
@@ -829,8 +1023,8 @@ const getUserDashboard = async (req, res, membershipCode) => {
         //  console.log('🎯 Final todaysConsumedFoods to display:', todaysConsumedFoods.length);
 
         const user = await User.findById(userId)
-            .populate('trainer', 'name email specializations experience')
-            .populate('class_schedules.trainerId', 'name');
+    .populate('trainer', 'name email specializations experience clients maxClients status')
+    .populate('class_schedules.trainerId', 'name');
         if (!user) {
             return res.status(404).send('User not found');
         }
@@ -1766,6 +1960,11 @@ module.exports = {
     getTodaysFoods,
     markExerciseCompleted,// Add this line
     getTodaysWorkout,
+    changePassword,
+    deleteAccount,
+    requestTrainerChange,
+    rateTrainer,
+    getPurchaseHistory,
     // getUserProgress,
     getUserProgressGraph,
     getWorkoutStats
