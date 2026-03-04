@@ -62,13 +62,12 @@ const AdminUsers = () => {
     }
   };
 
-  // Add Debounce Effect for Search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchUsers();
-    }, 500); // Wait 500ms after typing stops
-    return () => clearTimeout(timer);
-  }, [searchTerm, viewMode]); // Re-run when search or mode changes
+useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchUsers();
+  }, 500);
+  return () => clearTimeout(timer);
+}, [searchTerm, viewMode]);
 
   useEffect(() => {
     fetchUsers();
@@ -166,8 +165,7 @@ const AdminUsers = () => {
               placeholder="Search by Name, Email, or Phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              disabled={viewMode === 'dropped'} 
-              className={`w-full bg-[#1e1e3a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#8A2BE2] ${viewMode === 'dropped' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className="w-full bg-[#1e1e3a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#8A2BE2]"
             />
             <span className="absolute right-3 top-3 text-gray-500">🔍</span>
           </div>

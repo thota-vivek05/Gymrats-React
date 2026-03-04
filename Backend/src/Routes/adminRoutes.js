@@ -61,4 +61,16 @@ router.delete('/verifiers/:id', adminController.deleteVerifier);
 router.put('/verifiers/:id/approve', adminController.approveVerifier);
 router.put('/verifiers/:id/reject', adminController.rejectVerifier);
 
+// ============ RATINGS INTELLIGENCE ROUTES ============
+router.get('/ratings/top-exercises', adminController.getTopRatedExercises);
+router.get('/ratings/trainer-leaderboard', adminController.getTrainerRatingLeaderboard);
+router.get('/ratings/trainer/:trainerId/reviews', adminController.getTrainerReviews);
+router.put('/ratings/flag-review/:reviewId', adminController.flagReviewForReassignment);
+
+// ============ TRAINER REASSIGNMENT ROUTES ============
+router.get('/reassignment/poorly-rated-trainers', adminController.getPoorlyRatedTrainers);
+router.get('/reassignment/potential-trainers/:userId', adminController.getPotentialTrainersForUser);
+router.post('/reassignment/assign', adminController.reassignUserToTrainer);
+router.get('/reassignment/pending-flags', adminController.getPendingReassignmentFlags);
+
 module.exports = router;

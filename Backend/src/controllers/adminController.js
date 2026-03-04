@@ -1605,9 +1605,498 @@ getUsers: async (req, res) => {
         message: 'Error rejecting trainer application'
       });
     }
-  }}; // End of adminController object
+  }}; 
+  
+  // ============ RATINGS INTELLIGENCE ============
+
+// Get top rated exercises
+const getTopRatedExercises = async (req, res) => {
+  try {
+    const { limit = 10, category } = req.query;
+    
+    let query = { verified: true, totalRatings: { $gt: 0 } };
+    if (category) {
+      query.category = category;
+    }
+    
+    const exercises = await Exercise.find(query)
+      .sort({ averageRating: -1, totalRatings: -1 })
+      .limit(parseInt(limit))
+      .select('name category difficulty averageRating totalRatings primaryMuscle image');
+    
+    // Get category averages for comparison
+    const categoryAverages = await Exercise.aggregate([
+      { $match: { verified: true, totalRatings: { $gt: 0 } } },
+      {
+        $group: {
+          _id: '$category',
+          avgRating: { $avg: '$averageRating' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { avgRating: -1 } }
+    ]);
+    
+    res.json({
+      success: true,
+      exercises,
+      categoryAverages
+    });
+  } catch (error) {
+    console.error('Get top rated exercises error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching top exercises' });
+  }
+};
+
+// Get trainer ratings leaderboard
+const getTrainerRatingLeaderboard = async (req, res) => {
+  try {
+    const { minReviews = 1, limit = 20 } = req.query;
+    
+    const trainers = await Trainer.aggregate([
+      {
+        $lookup: {
+          from: 'trainerreviews',
+          localField: '_id',
+          foreignField: 'trainerId',
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: { $avg: '$reviews.rating' },
+          reviewCount: { $size: '$reviews' },
+          // Count flagged reviews
+          flaggedReviews: {
+            $size: {
+              $filter: {
+                input: '$reviews',
+                as: 'review',
+                cond: { $eq: ['$$review.flaggedForReassignment', true] }
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          reviewCount: { $gte: parseInt(minReviews) },
+          avgRating: { $ne: null }
+        }
+      },
+      {
+        $sort: { avgRating: -1, reviewCount: -1 }
+      },
+      {
+        $limit: parseInt(limit)
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          specializations: 1,
+          avgRating: { $round: ['$avgRating', 1] },
+          reviewCount: 1,
+          flaggedReviews: 1,
+          status: 1,
+          totalClients: 1,
+          maxClients: 1,
+          isAvailable: 1
+        }
+      }
+    ]);
+    
+    // Get poorly rated trainers (for reassignment)
+    const poorlyRatedTrainers = await Trainer.aggregate([
+      {
+        $lookup: {
+          from: 'trainerreviews',
+          localField: '_id',
+          foreignField: 'trainerId',
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: { $avg: '$reviews.rating' },
+          reviewCount: { $size: '$reviews' }
+        }
+      },
+      {
+        $match: {
+          reviewCount: { $gte: 3 },
+          avgRating: { $lt: 3.0 }
+        }
+      },
+      {
+        $sort: { avgRating: 1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          specializations: 1,
+          avgRating: { $round: ['$avgRating', 1] },
+          reviewCount: 1,
+          totalClients: 1
+        }
+      }
+    ]);
+    
+    res.json({
+      success: true,
+      leaderboard: trainers,
+      poorlyRated: poorlyRatedTrainers
+    });
+  } catch (error) {
+    console.error('Get trainer leaderboard error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching trainer ratings' });
+  }
+};
+
+// Get reviews for a specific trainer
+const getTrainerReviews = async (req, res) => {
+  try {
+    const { trainerId } = req.params;
+    
+    const reviews = await TrainerReview.find({ trainerId })
+      .populate('userId', 'full_name email')
+      .sort({ reviewedAt: -1 });
+    
+    // Calculate average
+    const avgRating = reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      : 0;
+    
+    res.json({
+      success: true,
+      reviews,
+      stats: {
+        total: reviews.length,
+        average: avgRating,
+        flagged: reviews.filter(r => r.flaggedForReassignment).length
+      }
+    });
+  } catch (error) {
+    console.error('Get trainer reviews error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching reviews' });
+  }
+};
+
+// Flag a review for reassignment
+const flagReviewForReassignment = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    
+    const review = await TrainerReview.findByIdAndUpdate(
+      reviewId,
+      {
+        flaggedForReassignment: true,
+        'reassignedBy.managerId': req.user._id,
+        'reassignedBy.reassignedAt': new Date()
+      },
+      { new: true }
+    );
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Review flagged for reassignment',
+      review
+    });
+  } catch (error) {
+    console.error('Flag review error:', error);
+    res.status(500).json({ success: false, message: 'Error flagging review' });
+  }
+};
+
+// ============ TRAINER REASSIGNMENT ============
+
+// Get poorly rated trainers with their clients
+const getPoorlyRatedTrainers = async (req, res) => {
+  try {
+    const { minRating = 3.0, minReviews = 3 } = req.query;
+    
+    const poorlyRatedTrainers = await Trainer.aggregate([
+      {
+        $lookup: {
+          from: 'trainerreviews',
+          localField: '_id',
+          foreignField: 'trainerId',
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: { $avg: '$reviews.rating' },
+          reviewCount: { $size: '$reviews' },
+          flaggedReviews: {
+            $size: {
+              $filter: {
+                input: '$reviews',
+                as: 'review',
+                cond: { $eq: ['$$review.flaggedForReassignment', true] }
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          reviewCount: { $gte: parseInt(minReviews) },
+          avgRating: { $lt: parseFloat(minRating) }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'clients.userId',
+          foreignField: '_id',
+          as: 'clientDetails'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          specializations: 1,
+          avgRating: { $round: ['$avgRating', 1] },
+          reviewCount: 1,
+          flaggedReviews: 1,
+          totalClients: 1,
+          clientDetails: {
+            _id: 1,
+            full_name: 1,
+            email: 1,
+            workout_type: 1,
+            membershipType: 1
+          }
+        }
+      },
+      { $sort: { avgRating: 1 } }
+    ]);
+    
+    res.json({
+      success: true,
+      trainers: poorlyRatedTrainers
+    });
+  } catch (error) {
+    console.error('Get poorly rated trainers error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching data' });
+  }
+};
+
+// Get potential alternative trainers for a user
+const getPotentialTrainersForUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    // Find active trainers with matching specializations and available slots
+    const potentialTrainers = await Trainer.aggregate([
+      {
+        $match: {
+          status: 'Active',
+          _id: { $ne: user.trainer } // Exclude current trainer
+        }
+      },
+      {
+        $lookup: {
+          from: 'trainerreviews',
+          localField: '_id',
+          foreignField: 'trainerId',
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: { $avg: '$reviews.rating' },
+          reviewCount: { $size: '$reviews' },
+          activeClients: {
+            $size: {
+              $filter: {
+                input: '$clients',
+                as: 'client',
+                cond: { $eq: ['$$client.isActive', true] }
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          activeClients: { $lt: '$maxClients' } // Has available slots
+        }
+      },
+      {
+        $addFields: {
+          specializationMatch: {
+            $cond: {
+              if: {
+                $and: [
+                  { $ifNull: [user.workout_type, false] },
+                  { $in: [user.workout_type, '$specializations'] }
+                ]
+              },
+              then: 2, // Higher score for exact match
+              else: 1
+            }
+          }
+        }
+      },
+      {
+        $sort: {
+          specializationMatch: -1,
+          avgRating: -1,
+          reviewCount: -1
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          specializations: 1,
+          avgRating: { $round: ['$avgRating', 1] },
+          reviewCount: 1,
+          activeClients: 1,
+          maxClients: 1,
+          experience: 1
+        }
+      }
+    ]);
+    
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.full_name,
+        workout_type: user.workout_type,
+        currentTrainer: user.trainer
+      },
+      potentialTrainers
+    });
+  } catch (error) {
+    console.error('Get potential trainers error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching potential trainers' });
+  }
+};
+
+// Reassign user to a new trainer
+const reassignUserToTrainer = async (req, res) => {
+  try {
+    const { userId, newTrainerId, reason } = req.body;
+    
+    if (!userId || !newTrainerId) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+    
+    // Get user and trainers
+    const user = await User.findById(userId);
+    const oldTrainer = user.trainer ? await Trainer.findById(user.trainer) : null;
+    const newTrainer = await Trainer.findById(newTrainerId);
+    
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!newTrainer) return res.status(404).json({ success: false, message: 'New trainer not found' });
+    
+    // Check if new trainer has capacity
+    const activeClients = newTrainer.clients?.filter(c => c.isActive).length || 0;
+    if (activeClients >= newTrainer.maxClients) {
+      return res.status(400).json({ success: false, message: 'Trainer has reached maximum client capacity' });
+    }
+    
+    // Remove user from old trainer's clients list
+    if (oldTrainer) {
+      oldTrainer.clients = oldTrainer.clients.filter(
+        c => c.userId.toString() !== userId.toString()
+      );
+      await oldTrainer.save();
+    }
+    
+    // Add user to new trainer's clients list
+    if (!newTrainer.clients) newTrainer.clients = [];
+    newTrainer.clients.push({
+      userId: user._id,
+      joinedAt: new Date(),
+      isActive: true
+    });
+    await newTrainer.save();
+    
+    // Update user's trainer
+    user.trainer = newTrainerId;
+    await user.save();
+    
+    // Log the reassignment in a review if reason provided
+    if (reason) {
+      // Find any flagged review for this user-trainer pair
+      await TrainerReview.updateMany(
+        { userId: user._id, trainerId: oldTrainer?._id, flaggedForReassignment: true },
+        {
+          $set: {
+            'reassignedBy.managerId': req.user._id,
+            'reassignedBy.reassignedAt': new Date(),
+            'reassignedBy.reason': reason
+          }
+        }
+      );
+    }
+    
+    res.json({
+      success: true,
+      message: 'User reassigned successfully',
+      data: {
+        user: user.full_name,
+        oldTrainer: oldTrainer?.name || 'None',
+        newTrainer: newTrainer.name
+      }
+    });
+  } catch (error) {
+    console.error('Reassign user error:', error);
+    res.status(500).json({ success: false, message: 'Error reassigning user' });
+  }
+};
+
+// Get pending reassignment flags
+const getPendingReassignmentFlags = async (req, res) => {
+  try {
+    const flaggedReviews = await TrainerReview.find({
+      flaggedForReassignment: true,
+      'reassignedBy.managerId': null
+    })
+      .populate('userId', 'full_name email')
+      .populate('trainerId', 'name email')
+      .sort({ reviewedAt: -1 });
+    
+    res.json({
+      success: true,
+      count: flaggedReviews.length,
+      flags: flaggedReviews
+    });
+  } catch (error) {
+    console.error('Get pending flags error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching pending flags' });
+  }
+};// End of adminController object
 
 module.exports = {
   ...adminController,
-  ...adminAuthController
+  ...adminAuthController,
+  getTopRatedExercises,
+  getTrainerRatingLeaderboard,
+  getTrainerReviews,
+  flagReviewForReassignment,
+  getPoorlyRatedTrainers,
+  getPotentialTrainersForUser,
+  reassignUserToTrainer,
+  getPendingReassignmentFlags
 };

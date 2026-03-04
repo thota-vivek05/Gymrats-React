@@ -29,31 +29,32 @@ const AdminVerifiers = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("/api/admin/trainer-applications", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setApplications(data.applications || []);
-          setStats(data.stats || {});
-        } else {
-          setApplications([]);
-          setStats({ totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 });
-        }
-      } catch (error) {
-        console.error("Error fetching trainer applications:", error);
+useEffect(() => {
+  const fetchApplications = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/trainer-applications", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setApplications(data.applications || []);
+        setStats(data.stats || {});
+      } else {
         setApplications([]);
         setStats({ totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 });
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchApplications();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching trainer applications:", error);
+      setApplications([]);
+      setStats({ totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchApplications();
+}, []);
 
 
   const handleApprove = async (id) => {
