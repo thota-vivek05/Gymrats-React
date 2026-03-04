@@ -78,7 +78,7 @@ const DashboardHeader = ({ user, currentPage }) => {
           />
         </div>
 
-        {/* Mobile Sidebar Overlay */}
+        {/* Mobile Sidebar Overlay
         <div
           className={`fixed inset-y-0 right-0 w-64 bg-[#111] z-50 transform transition-transform duration-300 ease-in-out shadow-2xl border-l border-gray-800 flex flex-col p-6 ${
             mobileMenuOpen ? "translate-x-0" : "translate-x-full"
@@ -123,7 +123,7 @@ const DashboardHeader = ({ user, currentPage }) => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Backdrop for mobile menu */}
         {mobileMenuOpen && (

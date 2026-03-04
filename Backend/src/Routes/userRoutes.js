@@ -26,11 +26,12 @@ router.get("/login_signup", (req, res) => {
 // ========== NEW JSON API ENDPOINTS FOR REACT ==========
 
 // Get user profile data
+// Get user profile data
 router.get("/api/user/profile", protect, async (req, res) => {
   try {
     // req.user is set by the protect middleware
     const user = await User.findById(req.user._id)
-      .populate("trainer", "name email specializations experience")
+      .populate("trainer", "name email specializations experience clients maxClients status") // <--- ADDED FIELDS HERE
       .select("-password_hash");
 
     res.json({
@@ -48,9 +49,14 @@ router.get("/api/user/profile", protect, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
-
+// User Module Feature Routes
+router.get('/api/user/purchases', protect, userController.getPurchaseHistory);
+router.post('/api/user/trainer/rate', protect, userController.rateTrainer);
+router.post('/api/user/trainer/change', protect, userController.requestTrainerChange);
+router.put('/api/user/password', protect, userController.changePassword);
+router.delete('/api/user/account', protect, userController.deleteAccount);
 // Get today's workout data
-router.get("/api/workout/today", protect, async (req, res) => {
+router.get("/api/workout/today", protect, userController.checkMembershipActive, async (req, res) => {
   try {
     const userId = req.user._id; // Updated from session
     const todayWorkoutData = await userController.getTodaysWorkout(userId);
@@ -66,7 +72,7 @@ router.get("/api/workout/today", protect, async (req, res) => {
 });
 
 // Get today's nutrition data
-router.get("/api/nutrition/today", protect, async (req, res) => {
+router.get("/api/nutrition/today", protect, userController.checkMembershipActive, async (req, res) => {
   try {
     const userId = req.user._id;
     const todaysConsumedFoods = await userController.getTodaysFoods(userId);
@@ -136,10 +142,10 @@ router.get("/api/nutrition/today", protect, async (req, res) => {
 router.put('/api/user/profile', protect, userController.updateUserProfile);
 
 // Get weekly workout stats
-router.get('/api/workout/weekly-stats', protect, userController.getWorkoutStats);
+router.get('/api/workout/weekly-stats', protect, userController.checkMembershipActive, userController.getWorkoutStats);
 
 // Get exercise progress data
-router.get("/api/exercise/progress", protect, async (req, res) => {
+router.get("/api/exercise/progress", protect, userController.checkMembershipActive, async (req, res) => {
   try {
     const userId = req.user._id;
 
@@ -219,7 +225,7 @@ router.get("/api/exercise/progress", protect, async (req, res) => {
 });
 
 // Get upcoming class
-router.get("/api/class/upcoming", protect, async (req, res) => {
+router.get("/api/class/upcoming", protect, userController.checkMembershipActive, async (req, res) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId).populate(

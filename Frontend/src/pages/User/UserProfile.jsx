@@ -9,11 +9,16 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 
 const UserProfile = () => {
     // 1. Auth & User State
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [dbUser, setDbUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     
+    // NEW STATES: Purchase History & Account Settings
+    const [purchaseHistory, setPurchaseHistory] = useState([]);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
+
     // 2. Real Graph Data State
     const [graphData, setGraphData] = useState({
         workoutLabels: [],
@@ -24,16 +29,7 @@ const UserProfile = () => {
 
     // 3. Form State
     const [formData, setFormData] = useState({
-        full_name: '',
-        email: '',
-        phone: '',
-        dob: '',
-        height: '',
-        weight: '',
-        BMI: '',
-        weight_goal: '',
-        calorie_goal: '',
-        protein_goal: ''
+        full_name: '', email: '', phone: '', dob: '', height: '', weight: '', BMI: '', weight_goal: '', calorie_goal: '', protein_goal: ''
     });
 
     // 4. Payment/Modal States
@@ -41,15 +37,11 @@ const UserProfile = () => {
     const [showPayment, setShowPayment] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
-    const [paymentDetails, setPaymentDetails] = useState({
-        cardNumber: '',
-        expiryDate: '',
-        cvv: ''
-    });
+    const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '', expiryDate: '', cvv: '' });
     const [paymentErrors, setPaymentErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // --- DATA FETCHING (WITH MOCK FALLBACK) ---
+    // --- DATA FETCHING ---
     useEffect(() => {
         const fetchAllData = async () => {
             const token = localStorage.getItem('token');
@@ -58,16 +50,17 @@ const UserProfile = () => {
             try {
                 const headers = { 'Authorization': `Bearer ${token}` };
                 
-                // Fetch Data
-                const [userRes, progressRes, statsRes] = await Promise.all([
+                // Fetch User Profile, Stats, and Purchase History
+                const [userRes, progressRes, statsRes, purchasesRes] = await Promise.all([
                     fetch('/api/user/profile', { headers }),
                     fetch('/api/exercise/progress', { headers }), 
-                    fetch('/api/workout/weekly-stats', { headers })
+                    fetch('/api/workout/weekly-stats', { headers }),
+                    fetch('/api/user/purchases', { headers })
                 ]);
 
                 const userData = await userRes.json();
-                const progressData = await progressRes.json();
                 const statsData = await statsRes.json();
+                const purchasesData = purchasesRes.ok ? await purchasesRes.json() : { history: [] };
 
                 // 1. Set User Data
                 if (userData.success) {
@@ -86,29 +79,23 @@ const UserProfile = () => {
                     });
                 }
 
-                // 2. Process Graph Data
-                const newGraphData = {
-                    workoutLabels: [],
-                    workoutValues: [],
-                    weightLabels: [],
-                    weightValues: []
-                };
+                // 2. Set Purchase History
+                if (purchasesData.success) {
+                    setPurchaseHistory(purchasesData.history);
+                }
 
-                // A. Workout Frequency (Bar Chart)
-                // We map the daily stats from the backend (Mon, Tue, etc.)
+                // 3. Process Graph Data
+                const newGraphData = { workoutLabels: [], workoutValues: [], weightLabels: [], weightValues: [] };
+
                 if (statsData.success && statsData.weeklyStats) {
                     newGraphData.workoutLabels = statsData.weeklyStats.map(d => d.day);
-                    // CHANGED: Map to 'percentage' instead of 'count'
                     newGraphData.workoutValues = statsData.weeklyStats.map(d => d.percentage);
                 }
 
-                // B. Weight Progress (Line Chart)
-                // FIX: Look in 'statsData' (not progressData) for weightHistory
                 if (statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
                     newGraphData.weightLabels = statsData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
                     newGraphData.weightValues = statsData.weightHistory.map(w => w.weight);
                 } else {
-                    // Fallback: If no history exists yet, show current weight as a single point
                     newGraphData.weightLabels = ['Current'];
                     newGraphData.weightValues = [userData.user?.weight || 0];
                 }
@@ -123,7 +110,42 @@ const UserProfile = () => {
         fetchAllData();
     }, []);
 
-    // --- HELPERS ---
+    // --- NEW ACCOUNT HANDLERS ---
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/user/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify(passwords)
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Password updated successfully!');
+                setShowPasswordModal(false);
+                setPasswords({ currentPassword: '', newPassword: '' });
+            } else {
+                alert(data.error || 'Failed to update password');
+            }
+        } catch (err) { alert('Error updating password'); }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm("Are you sure you want to deactivate your account? This action cannot be undone immediately.")) {
+            try {
+                const res = await fetch('/api/user/account', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.ok) {
+                    alert("Account has been deactivated.");
+                    logout();
+                }
+            } catch (err) { alert("Error deleting account"); }
+        }
+    };
+
+    // --- EXISTING HELPERS & HANDLERS ---
     const formatCardNumber = (value) => {
         const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
         const parts = [];
@@ -149,83 +171,13 @@ const UserProfile = () => {
         } catch { return 'Invalid Date'; }
     };
 
-    // --- HANDLERS ---
-const handlePayment = async (e) => {
-        e.preventDefault();
-        
-        // 1. Safety Check: Ensure a plan is selected
-        if (!selectedPlan) {
-            alert("Please select a duration plan (1, 3, or 6 months).");
-            return;
-        }
-
-        setIsProcessing(true);
-        setPaymentErrors({});
-
-        // Use the correct state object: paymentDetails (not paymentForm)
-        const errors = {};
-        if (!paymentDetails.cardNumber || paymentDetails.cardNumber.length < 16) errors.cardNumber = 'Invalid card number';
-        if (!paymentDetails.expiryDate) errors.expiryDate = 'Required';
-        if (!paymentDetails.cvv || paymentDetails.cvv.length < 3) errors.cvv = 'Invalid CVV';
-        
-        if (Object.keys(errors).length > 0) {
-            setPaymentErrors(errors);
-            setIsProcessing(false);
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/membership/extend', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    additionalMonths: selectedDuration, // Use the separate duration state
-                    autoRenew: false
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // --- FIX STARTS HERE ---
-                // Close the modal using the correct state setter name
-                setShowMembershipModal(false); 
-                setShowPayment(false); // Reset the internal payment view
-                // --- FIX ENDS HERE ---
-                
-                // Update Local User State
-                setDbUser(prev => ({
-                    ...prev,
-                    membershipDuration: data.user.membershipDuration,
-                    status: data.user.status
-                }));
-
-                alert(`Membership extended successfully! New end date: ${new Date(data.user.membershipDuration.end_date).toLocaleDateString()}`);
-            } else {
-                alert(data.message || 'Payment failed');
-            }
-        } catch (error) {
-            console.error('Payment error:', error);
-            alert('Something went wrong. Please try again.');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-    
     const handlePaymentChange = (e) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-    
-    // Apply formatting helpers
-    if (name === 'cardNumber') formattedValue = formatCardNumber(value);
-    if (name === 'expiryDate') formattedValue = formatExpiryDate(value);
-    
-    setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
-};
+        const { name, value } = e.target;
+        let formattedValue = value;
+        if (name === 'cardNumber') formattedValue = formatCardNumber(value);
+        if (name === 'expiryDate') formattedValue = formatExpiryDate(value);
+        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+    };
 
     const validatePayment = () => {
         const errors = {};
@@ -237,18 +189,35 @@ const handlePayment = async (e) => {
         return Object.keys(errors).length === 0;
     };
 
-    const handlePaymentSubmit = (e) => {
+    const handlePayment = async (e) => {
         e.preventDefault();
-        if (validatePayment()) {
-            setIsProcessing(true);
-            setTimeout(() => {
-                setIsProcessing(false);
-                alert('Payment Successful! Membership Extended.');
-                setShowMembershipModal(false);
-                setShowPayment(false);
-                setPaymentDetails({ cardNumber: '', expiryDate: '', cvv: '' });
-            }, 2000);
-        }
+        if (!selectedPlan) { alert("Please select a duration plan."); return; }
+        setIsProcessing(true);
+        setPaymentErrors({});
+
+        if (!validatePayment()) { setIsProcessing(false); return; }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/membership/extend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ additionalMonths: selectedDuration, autoRenew: false })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowMembershipModal(false); 
+                setShowPayment(false); 
+                setDbUser(prev => ({
+                    ...prev,
+                    membershipDuration: data.user.membershipDuration,
+                    status: data.user.status
+                }));
+                alert(`Membership extended successfully! New end date: ${new Date(data.user.membershipDuration.end_date).toLocaleDateString()}`);
+            } else { alert(data.message || 'Payment failed'); }
+        } catch (error) { alert('Something went wrong. Please try again.'); } finally { setIsProcessing(false); }
     };
 
     const handleInputChange = (e) => {
@@ -264,82 +233,61 @@ const handlePayment = async (e) => {
         });
     };
 
-    const handleSaveProfile = async () => {
+   const handleSaveProfile = async (e) => {
+        if (e) e.preventDefault();
         setLoading(true);
         const token = localStorage.getItem('token');
+        
         try {
+            // Force strict Number formatting and INCLUDE the email
             const payload = {
-                ...formData,
-                fitness_goals: {
-                    weight_goal: formData.weight_goal,
-                    calorie_goal: formData.calorie_goal,
-                    protein_goal: formData.protein_goal
+                full_name: formData.full_name,
+                email: formData.email, // <--- THIS WAS MISSING
+                phone: formData.phone,
+                dob: formData.dob,
+                height: Number(formData.height) || null,
+                weight: Number(formData.weight) || null,
+                fitness_goals: { 
+                    weight_goal: Number(formData.weight_goal) || null, 
+                    calorie_goal: Number(formData.calorie_goal) || null, 
+                    protein_goal: Number(formData.protein_goal) || null 
                 }
             };
 
+            // Using the correct backend route
             const res = await fetch('/api/user/profile', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
                 },
                 body: JSON.stringify(payload)
             });
             
             const data = await res.json();
-
-            if (data.success) {
+            
+            if (data.success || res.ok) {
                 alert('Profile updated successfully!');
-                setDbUser(data.user);
+                // Update the UI with the fresh data from the backend
+                if (data.user) setDbUser(data.user);
                 setIsEditing(false);
-            } else {
-                alert(data.message || 'Failed to update');
+            } else { 
+                alert(data.message || data.error || 'Failed to update profile.'); 
             }
-        } catch (error) {
-            console.error(error);
-            alert('Network error updating profile');
-        } finally {
-            setLoading(false);
+        } catch (error) { 
+            console.error("Profile Save Error: ", error);
+            alert('Error updating profile. Make sure the backend server is running.'); 
+        } finally { 
+            setLoading(false); 
         }
     };
 
-        // Optional: Update scales to force 0-100 range for better visualization
     const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
         scales: {
-            y: { 
-                beginAtZero: true, 
-                max: 100, // Force max to 100%
-                grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
-                ticks: { color: '#aaa' } 
-            },
+            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#aaa' } },
             x: { grid: { display: false }, ticks: { color: '#aaa' } }
         }
-    };
-
-   const workoutData = {
-        labels: graphData.workoutLabels,
-        datasets: [{
-            label: 'Completion (%)', // CHANGED Label
-            data: graphData.workoutValues,
-            backgroundColor: '#8A2BE2',
-            borderRadius: 4,
-        }]
-    };
-    
-
-    const weightData = {
-        labels: graphData.weightLabels,
-        datasets: [{
-            label: 'Weight (kg)',
-            data: graphData.weightValues,
-            borderColor: '#2ecc71',
-            backgroundColor: 'rgba(46, 204, 113, 0.2)',
-            tension: 0.4,
-            pointBackgroundColor: '#2ecc71'
-        }]
     };
 
     return (
@@ -391,9 +339,7 @@ const handlePayment = async (e) => {
                                     ] : [])
                                 ].map((field) => (
                                     <div key={field.key} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors duration-300">
-                                        <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">
-                                            {field.label}:
-                                        </span>
+                                        <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">{field.label}:</span>
                                         {!isEditing ? (
                                             <span className="text-lg font-medium text-gray-100">
                                                 {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')} 
@@ -414,7 +360,7 @@ const handlePayment = async (e) => {
                             </div>
 
                             {isEditing && (
-                                <div className="flex gap-3 mt-6 justify-end animate-fade-in">
+                                <div className="flex gap-3 mt-6 justify-end">
                                     <button onClick={handleSaveProfile} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium transition-colors disabled:opacity-50">
                                         {loading ? 'Saving...' : 'Save Changes'}
                                     </button>
@@ -426,39 +372,38 @@ const handlePayment = async (e) => {
                         </div>
                     </div>
 
-                    {/* Membership Details Card */}
-                    <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 h-fit">
-                        <div className="p-5 border-b border-[#333]">
-                            <h2 className="text-xl font-semibold text-white">Membership Details</h2>
+                    {/* Right Column: Membership Details & Account Actions */}
+                    <div className="flex flex-col gap-6">
+                        {/* Membership Details Card */}
+                        <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 h-fit">
+                            <div className="p-5 border-b border-[#333]">
+                                <h2 className="text-xl font-semibold text-white">Membership Details</h2>
+                            </div>
+                            <div className="p-6">
+                                <div className="text-center mb-6">
+                                    <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize">
+                                        {dbUser?.membershipType || 'Basic'} Member
+                                    </div>
+                                    <p className="text-sm text-[#aaa]">
+                                        Expires: {dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}
+                                    </p>
+                                </div>
+                                <button onClick={() => setShowMembershipModal(true)} className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] text-white py-2 rounded mt-2 transition">Extend Membership</button>
+                            </div>
                         </div>
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize">
-                                    {dbUser?.membershipType || 'Basic'} Member
-                                </div>
-                                <p className="text-sm text-[#aaa]">
-                                    Expires: {dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}
-                                </p>
+
+                        {/* Account Settings Card */}
+                        <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 h-fit">
+                            <div className="p-5 border-b border-[#333]">
+                                <h2 className="text-xl font-semibold text-white">Account Settings</h2>
                             </div>
-                            
-                            <div className="space-y-4">
-                                <div className="flex justify-between py-2 border-b border-[#333]">
-                                    <span className="text-[#aaa]">Plan:</span>
-                                    <span className="font-semibold capitalize">{dbUser?.membershipType || 'Basic'}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-[#333]">
-                                    <span className="text-[#aaa]">Status:</span>
-                                    <span className="font-semibold text-[#4CAF50]">{dbUser?.status || 'Active'}</span>
-                                </div>
-                            </div>
-                            
-                            <div className="mt-6">
-                                <h3 className="font-medium text-white mb-3">Features Included:</h3>
-                                <ul className="space-y-2 text-sm text-[#ccc]">
-                                    <li className="flex items-center gap-2"><i className="fas fa-check text-[#4CAF50]"></i> Exercise Guide</li>
-                                    <li className="flex items-center gap-2"><i className="fas fa-check text-[#4CAF50]"></i> Workout Plans</li>
-                                    <li className="flex items-center gap-2"><i className={`fas ${dbUser?.membershipType === 'Platinum' ? 'fa-check text-[#4CAF50]' : 'fa-times text-red-400'}`}></i> Personal Training</li>
-                                </ul>
+                            <div className="p-6 flex flex-col gap-4">
+                                <button onClick={() => setShowPasswordModal(true)} className="w-full bg-[#333] hover:bg-[#444] text-white py-2 rounded transition border border-gray-600">
+                                    <i className="fas fa-key mr-2"></i> Change Password
+                                </button>
+                                <button onClick={handleDeleteAccount} className="w-full bg-red-900/20 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/50 py-2 rounded transition">
+                                    <i className="fas fa-trash-alt mr-2"></i> Deactivate Account
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -469,35 +414,88 @@ const handlePayment = async (e) => {
                       <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Workout Frequency</h3>
                         <div className="h-[250px] w-full">
-                            <Bar data={workoutData} options={chartOptions} />
+                            <Bar data={{
+                                labels: graphData.workoutLabels,
+                                datasets: [{ label: 'Completion (%)', data: graphData.workoutValues, backgroundColor: '#8A2BE2', borderRadius: 4 }]
+                            }} options={chartOptions} />
                         </div>
                       </div>
                       <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Weight Progress</h3>
                         <div className="h-[250px] w-full">
-                            <Line data={weightData} options={chartOptions} />
+                            <Line data={{
+                                labels: graphData.weightLabels,
+                                datasets: [{ label: 'Weight (kg)', data: graphData.weightValues, borderColor: '#2ecc71', backgroundColor: 'rgba(46, 204, 113, 0.2)', tension: 0.4, pointBackgroundColor: '#2ecc71' }]
+                            }} options={chartOptions} />
                         </div>
                       </div>
                 </div>
 
-                {/* Membership Extension Card */}
-                <div className="bg-gradient-to-br from-[#667eea] to-[#764ba2] rounded-xl overflow-hidden shadow-lg border-0">
-                    <div className="p-5 border-b border-white/10">
-                        <h2 className="text-xl font-semibold text-white">Extend Membership</h2>
+                {/* Purchase History Table */}
+                <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 mb-8">
+                    <div className="p-5 border-b border-[#333]">
+                        <h2 className="text-xl font-semibold text-white">Purchase History</h2>
                     </div>
-                    <div className="p-6 text-center">
-                        <p className="text-white/90 mb-6 text-lg">Extend your membership to continue enjoying all premium features!</p>
-                        <button 
-                            onClick={() => setShowMembershipModal(true)}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FFD700] to-[#FFA000] text-[#333] px-8 py-3 rounded-full font-bold text-base hover:-translate-y-1 hover:shadow-xl hover:shadow-yellow-500/20 transition-all active:translate-y-0"
-                        >
-                            <i className="fas fa-credit-card"></i> Extend / Change Membership
-                        </button>
+                    <div className="p-6 overflow-x-auto">
+                        {purchaseHistory.length === 0 ? (
+                            <p className="text-gray-500 italic text-center py-4">No recent purchases found.</p>
+                        ) : (
+                            <table className="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr className="border-b border-[#333] text-[#8A2BE2]">
+                                        <th className="p-3">Date</th>
+                                        <th className="p-3">Plan / Description</th>
+                                        <th className="p-3">Amount</th>
+                                        <th className="p-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {purchaseHistory.map((item) => (
+                                        <tr key={item.id} className="border-b border-[#222] hover:bg-white/5 transition-colors">
+                                            <td className="p-3 text-gray-300">{new Date(item.date).toLocaleDateString()}</td>
+                                            <td className="p-3 text-gray-300 capitalize">{item.plan} {item.type}</td>
+                                            <td className="p-3 font-semibold text-white">₹{item.amount}</td>
+                                            <td className="p-3">
+                                                <span className={`px-2 py-1 rounded text-xs ${item.status === 'Success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Modal Overlay */}
+            {/* Change Password Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-[#161616] p-6 rounded-xl shadow-2xl border border-[#333] w-full max-w-md">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white">Change Password</h2>
+                            <button onClick={() => setShowPasswordModal(false)} className="text-[#aaa] hover:text-[#8A2BE2] text-2xl leading-none">&times;</button>
+                        </div>
+                        <form onSubmit={handleChangePassword} className="space-y-4">
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-1">Current Password</label>
+                                <input type="password" required value={passwords.currentPassword} onChange={e => setPasswords({...passwords, currentPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-1">New Password</label>
+                                <input type="password" required value={passwords.newPassword} onChange={e => setPasswords({...passwords, newPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                            </div>
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button type="button" onClick={() => setShowPasswordModal(false)} className="px-4 py-2 text-gray-400 hover:text-white transition">Cancel</button>
+                                <button type="submit" className="bg-[#8A2BE2] hover:bg-[#7a1bd2] px-6 py-2 rounded text-white font-medium transition">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Membership Extension Modal */}
             {showMembershipModal && (
                 <div 
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
