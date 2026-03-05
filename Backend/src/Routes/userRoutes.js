@@ -7,18 +7,9 @@ const WorkoutHistory = require("../model/WorkoutHistory");
 const User = require("../model/User");
 const { protect } = require("../middleware/authMiddleware");
 
-//router.get('/progress', protect, userController.getUserProgress);
 router.get('/api/exercise/progress', protect, userController.getUserProgressGraph);
 
-// const isAuthenticated = (req, res, next) => {
-//     if (req && req.session.user) {
-//         return next();
-//     }
-//     res.status(401).json({ error: 'Authentication required' });
-// };
-
 // Existing EJS routes (keep these for now)
-
 router.get("/login_signup", (req, res) => {
   res.render("login_signup", { form: req.query.form || "login" });
 });
@@ -26,20 +17,16 @@ router.get("/login_signup", (req, res) => {
 // ========== NEW JSON API ENDPOINTS FOR REACT ==========
 
 // Get user profile data
-// Get user profile data
 router.get("/api/user/profile", protect, async (req, res) => {
   try {
-    // req.user is set by the protect middleware
     const user = await User.findById(req.user._id)
-      .populate("trainer", "name email specializations experience clients maxClients status") // <--- ADDED FIELDS HERE
+      .populate("trainer", "name email specializations experience clients maxClients status") 
       .select("-password_hash");
 
     res.json({
       success: true,
       user: {
         ...user.toObject(),
-        // With JWT, we might not have session data readily available.
-        // We typically pull this from the User DB object directly.
         membershipType: user.membershipType,
         membershipDuration: user.membershipDuration,
       },
@@ -49,16 +36,18 @@ router.get("/api/user/profile", protect, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
+
 // User Module Feature Routes
 router.get('/api/user/purchases', protect, userController.getPurchaseHistory);
 router.post('/api/user/trainer/rate', protect, userController.rateTrainer);
 router.post('/api/user/trainer/change', protect, userController.requestTrainerChange);
 router.put('/api/user/password', protect, userController.changePassword);
 router.delete('/api/user/account', protect, userController.deleteAccount);
+
 // Get today's workout data
 router.get("/api/workout/today", protect, userController.checkMembershipActive, async (req, res) => {
   try {
-    const userId = req.user._id; // Updated from session
+    const userId = req.user._id; 
     const todayWorkoutData = await userController.getTodaysWorkout(userId);
 
     res.json({
@@ -71,58 +60,44 @@ router.get("/api/workout/today", protect, userController.checkMembershipActive, 
   }
 });
 
-// Get today's nutrition data
+// ==========================================
+// 🍏 NUTRITION ROUTES (TIMEZONE FIXED)
+// ==========================================
+
+// 1. Get today's nutrition data (THIS WAS MISSING!)
 router.get("/api/nutrition/today", protect, userController.checkMembershipActive, async (req, res) => {
   try {
     const userId = req.user._id;
     const todaysConsumedFoods = await userController.getTodaysFoods(userId);
-
-    // Get user for goals
     const user = await User.findById(userId);
 
-    // Calculate today's nutrition from weekly plan
+    // === Force Timezone (Asia/Kolkata) ===
     const today = new Date();
-    const weekStart = new Date(today);
-    const dayOfWeek = today.getDay();
-    weekStart.setDate(today.getDate() - dayOfWeek);
-    weekStart.setHours(0, 0, 0, 0);
-
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 7);
-
+    const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const todayDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][localDate.getDay()];
+    
+    // FETCH LATEST PLAN
     const weeklyNutrition = await NutritionHistory.findOne({
-      userId: userId,
-      date: { $gte: weekStart, $lt: weekEnd },
-    });
+      userId: userId
+    }).sort({ date: -1 });
 
     let todayNutrition = {
       calories_consumed: 0,
       protein_consumed: 0,
-      calorie_goal: user.fitness_goals.calorie_goal,
-      protein_goal: user.fitness_goals.protein_goal,
-      macros: { protein: 0, carbs: 0, fats: 0 },
+      calorie_goal: user.fitness_goals?.calorie_goal || 2200,
+      protein_goal: user.fitness_goals?.protein_goal || 90,
+      macros: { protein: 0, carbs: 0, fats: 0 }
     };
 
     if (weeklyNutrition) {
-      const todayDayName = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ][today.getDay()];
       const todayData = weeklyNutrition.daily_nutrition[todayDayName];
 
       if (todayData) {
         todayNutrition = {
           calories_consumed: todayData.calories_consumed || 0,
           protein_consumed: todayData.protein_consumed || 0,
-          calorie_goal:
-            weeklyNutrition.calorie_goal || user.fitness_goals.calorie_goal,
-          protein_goal:
-            weeklyNutrition.protein_goal || user.fitness_goals.protein_goal,
+          calorie_goal: weeklyNutrition.calorie_goal || user.fitness_goals?.calorie_goal || 2200,
+          protein_goal: weeklyNutrition.protein_goal || user.fitness_goals?.protein_goal || 90,
           macros: todayData.macros || { protein: 0, carbs: 0, fats: 0 },
         };
       }
@@ -139,6 +114,100 @@ router.get("/api/nutrition/today", protect, userController.checkMembershipActive
   }
 });
 
+// 2. Nutrition mark consumed
+router.post(
+  "/api/nutrition/mark-consumed",
+  protect,                                  
+  userController.checkMembershipActive,     
+  async (req, res) => {
+    try {
+      const { foodName, calories, protein, carbs, fats, day } = req.body;
+      const userId = req.user._id;
+
+      // === Force Timezone (Asia/Kolkata) ===
+      const today = new Date();
+      const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+      const currentDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][localDate.getDay()];
+
+      // FETCH LATEST PLAN
+      let nutritionEntry = await NutritionHistory.findOne({
+        userId: userId
+      }).sort({ date: -1 });
+
+      if (!nutritionEntry) {
+        return res.status(404).json({
+          success: false,
+          message: "No nutrition plan found",
+        });
+      }
+
+      const targetDay = day || currentDayName;
+        
+      const dayData = nutritionEntry.daily_nutrition[targetDay];
+
+      if (!dayData) {
+        return res.status(400).json({
+          success: false,
+          message: "Day not found in nutrition plan: " + targetDay,
+        });
+      }
+
+      const foodIndex = dayData.foods.findIndex(
+        (food) => food.name === foodName && food.consumed === false
+      );
+
+      if (foodIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: "Food not found or already consumed: " + foodName,
+        });
+      }
+
+      // Mark as consumed
+      dayData.foods[foodIndex].consumed = true;
+      dayData.foods[foodIndex].consumedAt = new Date();
+
+      // Safely parse numbers
+      const parsedCalories = parseInt(calories) || 0;
+      const parsedProtein = parseInt(protein) || 0;
+      const parsedCarbs = parseInt(carbs) || 0;
+      const parsedFats = parseInt(fats) || 0;
+
+      dayData.calories_consumed = (dayData.calories_consumed || 0) + parsedCalories;
+      dayData.protein_consumed = (dayData.protein_consumed || 0) + parsedProtein;
+
+      if (!dayData.macros) {
+          dayData.macros = { protein: 0, carbs: 0, fats: 0 };
+      }
+
+      dayData.macros.protein = (dayData.macros.protein || 0) + parsedProtein;
+      dayData.macros.carbs = (dayData.macros.carbs || 0) + parsedCarbs;
+      dayData.macros.fats = (dayData.macros.fats || 0) + parsedFats;
+
+      nutritionEntry.markModified("daily_nutrition");
+      await nutritionEntry.save();
+
+      res.json({
+        success: true,
+        message: "Food marked as consumed successfully",
+        updatedNutrition: {
+          calories_consumed: dayData.calories_consumed,
+          protein_consumed: dayData.protein_consumed,
+          calorie_goal: nutritionEntry.calorie_goal,
+          protein_goal: nutritionEntry.protein_goal,
+        },
+      });
+    } catch (error) {
+      console.error("Error marking food as consumed:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error marking food as consumed: " + error.message,
+      });
+    }
+  }
+);
+
+// Update user profile API route
 router.put('/api/user/profile', protect, userController.updateUserProfile);
 
 // Get weekly workout stats
@@ -264,14 +333,12 @@ router.get("/api/class/upcoming", protect, userController.checkMembershipActive,
 
 // ========== EXISTING ROUTES (KEEP THESE) ==========
 
-// user login is now done in authRoutes.js
-// router.post('/login', userController.loginUser);
-
 router.post("/signup", userController.signupUser);
 router.get("/profile", userController.getUserProfile);
 router.post("/complete-workout", userController.completeWorkout);
 router.post("/api/workout/complete", userController.markWorkoutCompleted);
 router.post('/api/exercise/complete', protect, userController.checkMembershipActive, userController.markExerciseCompleted);
+
 // Debug routes
 router.get("/api/debug/workout/:id", async (req, res) => {
   try {
@@ -338,11 +405,8 @@ router.get(
 router.post('/api/membership/extend', protect, membershipController.extendMembership);
 router.get("/membership/status", membershipController.getMembershipStatus);
 router.post("/membership/auto-renew", membershipController.toggleAutoRenew);
-router.post(
-  "/user/membership/change",
-  protect,
-  userController.changeMembership
-);
+router.post("/user/membership/change", protect, userController.changeMembership);
+
 router.get("/membership_renewal", protect, (req, res) => {
   res.render("membership_renewal", {
     user: req.user,
@@ -388,7 +452,6 @@ router.get(
   }
 );
 
-// Add to Routes/userRoutes.js (after the existing routes)
 const Exercise = require("../model/Exercise");
 const UserExerciseRating = require("../model/UserExerciseRating");
 
@@ -405,14 +468,12 @@ router.get(
 
       let query = { verified: true };
 
-      // Filter by user's workout type if set
       if (user && user.workout_type) {
         query.category = user.workout_type;
       }
 
       const exercises = await Exercise.find(query).sort({ name: 1 });
 
-      // Get user's ratings for these exercises
       const userRatings = await UserExerciseRating.find({
         userId: userId,
         exerciseId: { $in: exercises.map((ex) => ex._id) },
@@ -423,7 +484,6 @@ router.get(
         ratingsMap[rating.exerciseId.toString()] = rating.rating;
       });
 
-      // Add user's rating to each exercise
       const exercisesWithRatings = exercises.map((exercise) => ({
         ...exercise.toObject(),
         userRating: ratingsMap[exercise._id.toString()] || null,
@@ -471,7 +531,6 @@ router.post(
           .json({ success: false, message: "Exercise not found" });
       }
 
-      // Create or update rating
       const userRating = await UserExerciseRating.findOneAndUpdate(
         { userId, exerciseId },
         {
@@ -483,7 +542,6 @@ router.post(
         { upsert: true, new: true }
       );
 
-      // Update exercise average rating
       const allRatings = await UserExerciseRating.find({ exerciseId });
       const averageRating =
         allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
@@ -493,7 +551,6 @@ router.post(
         totalRatings: allRatings.length,
       });
 
-      // Update user preferences
       if (rating >= 4) {
         await User.findByIdAndUpdate(userId, {
           $addToSet: {
@@ -526,8 +583,6 @@ router.post(
 );
 
 // Get recommended exercises based on user ratings
-// Get recommended exercises based on user ratings - FIXED VERSION
-// Get recommended exercises based on user ratings
 router.get(
   "/api/exercises/recommended",
   userController.checkMembershipActive,
@@ -539,7 +594,6 @@ router.get(
       const user = await User.findById(userId);
       const userWorkoutType = user?.workout_type;
 
-      // Get user's highly rated exercises (if any)
       const highRatedExercises = await UserExerciseRating.find({
         userId,
         rating: { $gte: 4 },
@@ -549,12 +603,10 @@ router.get(
       let reason = "";
 
       if (highRatedExercises.length > 0) {
-        // FIX: Filter out null exerciseId values before mapping
         const validHighRatedExercises = highRatedExercises.filter(
           (r) => r.exerciseId !== null
         );
 
-        // FIX: Add null check in map functions
         const preferredCategories = [
           ...new Set(
             validHighRatedExercises
@@ -577,7 +629,6 @@ router.get(
           ),
         ];
 
-        // FIX: Use validHighRatedExercises instead of highRatedExercises
         recommendedExercises = await Exercise.find({
           verified: true,
           _id: { $nin: validHighRatedExercises.map((r) => r.exerciseId._id) },
@@ -590,8 +641,6 @@ router.get(
 
         reason = "similar_to_your_high_rated_exercises";
       } else {
-        // No ratings yet - show diverse recommendations
-        // Get mix of user's workout type + other popular exercises
         const userWorkoutExercises = userWorkoutType
           ? await Exercise.find({
               verified: true,
@@ -599,28 +648,25 @@ router.get(
             }).limit(4)
           : [];
 
-        // Get popular exercises from other categories
         const otherCategoriesExercises = await Exercise.find({
           verified: true,
-          category: { $ne: userWorkoutType }, // Exclude user's workout type
+          category: { $ne: userWorkoutType }, 
         })
           .limit(4)
           .sort({ averageRating: -1, usageCount: -1 });
 
-        // Combine and shuffle for variety
         recommendedExercises = [
           ...userWorkoutExercises,
           ...otherCategoriesExercises,
         ]
-          .sort(() => Math.random() - 0.5) // Shuffle the array
-          .slice(0, 6); // Take 6 exercises
+          .sort(() => Math.random() - 0.5) 
+          .slice(0, 6); 
 
         reason = userWorkoutType
           ? `mix_of_${userWorkoutType.toLowerCase()}_and_popular_exercises`
           : "popular_exercises_from_all_categories";
       }
 
-      // If we still don't have enough exercises, fill with random verified ones
       if (recommendedExercises.length < 6) {
         const additionalExercises = await Exercise.find({
           verified: true,
@@ -635,7 +681,6 @@ router.get(
         ];
       }
 
-      // Final sort: user's workout type exercises first, then by rating
       if (userWorkoutType) {
         recommendedExercises.sort((a, b) => {
           const aIsUserType = a.category === userWorkoutType;
@@ -644,7 +689,6 @@ router.get(
           if (aIsUserType && !bIsUserType) return -1;
           if (!aIsUserType && bIsUserType) return 1;
 
-          // If same category priority, sort by rating
           return (b.averageRating || 0) - (a.averageRating || 0);
         });
       }
@@ -681,13 +725,11 @@ router.get(
           .json({ success: false, message: "Exercise not found" });
       }
 
-      // Get user's rating for this exercise
       const userRating = await UserExerciseRating.findOne({
         userId,
         exerciseId,
       });
 
-      // Get similar exercises
       const similarExercises = await Exercise.find({
         verified: true,
         _id: { $ne: exerciseId },
@@ -713,48 +755,6 @@ router.get(
       res
         .status(500)
         .json({ success: false, message: "Error fetching exercise details" });
-    }
-  }
-);
-
-// Add this route for debugging
-router.get(
-  "/api/debug/exercises-test",
-  userController.checkMembershipActive,
-  protect,
-  async (req, res) => {
-    try {
-      //  console.log('=== DEBUG EXERCISES API ===');
-
-      const userId = req.user._id;
-      //  console.log('User ID:', userId);
-
-      const User = require("../model/User");
-      const user = await User.findById(userId);
-      //  console.log('User workout_type:', user?.workout_type);
-
-      // Test the exact query
-      let query = { verified: true };
-      if (user && user.workout_type) {
-        query.category = user.workout_type;
-      }
-
-      //  console.log('Query:', query);
-
-      const exercises = await Exercise.find(query).sort({ name: 1 });
-      //  console.log('Found exercises:', exercises.length);
-      //  console.log('Exercise names:', exercises.map(e => e.name));
-
-      res.json({
-        success: true,
-        query: query,
-        exerciseCount: exercises.length,
-        exercises: exercises,
-        userWorkoutType: user?.workout_type || "All",
-      });
-    } catch (error) {
-      console.error("Debug error:", error);
-      res.status(500).json({ error: error.message });
     }
   }
 );
@@ -787,14 +787,12 @@ router.get(
         ],
       };
 
-      // Filter by user's workout type if set
       if (user && user.workout_type) {
         searchQuery.category = user.workout_type;
       }
 
       const exercises = await Exercise.find(searchQuery).limit(20);
 
-      // Get user's ratings
       const userRatings = await UserExerciseRating.find({
         userId: userId,
         exerciseId: { $in: exercises.map((ex) => ex._id) },
@@ -819,110 +817,5 @@ router.get(
     }
   }
 );
-// Add this route to userRoutes.js
-router.put("/user/profile/update", protect, userController.updateUserProfile);
-
-// Nutrition mark consumed
-router.post(
-  "/api/nutrition/mark-consumed",
-  userController.checkMembershipActive,
-  protect,
-  async (req, res) => {
-    try {
-      const { foodName, calories, protein, carbs, fats, day } = req.body;
-      const userId = req.user._id;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const weekStart = new Date(today);
-      const dayOfWeek = today.getDay();
-      weekStart.setDate(today.getDate() - dayOfWeek);
-      weekStart.setHours(0, 0, 0, 0);
-
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 7);
-
-      let nutritionEntry = await NutritionHistory.findOne({
-        userId: userId,
-        date: { $gte: weekStart, $lt: weekEnd },
-      });
-
-      if (!nutritionEntry) {
-        return res.status(404).json({
-          success: false,
-          message: "No nutrition plan found for this week",
-        });
-      }
-
-      const targetDay =
-        day ||
-        [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ][today.getDay()];
-      const dayData = nutritionEntry.daily_nutrition[targetDay];
-
-      if (!dayData) {
-        return res.status(400).json({
-          success: false,
-          message: "Day not found in nutrition plan: " + targetDay,
-        });
-      }
-
-      const foodIndex = dayData.foods.findIndex(
-        (food) => food.name === foodName && food.consumed === false
-      );
-
-      if (foodIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: "Food not found or already consumed: " + foodName,
-        });
-      }
-
-      dayData.foods[foodIndex].consumed = true;
-      dayData.foods[foodIndex].consumedAt = new Date();
-
-      dayData.calories_consumed =
-        (dayData.calories_consumed || 0) + parseInt(calories);
-      dayData.protein_consumed =
-        (dayData.protein_consumed || 0) + parseInt(protein);
-
-      dayData.macros.protein =
-        (dayData.macros.protein || 0) + parseInt(protein);
-      dayData.macros.carbs = (dayData.macros.carbs || 0) + parseInt(carbs);
-      dayData.macros.fats = (dayData.macros.fats || 0) + parseInt(fats);
-
-      nutritionEntry.markModified("daily_nutrition");
-      await nutritionEntry.save();
-
-      res.json({
-        success: true,
-        message: "Food marked as consumed successfully",
-        updatedNutrition: {
-          calories_consumed: dayData.calories_consumed,
-          protein_consumed: dayData.protein_consumed,
-          calorie_goal: nutritionEntry.calorie_goal,
-          protein_goal: nutritionEntry.protein_goal,
-        },
-      });
-    } catch (error) {
-      console.error("Error marking food as consumed:", error);
-      res.status(500).json({
-        success: false,
-        message: "Error marking food as consumed: " + error.message,
-      });
-    }
-  }
-);
-
-// Update profile
-router.put("/user/profile/update", protect, userController.updateUserProfile);
 
 module.exports = router;

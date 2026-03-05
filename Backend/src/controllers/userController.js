@@ -1580,49 +1580,22 @@ const markWorkoutCompleted = async (req, res) => {
 // Add this function to userController.js
 // Replace the getTodaysFoods function in userController.js with this corrected version:
 const getTodaysFoods = async (userId) => {
-// ... (omitted for brevity)
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
         
-        //  console.log('=== GET TODAYS FOODS DEBUG ===');
-        //  console.log('📅 Local Today:', today.toString());
-        //  console.log('📅 Today day index:', today.getDay());
-        //  console.log('📅 Today day name:', ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today.getDay()]);
+        // === THE FIX: Force Timezone to match local time ===
+        const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
 
-        // Use Sunday as week start (local time)
-        const weekStart = new Date(today);
-        const dayOfWeek = today.getDay();
-        weekStart.setDate(today.getDate() - dayOfWeek);
-        weekStart.setHours(0, 0, 0, 0);
-        
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 7);
-        
-        //  console.log('📊 Local Week range:', weekStart.toString(), 'to', weekEnd.toString());
-
-        // Get weekly nutrition data
+        // FETCH LATEST PLAN
         const weeklyNutrition = await NutritionHistory.findOne({
-            userId: userId,
-            date: { $gte: weekStart, $lt: weekEnd }
-        });
+            userId: userId
+        }).sort({ date: -1 }); 
 
         if (weeklyNutrition) {
-            //  console.log('✅ Found weekly nutrition plan');
-            //  console.log('📋 Plan date:', weeklyNutrition.date);
-            
-            const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][today.getDay()];
             const todayData = weeklyNutrition.daily_nutrition[todayDayName];
             
-            //  console.log('🍽️', todayDayName, 'foods:', todayData ? todayData.foods.length : 'no data');
-            
             if (todayData && todayData.foods) {
-                //  console.log('🎯 Foods found:');
-                todayData.foods.forEach((food, index) => {
-                    //  console.log(`${index + 1}. ${food.name} - ${food.calories} kcal - consumed: ${food.consumed}`);
-                });
-                
-                // Return foods with proper consumed status
                 return todayData.foods.map(food => ({
                     name: food.name,
                     calories: food.calories,
@@ -1632,14 +1605,8 @@ const getTodaysFoods = async (userId) => {
                     consumed: food.consumed || false,
                     consumedAt: food.consumedAt
                 }));
-            } else {
-                //  console.log('❌ No data found for today:', todayDayName);
-                //  console.log('Available days:', Object.keys(weeklyNutrition.daily_nutrition || {}));
             }
-        } else {
-            //  console.log('❌ No weekly nutrition plan found for this week');
         }
-        
         return [];
         
     } catch (error) {
@@ -1671,9 +1638,8 @@ const getTodaysWorkout = async (userId) => {
 
         // 3. Find the workout history SPECIFICALLY for this week
         const currentWorkout = await WorkoutHistory.findOne({
-            userId: userId,
-            date: { $gte: weekStart, $lt: weekEnd } // Only look at this week's folder
-        }).lean();
+            userId: userId
+        }).sort({ date: -1 }).lean();
 
         if (!currentWorkout) {
              return {
