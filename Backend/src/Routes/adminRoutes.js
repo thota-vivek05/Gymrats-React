@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { admin_Protect } = require('../middleware/authMiddleware');
-const { admin_Protect } = require('../middleware/authMiddleware');
 
 // Public Admin Login Route (No protection needed)
 // Public Admin Login Route (No protection needed)

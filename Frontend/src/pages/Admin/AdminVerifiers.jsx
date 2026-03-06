@@ -61,14 +61,7 @@ useEffect(() => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`/api/admin/trainer-applications/${id}/approve`, {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/trainer-applications/${id}/approve`, {
           method: "PUT",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          }
-      });
           headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
@@ -77,7 +70,6 @@ useEffect(() => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setApplications(applications.map((app) => app._id === id ? { ...app, status: "Approved" } : app));
         setApplications(applications.map((app) => app._id === id ? { ...app, status: "Approved" } : app));
         if (stats) {
           setStats({
@@ -98,10 +90,7 @@ useEffect(() => {
   const handleReject = async (id) => {
     const reason = prompt("Enter rejection reason (optional):");
     if (reason === null) return;
-    if (reason === null) return;
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/trainer-applications/${id}/reject`, {
       const token = localStorage.getItem("token");
       const response = await fetch(`/api/admin/trainer-applications/${id}/reject`, {
           method: "PUT",
@@ -109,17 +98,11 @@ useEffect(() => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
           body: JSON.stringify({ reason: reason || "" }),
-      });
       });
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setApplications(applications.map((app) => app._id === id ? { ...app, status: "Rejected" } : app));
         setApplications(applications.map((app) => app._id === id ? { ...app, status: "Rejected" } : app));
         if (stats) {
           setStats({

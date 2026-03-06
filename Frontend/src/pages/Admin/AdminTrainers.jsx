@@ -95,10 +95,8 @@ const AdminTrainers = () => {
     if (!confirm("Delete this trainer?")) return;
     try {
       const token = localStorage.getItem("token");
-      const token = localStorage.getItem("token");
       await fetch(`/api/admin/trainers/${id}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
         headers: { "Authorization": `Bearer ${token}` }
       });
       setTrainers(trainers.filter((t) => t._id !== id));
@@ -106,7 +104,6 @@ const AdminTrainers = () => {
       alert("Failed to delete");
     }
   };
-
 
 
   // Shared container classes
