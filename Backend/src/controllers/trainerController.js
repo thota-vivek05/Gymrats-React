@@ -6,6 +6,7 @@ const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 const Exercise = require('../model/Exercise'); 
 const UserExerciseRating = require('../model/UserExerciseRating'); // ADD THIS LINE
+const Payment = require('../model/Payment');
 const moment = require('moment');
 const multer = require('multer');
 
@@ -1305,29 +1306,19 @@ const getTrainerStats = async (req, res) => {
         const trainerId = getTrainerId(req);
         if (!trainerId) return res.status(401).json({ error: 'Unauthorized' });
 
-        // Pricing logic (You can adjust these values)
-        const PRICES = {
-            'Basic': 30,
-            'Gold': 50,
-            'Platinum': 80
-        };
-
+        // 1. Get active users and expiring soon list
         const clients = await User.find({ trainer: trainerId })
             .select('membershipType status membershipDuration full_name');
 
-        let totalRevenue = 0;
         let activeUsers = 0;
         const expiringSoon = [];
-
         const today = new Date();
         const sevenDaysFromNow = new Date();
         sevenDaysFromNow.setDate(today.getDate() + 7);
 
         clients.forEach(client => {
-            // Calculate Revenue for Active Users only
             if (client.status === 'Active') {
                 activeUsers++;
-                totalRevenue += (PRICES[client.membershipType] || 0);
             }
 
             // Identify users expiring in the next 7 days
@@ -1344,9 +1335,38 @@ const getTrainerStats = async (req, res) => {
             }
         });
 
+        // 2. Calculate Revenue using the Payment model
+        const payments = await Payment.find({ 
+            trainerId: trainerId, 
+            status: 'Success' 
+        });
+
+        let totalRevenue = 0;
+        const monthlyRevenueMap = {};
+        const uniquePayingUsers = new Set();
+
+        payments.forEach(payment => {
+            totalRevenue += payment.amount;
+            uniquePayingUsers.add(payment.userId.toString());
+            
+            const month = payment.revenueMonth; // Format: YYYY-MM
+            monthlyRevenueMap[month] = (monthlyRevenueMap[month] || 0) + payment.amount;
+        });
+
+        // Current month revenue
+        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const monthlyRevenue = monthlyRevenueMap[currentMonth] || 0;
+
+        // Revenue per user
+        const revenuePerUser = uniquePayingUsers.size > 0 
+            ? Math.round(totalRevenue / uniquePayingUsers.size) 
+            : 0;
+
         res.json({
             success: true,
             totalRevenue,
+            monthlyRevenue,
+            revenuePerUser,
             activeUsers,
             expiringSoon
         });
@@ -1367,9 +1387,14 @@ const getClientHistory = async (req, res) => {
 
         // Ensure the user actually belongs to this trainer
         const user = await User.findOne({ _id: userId, trainer: trainerId })
-            .select('membershipType membershipDuration status created_at full_name');
+            .select('membershipType membershipDuration status created_at full_name trainerHistory');
 
         if (!user) return res.status(404).json({ error: 'Client not found or not assigned to you' });
+
+        // Fetch user's payment history
+        const paymentHistory = await Payment.find({ userId: userId, status: 'Success' })
+            .sort({ paymentDate: -1 })
+            .select('amount paymentDate paymentFor membershipPlan isRenewal');
 
         const history = {
             currentSubscription: {
@@ -1380,7 +1405,9 @@ const getClientHistory = async (req, res) => {
                 autoRenew: user.membershipDuration?.auto_renew,
                 lastRenewal: user.membershipDuration?.last_renewal_date
             },
-            joinedDate: user.created_at
+            joinedDate: user.created_at,
+            payments: paymentHistory,
+            inactiveHistory: user.trainerHistory // Shows past trainers/inactive periods if tracked
         };
 
         res.json({ success: true, history });

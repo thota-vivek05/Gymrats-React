@@ -1,22 +1,822 @@
-::1 - - [04/Mar/2026:18:50:37 +0000] "POST /api/nutrition/mark-consumed HTTP/1.1" 401 53 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:50:45 +0000] "POST /api/nutrition/mark-consumed HTTP/1.1" 401 53 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:55:43 +0000] "POST /api/nutrition/mark-consumed HTTP/1.1" 401 53 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:56:05 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:56:05 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:57:13 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:57:20 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:58:41 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:58:41 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:18:59:17 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:00:25 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:00:25 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:02:11 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:02:18 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:03:45 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:03:45 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:03:56 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:03:56 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:14:23 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:14:23 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:16:04 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-::1 - - [04/Mar/2026:19:16:04 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [05/Feb/2026:14:07:46 +0000] "POST /api/auth/login HTTP/1.1" 401 53 "http://localhost:5173/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:11:52:12 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:11:52:12 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:11:52:34 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:12:09:28 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:12:09:28 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:12:53:12 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:12:53:12 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:02:58 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:02:58 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:03:23 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:03:23 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:03:27 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:03:27 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:03:59 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:05:04 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebb8c34657d1d8dac05856" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T13:05:39.867Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:43:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at param (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:365:14)
+    at param (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:376:14)
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:421:3)
+-------------------------------------
+::1 - - [02/Mar/2026:13:05:39 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 500 54 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:05:42 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebb8c34657d1d8dac05856" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:05:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebafbc3991d0b91dd9481d" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:05:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebafbc3991d0b91dd9481d" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:06:41 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebafbc3991d0b91dd9481d" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:13:06:44 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer?clientId=68ebafbc3991d0b91dd9481d" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:20.446Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:20 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:20.459Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:20 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:22.491Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:22 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:22.506Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:22 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:23.364Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:23 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:23.373Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:23 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:23.865Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:23 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:24.503Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:24 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:24.514Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:24 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:25.131Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:25 +0000] "GET /api/admin/memberships HTTP/1.1" 500 54 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:25.138Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:25 +0000] "GET /api/admin/memberships HTTP/1.1" 500 54 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:26.152Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:26 +0000] "GET /api/admin/exercises HTTP/1.1" 500 54 "http://localhost:5173/admin/exercises" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:26.160Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:26 +0000] "GET /api/admin/exercises HTTP/1.1" 500 54 "http://localhost:5173/admin/exercises" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:26.630Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:26 +0000] "GET /api/admin/trainer-applications HTTP/1.1" 500 54 "http://localhost:5173/admin/verifiers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:26.638Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:26 +0000] "GET /api/admin/trainer-applications HTTP/1.1" 500 54 "http://localhost:5173/admin/verifiers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:27.727Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:27 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 500 54 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:27.733Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:27 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 500 54 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:28.263Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:28 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:28.269Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:28 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:28.838Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:28 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:28.860Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:28 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:32.727Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:32 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:32.735Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:32 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:33.612Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:33 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:33.622Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:33 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:34.380Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:34 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:34.388Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:34 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:36.559Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:36 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:36.568Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:36 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.176Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.187Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.607Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.618Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.962Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:37.969Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:37 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:38.294Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:38 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:38.303Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:38 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:38.904Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:38 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:33:38.921Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:33:38 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:05.348Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:05 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:05.357Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:05 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:05.844Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:05 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 54 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:05.960Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:05 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:05.966Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:05 +0000] "GET /api/admin/trainers HTTP/1.1" 500 54 "http://localhost:5173/admin/trainers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:06.923Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:06 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T15:34:06.929Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:15:34:06 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T17:49:01.087Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:17:49:01 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-02T17:49:01.100Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:64:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:286:9
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+-------------------------------------
+::1 - - [02/Mar/2026:17:49:01 +0000] "GET /api/admin/dashboard HTTP/1.1" 500 54 "http://localhost:5173/admin/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:49:07 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:49:07 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:49:08 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:49:10 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:49:10 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:43 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:43 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:43 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:50 +0000] "GET /api/admin/users?search= HTTP/1.1" 500 50 "http://localhost:5173/admin/users" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:54 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:50:54 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:02 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:02 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:16 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:16 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:30 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [02/Mar/2026:17:51:30 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"

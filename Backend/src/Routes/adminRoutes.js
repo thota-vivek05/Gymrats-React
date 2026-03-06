@@ -2,11 +2,16 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { admin_Protect } = require('../middleware/authMiddleware');
+const { admin_Protect } = require('../middleware/authMiddleware');
 
+// Public Admin Login Route (No protection needed)
 // Public Admin Login Route (No protection needed)
 router.get('/login', adminController.getAdminLogin);
 router.post('/login', adminController.postAdminLogin);
 router.get('/logout', adminController.adminLogout);
+
+// Apply admin_Protect middleware to all routes below this line
+router.use(admin_Protect);
 
 // Apply admin_Protect middleware to all routes below this line
 router.use(admin_Protect);
@@ -30,14 +35,26 @@ router.put('/trainers/:id', adminController.updateTrainer);
 router.delete('/trainers/:id', adminController.deleteTrainer);
 router.get('/trainers/search', adminController.searchTrainers);
 router.get('/trainer-stats', adminController.getTrainerStats);
+router.get('/trainers/search', adminController.searchTrainers);
+router.get('/trainer-stats', adminController.getTrainerStats);
 
+// Trainer Application Routes
 // Trainer Application Routes
 router.get('/trainer-applications', adminController.getTrainerApplications);
 router.put('/trainer-applications/:id/approve', adminController.approveTrainerApplication);
 router.put('/trainer-applications/:id/reject', adminController.rejectTrainerApplication);
 
 // Trainer Assignment Routes
+// Trainer Assignment Routes
 router.get('/trainer-assignment-data', adminController.getTrainerAssignmentData);
+router.post('/assign-trainer-admin', adminController.assignTrainerToUserAdmin);
+
+// Exercise Routes
+router.get('/exercises', adminController.getExercises);
+router.get('/exercises/search', adminController.searchExercises);
+router.post('/exercises', adminController.createExercise);
+router.put('/exercises/:id', adminController.updateExercise);
+router.delete('/exercises/:id', adminController.deleteExercise);
 router.post('/assign-trainer-admin', adminController.assignTrainerToUserAdmin);
 
 // Exercise Routes

@@ -107,11 +107,14 @@ useEffect(() => {
 }, [searchTerm, filterCategory, filterDifficulty, filterVerified]);
 
  const handleDelete = async (id) => {
+ const handleDelete = async (id) => {
     if (!confirm("Delete this exercise?")) return;
     try {
       const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       await fetch(`/api/admin/exercises/${id}`, {
         method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
         headers: { "Authorization": `Bearer ${token}` }
       });
       setExercises(exercises.filter((e) => e._id !== id));
