@@ -62,6 +62,12 @@ router.post('/signup', uploadResume.single('resume'), trainerController.signupTr
 // EJS ROUTES (Session-based, Keep for backward compatibility)
 // ========================================
 
+// Route for Revenue and Expiring Users Stats
+router.get('/stats', protect, trainerController.getTrainerStats);
+
+// Route for specific Client History
+router.get('/client-history/:userId', protect, trainerController.getClientHistory);
+
 // Render trainer dashboard (EJS version - session based)
 router.get('/trainer', trainerController.renderTrainerDashboard);
 

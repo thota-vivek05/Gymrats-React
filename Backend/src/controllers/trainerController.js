@@ -6,6 +6,7 @@ const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 const Exercise = require('../model/Exercise'); 
 const UserExerciseRating = require('../model/UserExerciseRating'); // ADD THIS LINE
+const Payment = require('../model/Payment');
 const moment = require('moment');
 const multer = require('multer');
 
@@ -848,37 +849,31 @@ const getClientData = async (req, res) => {
     }
 };
 
+// REPLACE the existing getClients function in trainerController.js
 const getClients = async (req, res) => {
     try {
-        console.log('=== GET CLIENTS API CALLED ===');
-        console.log('User from JWT:', req.user);
-        console.log('Session trainer:', req.session?.trainer);
-        
-        // ✅ Get trainer ID from JWT token (set by protect middleware)
-        const trainerId = req.user._id;
+        const trainerId = getTrainerId(req);
         
         if (!trainerId) {
-            console.error('No trainer ID found in request');
-            return res.status(401).json({ error: 'Unauthorized - no trainer ID' });
+            return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // Fetch users assigned to this trainer
+        // Fetch users assigned to this trainer with specific fields
         const clients = await User.find({ 
-            trainer: trainerId,
-            status: 'Active' 
-        }).select('full_name email membershipType status');
+            trainer: trainerId 
+        }).select('full_name email membershipType status created_at membershipDuration phone');
 
-        console.log(`Found ${clients.length} clients for trainer:`, trainerId);
-
-        // Map data to match what React expects
         const formattedClients = clients.map(client => ({
             _id: client._id,
             full_name: client.full_name,
             email: client.email,
+            phone: client.phone || 'N/A',
             membershipType: client.membershipType || 'Basic',
-            status: client.status || 'Active',
-            progress: 0,
-            nextSession: 'N/A'
+            status: client.status,
+            // Format dates for the frontend table
+            joinedDate: client.created_at, 
+            renewalDate: client.membershipDuration?.end_date || 'N/A',
+            monthsRemaining: client.membershipDuration?.months_remaining || 0
         }));
 
         res.status(200).json(formattedClients);
@@ -1306,6 +1301,123 @@ const getClientProgress = async (req, res) => {
 
 // END REYNA
 
+const getTrainerStats = async (req, res) => {
+    try {
+        const trainerId = getTrainerId(req);
+        if (!trainerId) return res.status(401).json({ error: 'Unauthorized' });
+
+        // 1. Get active users and expiring soon list
+        const clients = await User.find({ trainer: trainerId })
+            .select('membershipType status membershipDuration full_name');
+
+        let activeUsers = 0;
+        const expiringSoon = [];
+        const today = new Date();
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(today.getDate() + 7);
+
+        clients.forEach(client => {
+            if (client.status === 'Active') {
+                activeUsers++;
+            }
+
+            // Identify users expiring in the next 7 days
+            if (client.status === 'Active' && client.membershipDuration?.end_date) {
+                const endDate = new Date(client.membershipDuration.end_date);
+                if (endDate > today && endDate <= sevenDaysFromNow) {
+                    expiringSoon.push({
+                        id: client._id,
+                        name: client.full_name,
+                        endDate: endDate,
+                        membershipType: client.membershipType
+                    });
+                }
+            }
+        });
+
+        // 2. Calculate Revenue using the Payment model
+        const payments = await Payment.find({ 
+            trainerId: trainerId, 
+            status: 'Success' 
+        });
+
+        let totalRevenue = 0;
+        const monthlyRevenueMap = {};
+        const uniquePayingUsers = new Set();
+
+        payments.forEach(payment => {
+            totalRevenue += payment.amount;
+            uniquePayingUsers.add(payment.userId.toString());
+            
+            const month = payment.revenueMonth; // Format: YYYY-MM
+            monthlyRevenueMap[month] = (monthlyRevenueMap[month] || 0) + payment.amount;
+        });
+
+        // Current month revenue
+        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const monthlyRevenue = monthlyRevenueMap[currentMonth] || 0;
+
+        // Revenue per user
+        const revenuePerUser = uniquePayingUsers.size > 0 
+            ? Math.round(totalRevenue / uniquePayingUsers.size) 
+            : 0;
+
+        res.json({
+            success: true,
+            totalRevenue,
+            monthlyRevenue,
+            revenuePerUser,
+            activeUsers,
+            expiringSoon
+        });
+
+    } catch (error) {
+        console.error('Error fetching trainer stats:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// 2. Get Client History (Subscription Details)
+const getClientHistory = async (req, res) => {
+    try {
+        const trainerId = getTrainerId(req);
+        const { userId } = req.params;
+
+        if (!trainerId) return res.status(401).json({ error: 'Unauthorized' });
+
+        // Ensure the user actually belongs to this trainer
+        const user = await User.findOne({ _id: userId, trainer: trainerId })
+            .select('membershipType membershipDuration status created_at full_name trainerHistory');
+
+        if (!user) return res.status(404).json({ error: 'Client not found or not assigned to you' });
+
+        // Fetch user's payment history
+        const paymentHistory = await Payment.find({ userId: userId, status: 'Success' })
+            .sort({ paymentDate: -1 })
+            .select('amount paymentDate paymentFor membershipPlan isRenewal');
+
+        const history = {
+            currentSubscription: {
+                plan: user.membershipType,
+                status: user.status,
+                startDate: user.membershipDuration?.start_date,
+                endDate: user.membershipDuration?.end_date,
+                autoRenew: user.membershipDuration?.auto_renew,
+                lastRenewal: user.membershipDuration?.last_renewal_date
+            },
+            joinedDate: user.created_at,
+            payments: paymentHistory,
+            inactiveHistory: user.trainerHistory // Shows past trainers/inactive periods if tracked
+        };
+
+        res.json({ success: true, history });
+
+    } catch (error) {
+        console.error('Error fetching client history:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 module.exports = { 
     signupTrainer,
     getClients,
@@ -1324,5 +1436,7 @@ module.exports = {
     assignUserToTrainer,        
     getUnassignedUsers,          
     getClientExerciseRatings,
-    getClientProgress
+    getClientProgress,
+    getTrainerStats,
+    getClientHistory
 };
