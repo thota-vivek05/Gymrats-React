@@ -293,77 +293,134 @@ const adminController = {
   },
 
   // User Management
+// User Management
 getUsers: async (req, res) => {
-    try {
+  try {
+    const { search } = req.query;
+    let query = {};
 
-      const { search } = req.query;
-      let query = {};
-
-      // Global Search Logic
-      if (search && search.trim() !== '') {
-        const searchRegex = new RegExp(search, 'i');
-        query = {
-          $or: [
-            { full_name: searchRegex },
-            { email: searchRegex },
-            { phone: searchRegex }
-          ]
+    // Global Search Logic - Now includes status, membershipType, and date
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search, 'i');
+      
+      // Try to parse search as date if it looks like a date
+      let dateQuery = {};
+      const possibleDate = new Date(search);
+      if (!isNaN(possibleDate.getTime())) {
+        // If it's a valid date, search for matches in created_at
+        const startOfDay = new Date(possibleDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(possibleDate.setHours(23, 59, 59, 999));
+        dateQuery = {
+          created_at: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
         };
       }
 
-      const users = await User.find(query)
-        .sort({ created_at: -1 })
-        .populate('trainer', 'name'); // Populate trainer name for the list view
-
-      // existing stats calculation logic (can remain or be optimized)
-      const totalUsers = await User.countDocuments();
-      const activeMembers = await User.countDocuments({ status: 'Active' });
-      const platinumUsers = await User.countDocuments({ membershipType: 'Platinum' });
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      const newSignups = await User.countDocuments({ created_at: { $gte: oneWeekAgo } });
-
-      res.json({
-        success: true,
-        users,
-        stats: {
-          totalUsers,
-          activeMembers,
-          platinumUsers,
-          newSignups
-        }
-      });
-    } catch (error) {
-      console.error('User management error:', error);
-      res.status(500).json({ success: false, message: 'Error fetching users' });
+      query = {
+        $or: [
+          // Text searches
+          { full_name: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex },
+          { status: searchRegex },
+          { membershipType: searchRegex },
+          // Date search if valid
+          ...(Object.keys(dateQuery).length > 0 ? [dateQuery] : [])
+        ]
+      };
     }
-  },
+
+    const users = await User.find(query)
+      .sort({ created_at: -1 })
+      .populate('trainer', 'name');
+
+    // Calculate stats
+    const totalUsers = await User.countDocuments();
+    const activeMembers = await User.countDocuments({ status: 'Active' });
+    const platinumUsers = await User.countDocuments({ membershipType: 'Platinum' });
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const newSignups = await User.countDocuments({ created_at: { $gte: oneWeekAgo } });
+
+    res.json({
+      success: true,
+      users,
+      stats: {
+        totalUsers,
+        activeMembers,
+        platinumUsers,
+        newSignups
+      }
+    });
+  } catch (error) {
+    console.error('User management error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching users' });
+  }
+},
 
   // 2. NEW: Dropped Users API (Expired Subscriptions)
-  getDroppedUsers: async (req, res) => {
-    try {
+// Dropped Users API with search support
+getDroppedUsers: async (req, res) => {
+  try {
+    const { search } = req.query;
+    const today = new Date();
+    
+    // Base query for dropped users
+    let query = {
+      $or: [
+        { 'membershipDuration.end_date': { $lt: today } },
+        { status: 'Inactive' }
+      ]
+    };
 
-
-      const today = new Date();
+    // Add search filter if provided
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search, 'i');
       
-      // Logic: End date is in the past OR status is explicitly 'Inactive'/'Dropped'
-      const droppedUsers = await User.find({
-        $or: [
-          { 'membershipDuration.end_date': { $lt: today } },
-          { status: 'Inactive' }
-        ]
-      }).select('full_name email phone membershipType membershipDuration status');
+      // Try to parse search as date
+      let dateQuery = {};
+      const possibleDate = new Date(search);
+      if (!isNaN(possibleDate.getTime())) {
+        const startOfDay = new Date(possibleDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(possibleDate.setHours(23, 59, 59, 999));
+        dateQuery = {
+          created_at: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
+        };
+      }
 
-      res.json({
-        success: true,
-        count: droppedUsers.length,
-        users: droppedUsers
-      });
-    } catch (error) {
-      console.error('Error fetching dropped users:', error);
-      res.status(500).json({ success: false, message: 'Error fetching dropped users' });
+      query.$and = [
+        query, // Keep the dropped users condition
+        {
+          $or: [
+            { full_name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { status: searchRegex },
+            { membershipType: searchRegex },
+            ...(Object.keys(dateQuery).length > 0 ? [dateQuery] : [])
+          ]
+        }
+      ];
     }
-  },
+
+    const droppedUsers = await User.find(query)
+      .select('full_name email phone membershipType membershipDuration status created_at');
+
+    res.json({
+      success: true,
+      count: droppedUsers.length,
+      users: droppedUsers
+    });
+  } catch (error) {
+    console.error('Error fetching dropped users:', error);
+    res.status(500).json({ success: false, message: 'Error fetching dropped users' });
+  }
+},
 
   // 3. NEW: Detailed User View API
   getUserDetails: async (req, res) => {
@@ -510,50 +567,66 @@ getUsers: async (req, res) => {
   },
 
   // Trainer Management
-  getTrainers: async (req, res) => {
-    try {
-      
-      const trainers = await Trainer.find().sort({ createdAt: -1 });
-      const trainerCount = await Trainer.countDocuments({ status: 'Active' });
-      const pendingApprovals = await TrainerApplication.countDocuments({ status: 'Pending' });
-
-      // Calculate revenue using User model
-      const users = await User.find({ status: 'Active' });
-      let revenue = 0;
-      const prices = {
-        basic: 299,
-        gold: 599,
-        platinum: 999
-      };
-      users.forEach(user => {
-        const remainingMonths = user.membershipDuration.months_remaining || 0;
-        const price = prices[user.membershipType.toLowerCase()] || 0;
-        revenue += remainingMonths * price;
-      });
-
-      // Count unique specializations using aggregation
-      const specializationResult = await Trainer.aggregate([
-        { $unwind: '$specializations' },
-        { $group: { _id: '$specializations' } },
-        { $count: 'uniqueCount' }
-      ]);
-      const specializationCount = specializationResult.length > 0 ? specializationResult[0].uniqueCount : 0;
-
-      res.json({
-        success: true,
-        trainers,
-        stats: {
-          totalTrainers: trainerCount,
-          revenue, // Pass your calculated revenue variable
-          specializationCount,
-          pendingApprovals
-        }
-      });
-    } catch (error) {
-      console.error('Trainer management error:', error);
-      res.status(500).json({ success: false, message: 'Error fetching trainers' });
+// Trainer Management - Updated with search/filter support
+getTrainers: async (req, res) => {
+  try {
+    const { search, status, experience } = req.query;
+    let query = {};
+    
+    // Apply filters
+    if (status && status !== '') {
+      query.status = status;
     }
-  },
+    
+    if (experience && experience !== '') {
+      query.experience = experience;
+    }
+    
+    // Apply search
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search, 'i');
+      const searchQuery = {
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { specializations: { $in: [searchRegex] } }
+        ]
+      };
+      
+      // Merge with existing query
+      query = { ...query, ...searchQuery };
+    }
+    
+    const trainers = await Trainer.find(query).sort({ createdAt: -1 });
+    
+    // Calculate stats
+    const trainerCount = await Trainer.countDocuments({ status: 'Active' });
+    const pendingApprovals = await TrainerApplication.countDocuments({ status: 'Pending' });
+    
+    // Count unique specializations
+    const specializationResult = await Trainer.aggregate([
+      { $unwind: '$specializations' },
+      { $group: { _id: '$specializations' } },
+      { $count: 'uniqueCount' }
+    ]);
+    const specializationCount = specializationResult.length > 0 ? specializationResult[0].uniqueCount : 0;
+
+    res.json({
+      success: true,
+      trainers,
+      stats: {
+        totalTrainers: trainerCount,
+        pendingApprovals,
+        specializationCount,
+        activeTrainers: await Trainer.countDocuments({ status: 'Active' }),
+        totalCertifications: specializationCount
+      }
+    });
+  } catch (error) {
+    console.error('Trainer management error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching trainers' });
+  }
+},
 
   // Trainer Assignment (Admin) - fetch trainers and unassigned users
   getTrainerAssignmentData: async (req, res) => {
@@ -635,34 +708,105 @@ getUsers: async (req, res) => {
   //     }
   //   },
 
-  createTrainer: async (req, res) => {
-    try {
-      
-      const { name, email, password, phone, experience, specializations } = req.body;
-      if (!name || !email || !password || !phone || !experience) {
-        return res.status(400).json({ success: false, message: 'Missing required fields' });
-      }
-      const existingTrainer = await Trainer.findOne({ email });
-      if (existingTrainer) {
-        return res.status(400).json({ success: false, message: 'Email already in use' });
-      }
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const newTrainer = new Trainer({
-        name,
-        email,
-        password_hash: hashedPassword,
-        phone,
-        experience,
-        specializations: specializations ? specializations.split(',').map(s => s.trim()) : [],
-        status: 'Pending'
+ createTrainer: async (req, res) => {
+  try {
+    console.log("Create trainer request body:", req.body); // Debug log
+    
+    const { name, email, password, phone, experience, specializations, status } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !password || !phone || !experience) {
+      console.log("Missing fields:", { name, email, password, phone, experience });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields' 
       });
-      await newTrainer.save();
-      res.status(201).json({ success: true, message: 'Trainer created successfully', trainer: newTrainer });
-    } catch (error) {
-      console.error('Create trainer error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
     }
-  },
+
+    // Check if email exists in Trainer collection only (simpler for now)
+    const existingTrainer = await Trainer.findOne({ email });
+    
+    if (existingTrainer) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email already in use by another trainer' 
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Process specializations safely
+    let specializationsArray = [];
+    if (specializations) {
+      if (Array.isArray(specializations)) {
+        specializationsArray = specializations;
+      } else if (typeof specializations === 'string') {
+        specializationsArray = specializations.split(',').map(s => s.trim()).filter(s => s);
+      }
+    }
+
+    console.log("Creating trainer with data:", {
+      name,
+      email,
+      phone,
+      experience,
+      specializations: specializationsArray,
+      status: status || 'Active'
+    });
+
+    // Create new trainer
+    const newTrainer = new Trainer({
+      name,
+      email,
+      password_hash: hashedPassword,
+      phone,
+      experience,
+      specializations: specializationsArray,
+      status: status || 'Active',
+      rating: 0,
+      clients: [],
+      totalClients: 0,
+      totalRevenue: 0,
+      maxClients: 20
+    });
+
+    // Save to database
+    const savedTrainer = await newTrainer.save();
+    console.log("Trainer saved successfully:", savedTrainer._id);
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Trainer created successfully', 
+      trainer: savedTrainer 
+    });
+    
+  } catch (error) {
+    console.error('Create trainer error details:', error);
+    
+    // Check for duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email already exists in the system' 
+      });
+    }
+    
+    // Check for validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error: ' + messages.join(', ') 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error: ' + error.message 
+    });
+  }
+},
 
         updateTrainer: async (req, res) => {
       try {
@@ -951,62 +1095,92 @@ getUsers: async (req, res) => {
 
 
   // Exercise Management - UPDATED
-  getExercises: async (req, res) => {
-    try {
-      
-
-      const exercises = await Exercise.find().sort({ name: 1 });
-
-      // Fixed list of primary muscle groups
-      const fixedMuscleGroups = [
-        "Chest", "Back", "Quadriceps", "Triceps", "Shoulders",
-        "Core", "Full Body", "Obliques", "Lower Abs", "Calves",
-        "Rear Shoulders", "Brachialis", "Biceps", "Arms", "Cardio",
-        "Legs", "Cardiovascular"
-      ];
-
-      // Calculate stats for the dashboard
-      const totalExercises = await Exercise.countDocuments();
-      const verifiedExercises = await Exercise.countDocuments({ verified: true });
-      const unverifiedExercises = await Exercise.countDocuments({ verified: false });
-
-      // Get most popular exercise
-      const mostPopular = await Exercise.findOne().sort({ usageCount: -1 }).select('name usageCount');
-
-      // Get exercise count by fixed muscle group
-      const muscleGroupStats = {};
-      fixedMuscleGroups.forEach(muscle => {
-        muscleGroupStats[muscle] = exercises.filter(ex =>
-          ex.primaryMuscle === muscle ||
-          (ex.targetMuscles && ex.targetMuscles.includes(muscle))
-        ).length;
-      });
-
-      res.json({
-        success: true,
-        exercises,
-        stats: {
-          totalExercises,
-          categories: fixedMuscleGroups.length,
-          difficulties: 3,
-          recentUpdates: totalExercises
-        }
-      });
-    } catch (error) {
-      console.error('Exercise management error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching exercises',
-        exercises: [],
-        stats: {
-          totalExercises: 0,
-          categories: 0,
-          difficulties: 0,
-          recentUpdates: 0
-        }
-      });
+// Exercise Management - UPDATED with proper search and filters
+// Exercise Management - UPDATED with more precise search
+// Exercise Management - UPDATED with more precise search
+getExercises: async (req, res) => {
+  try {
+    const { search, category, difficulty, verified } = req.query;
+    
+    // Build query object
+    let query = {};
+    
+    // Apply category filter
+    if (category && category !== '') {
+      query.category = category;
     }
-  },
+    
+    // Apply difficulty filter
+    if (difficulty && difficulty !== '') {
+      query.difficulty = difficulty;
+    }
+    
+    // Apply verified filter
+    if (verified === 'true') {
+      query.verified = true;
+    } else if (verified === 'false') {
+      query.verified = false;
+    }
+    
+    // Apply search filter - MORE PRECISE NOW
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(`^${search}$`, 'i'); // Exact match, not partial
+      
+      // Define which fields to search based on search term
+      const muscleGroups = ['chest', 'back', 'shoulders', 'triceps', 'biceps', 'legs', 'quadriceps', 'hamstrings', 'glutes', 'abs', 'core', 'cardio'];
+      const categories = ['calisthenics', 'weight loss', 'hiit', 'strength training', 'cardio', 'flexibility', 'bodybuilding', 'legs', 'full body', 'plyometrics'];
+      
+      if (muscleGroups.includes(search.toLowerCase())) {
+        // If searching for a muscle group, ONLY search in muscle fields
+        query.$or = [
+          { primaryMuscle: searchRegex },
+          { targetMuscles: { $in: [searchRegex] } }
+        ];
+      } 
+      else if (categories.includes(search.toLowerCase())) {
+        // If searching for a category, ONLY search in category field
+        query.category = searchRegex;
+        // Don't use $or, just set category directly
+      }
+      else {
+        // For general searches, search in name only
+        query.name = searchRegex;
+      }
+    }
+    
+    console.log("Exercise query:", JSON.stringify(query)); // For debugging
+    
+    // Fetch exercises with the query
+    const exercises = await Exercise.find(query).sort({ name: 1 });
+
+    // Calculate stats
+    const totalExercises = await Exercise.countDocuments();
+
+    res.json({
+      success: true,
+      exercises,
+      stats: {
+        totalExercises,
+        categories: 17,
+        difficulties: 3,
+        recentUpdates: totalExercises
+      }
+    });
+  } catch (error) {
+    console.error('Exercise management error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching exercises',
+      exercises: [],
+      stats: {
+        totalExercises: 0,
+        categories: 0,
+        difficulties: 0,
+        recentUpdates: 0
+      }
+    });
+  }
+},
   createExercise: async (req, res) => {
     try {
       
@@ -1143,42 +1317,94 @@ getUsers: async (req, res) => {
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
   },
-
-  searchExercises: async (req, res) => {
-    try {
-      
-
-      const { search } = req.query;
-      let query = {};
-
-      if (search && search.trim() !== '') {
-        const searchRegex = new RegExp(search, 'i');
-        query = {
-          $or: [
-            { name: searchRegex },
-            { category: searchRegex },
-            { difficulty: searchRegex },
-            { targetMuscles: { $in: [searchRegex] } },
-            { primaryMuscle: searchRegex }
-          ]
-        };
-      }
-
-      const exercises = await Exercise.find(query).sort({ name: 1 });
-
-      res.json({
-        success: true,
-        exercises
-      });
-    } catch (error) {
-      console.error('Search exercises error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error searching exercises'
-      });
+  // Verify exercise
+verifyExercise: async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { verified } = req.body;
+    
+    console.log(`Verifying exercise ${id} to:`, verified);
+    
+    const exercise = await Exercise.findByIdAndUpdate(
+      id,
+      { verified: verified === true || verified === 'true' },
+      { new: true }
+    );
+    
+    if (!exercise) {
+      return res.status(404).json({ success: false, message: 'Exercise not found' });
     }
-  },
+    
+    res.json({
+      success: true,
+      message: `Exercise ${exercise.verified ? 'verified' : 'unverified'} successfully`,
+      exercise
+    });
+  } catch (error) {
+    console.error('Verify exercise error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+},
 
+searchExercises: async (req, res) => {
+  try {
+    const { search, category, difficulty, verified } = req.query;
+    let query = {};
+
+    // Apply filters
+    if (category && category !== '') {
+      query.category = category;
+    }
+    
+    if (difficulty && difficulty !== '') {
+      query.difficulty = difficulty;
+    }
+    
+    if (verified === 'true') {
+      query.verified = true;
+    } else if (verified === 'false') {
+      query.verified = false;
+    }
+
+    // Apply search - MORE PRECISE
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(`^${search}$`, 'i'); // Exact match
+      
+      // Define categories list
+      const categories = ['calisthenics', 'weight loss', 'hiit', 'strength training', 'cardio', 'flexibility', 'bodybuilding', 'legs', 'full body', 'plyometrics'];
+      const muscleGroups = ['chest', 'back', 'shoulders', 'triceps', 'biceps', 'legs', 'quadriceps', 'hamstrings', 'glutes', 'abs', 'core', 'cardio'];
+      
+      if (muscleGroups.includes(search.toLowerCase())) {
+        // Search in muscle fields
+        query.$or = [
+          { primaryMuscle: searchRegex },
+          { targetMuscles: { $in: [searchRegex] } }
+        ];
+      }
+      else if (categories.includes(search.toLowerCase())) {
+        // Search in category field only
+        query.category = searchRegex;
+      }
+      else {
+        // Search in name only
+        query.name = searchRegex;
+      }
+    }
+
+    const exercises = await Exercise.find(query).sort({ name: 1 });
+
+    res.json({
+      success: true,
+      exercises
+    });
+  } catch (error) {
+    console.error('Search exercises error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching exercises'
+    });
+  }
+},
   // Verifier Management
   getVerifiers: async (req, res) => {
     try {
@@ -1424,45 +1650,50 @@ getUsers: async (req, res) => {
   },
 
   // Search Trainers API
-  searchTrainers: async (req, res) => {
-    try {
+// Search Trainers API - Updated to include Experience and Status
+searchTrainers: async (req, res) => {
+  try {
+    const { search } = req.query;
+    let query = {};
+    
+    // Build search query
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search, 'i');
       
-      
-      const { search } = req.query;
-      let query = {};
-      
-// console.log('Search query received:', search);
-      
-      // Build search query
-      if (search && search.trim() !== '') {
-        const searchRegex = new RegExp(search, 'i');
-        query = {
-          $or: [
-            { name: searchRegex },
-            { email: searchRegex },
-            { specializations: { $in: [searchRegex] } }
-          ]
-        };
+      // Handle experience range searches (e.g., "3-5", "5-10", "10+")
+      let experienceQuery = {};
+      if (search.match(/^\d+-\d+$/) || search === '10+') {
+        experienceQuery = { experience: searchRegex };
       }
       
-      const trainers = await Trainer.find(query)
-        .select('name email experience specializations status')
-        .sort({ createdAt: -1 });
-      
-      // console.log(`Found ${trainers.length} trainers for search: ${search}`);
-      
-      res.json({
-        success: true,
-        trainers
-      });
-    } catch (error) {
-      console.error('Search trainers error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error searching trainers'
-      });
+      query = {
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { specializations: { $in: [searchRegex] } },
+          { status: searchRegex },
+          { experience: searchRegex },
+          ...(Object.keys(experienceQuery).length > 0 ? [experienceQuery] : [])
+        ]
+      };
     }
-  },
+    
+    const trainers = await Trainer.find(query)
+      .select('name email experience specializations status meetingLink')
+      .sort({ createdAt: -1 });
+    
+    res.json({
+      success: true,
+      trainers
+    });
+  } catch (error) {
+    console.error('Search trainers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching trainers'
+    });
+  }
+},
 
   // Trainer Applications Management
   getTrainerApplications: async (req, res) => {
@@ -2098,5 +2329,5 @@ module.exports = {
   getPoorlyRatedTrainers,
   getPotentialTrainersForUser,
   reassignUserToTrainer,
-  getPendingReassignmentFlags
+  getPendingReassignmentFlags,
 };

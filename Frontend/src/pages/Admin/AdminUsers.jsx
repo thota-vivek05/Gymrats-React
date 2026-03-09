@@ -37,41 +37,73 @@ const AdminUsers = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Add this with other useState declarations
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    status: "Active",
+    membershipType: "Basic",
+    weight: "",
+    height: "",
+    gender: "",
+    dob: ""
+  });
+
  // Fetch Users (UPDATED)
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      let url = viewMode === 'dropped' 
-        ? '/api/admin/users/dropped' 
-        : `/api/admin/users?search=${encodeURIComponent(searchTerm)}`;
-
-      const token = localStorage.getItem("token");
-      const response = await fetch(url, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(data.users || []);
-        if (data.stats) setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setLoading(false);
+// Fetch Users - Updated to pass search term for all views
+const fetchUsers = async () => {
+  try {
+    // Don't set loading here to prevent focus loss
+    let url = viewMode === 'dropped' 
+      ? '/api/admin/users/dropped' 
+      : '/api/admin/users';
+    
+    // Add search parameter if there's a search term
+    const params = new URLSearchParams();
+    if (searchTerm.trim()) {
+      params.append('search', searchTerm);
     }
-  };
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
 
+    const token = localStorage.getItem("token");
+    const response = await fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+      setUsers(data.users || []);
+      if (data.stats) setStats(data.stats);
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+};
+
+
+// Initial load effect - only runs once
+useEffect(() => {
+  const loadInitial = async () => {
+    setLoading(true);
+    await fetchUsers();
+    setLoading(false);
+  };
+  loadInitial();
+}, []);
+
+// Debounced search effect
 useEffect(() => {
   const timer = setTimeout(() => {
     fetchUsers();
   }, 500);
   return () => clearTimeout(timer);
 }, [searchTerm, viewMode]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   // NEW: Fetch Detailed User Data
   const handleViewDetails = async (userId) => {
@@ -116,6 +148,49 @@ useEffect(() => {
     }
   };
 
+  const handleEditClick = (user) => {
+  setEditingUser(user);
+  setEditFormData({
+    fullName: user.full_name || "",
+    email: user.email || "",
+    phone: user.phone || "",
+    status: user.status || "Active",
+    membershipType: user.membershipType || "Basic",
+    weight: user.weight || "",
+    height: user.height || "",
+    gender: user.gender || "",
+    dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : ""
+  });
+  setIsEditModalOpen(true);
+};
+
+const handleUpdateUser = async (e) => {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`/api/admin/users/${editingUser._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(editFormData)
+    });
+    const data = await response.json();
+    if (data.success) {
+      setUsers(users.map(u => u._id === editingUser._id ? data.user : u));
+      setIsEditModalOpen(false);
+      setEditingUser(null);
+      alert("User updated successfully!");
+    } else {
+      alert("Error: " + data.message);
+    }
+  } catch (err) {
+    console.error("Error updating user:", err);
+    alert("Failed to update user");
+  }
+};
+
   // Shared container classes
   const containerClasses =
     "min-h-screen bg-black text-[#f1f1f1] font-sans flex flex-col";
@@ -141,21 +216,6 @@ useEffect(() => {
           <h1 className="m-0 text-2xl font-bold md:text-3xl text-[#f1f1f1]">
             User Management
           </h1>
-          <button
-            className="
-            w-full md:w-auto
-            bg-[#8A2BE2] 
-            text-white 
-            px-6 py-3 
-            rounded 
-            font-semibold 
-            transition-all duration-300 
-            hover:bg-[#7020a0] 
-            hover:-translate-y-0.5
-          "
-          >
-            + Add User
-          </button>
         </div>
 
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6 bg-[#111] p-4 rounded-lg border border-[#333]">
@@ -285,14 +345,15 @@ useEffect(() => {
                             >
                               View
                           </button>
-                          <button
-                            className="
-                            px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
-                            bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30
-                          "
-                          >
-                            Edit
-                          </button>
+                      <button
+                        onClick={() => handleEditClick(user)}
+                        className="
+                        px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
+                        bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30
+                      "
+                      >
+                        Edit
+                      </button>
                           <button
                             onClick={() => handleDelete(user._id)}
                             className="
@@ -318,6 +379,121 @@ useEffect(() => {
           </div>
         </div>
       </main>
+      {/* Edit User Modal */}
+{isEditModalOpen && editingUser && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit User</h2>
+      <form onSubmit={handleUpdateUser}>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Full Name</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.fullName}
+            onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
+          <input
+            type="email"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.email}
+            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.phone}
+            onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Date of Birth</label>
+          <input
+            type="date"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.dob}
+            onChange={(e) => setEditFormData({...editFormData, dob: e.target.value})}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Gender</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.gender}
+            onChange={(e) => setEditFormData({...editFormData, gender: e.target.value})}
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Weight (kg)</label>
+            <input
+              type="number"
+              step="0.1"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.weight}
+              onChange={(e) => setEditFormData({...editFormData, weight: e.target.value})}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Height (cm)</label>
+            <input
+              type="number"
+              step="0.1"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.height}
+              onChange={(e) => setEditFormData({...editFormData, height: e.target.value})}
+            />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.status}
+            onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+          >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Membership Type</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.membershipType}
+            onChange={(e) => setEditFormData({...editFormData, membershipType: e.target.value})}
+          >
+            <option value="Basic">Basic</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+          </select>
+        </div>
+        <div className="flex gap-4">
+          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+            Update User
+          </button>
+          <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
       {isModalOpen && userDetails && (
         <UserDetailsModal 
           user={selectedUser} 

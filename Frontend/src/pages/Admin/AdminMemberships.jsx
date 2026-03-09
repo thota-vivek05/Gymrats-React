@@ -28,31 +28,167 @@ const AdminMemberships = () => {
   const [memberships, setMemberships] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMembership, setEditingMembership] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [addFormData, setAddFormData] = useState({
+    userId: "",
+    type: "Basic",
+    startDate: "",
+    endDate: "",
+    price: ""
+  });
+  const [editFormData, setEditFormData] = useState({
+    type: "Basic",
+    startDate: "",
+    endDate: "",
+    price: "",
+    status: "Active"
+  });
+
+  // Fetch memberships
+  const fetchMemberships = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/memberships", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMemberships(data.memberships);
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching memberships:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch users for dropdown
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/users?limit=100", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchMemberships = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("/api/admin/memberships", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMemberships(data.memberships);
-          setStats(data.stats);
-        }
-      } catch (error) {
-        console.error("Error fetching memberships:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMemberships();
+    fetchUsers();
   }, []);
 
-  // Shared container classes
-  const containerClasses =
-    "min-h-screen bg-black text-[#f1f1f1] font-sans flex flex-col";
+  // Handle Add Plan
+  const handleAddPlan = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/admin/memberships", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: addFormData.userId,
+          type: addFormData.type,
+          startDate: addFormData.startDate,
+          endDate: addFormData.endDate,
+          price: addFormData.price
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setMemberships([data.membership, ...memberships]);
+        setIsAddModalOpen(false);
+        setAddFormData({
+          userId: "", type: "Basic", startDate: "", endDate: "", price: ""
+        });
+        alert("Membership added successfully!");
+        fetchMemberships(); // Refresh the list
+      } else {
+        alert("Error: " + data.message);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to add membership");
+    }
+  };
+
+  // Handle Edit Click
+  const handleEditClick = (membership) => {
+    setEditingMembership(membership);
+    setEditFormData({
+      type: membership.planType || "Basic",
+      startDate: membership.startDate ? new Date(membership.startDate).toISOString().split('T')[0] : "",
+      endDate: membership.endDate ? new Date(membership.endDate).toISOString().split('T')[0] : "",
+      price: membership.amount || "",
+      status: membership.status || "Active"
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // Handle Update Plan
+  const handleUpdatePlan = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/memberships/${editingMembership._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(editFormData)
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setMemberships(memberships.map(m => m._id === editingMembership._id ? data.membership : m));
+        setIsEditModalOpen(false);
+        setEditingMembership(null);
+        alert("Membership updated successfully!");
+      } else {
+        alert("Error: " + data.message);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to update membership");
+    }
+  };
+
+  // Handle Revoke (Delete)
+  const handleRevoke = async (id) => {
+    if (!confirm("Are you sure you want to revoke this membership?")) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/memberships/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMemberships(memberships.filter(m => m._id !== id));
+        alert("Membership revoked successfully!");
+      } else {
+        alert("Failed to revoke membership");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to revoke membership");
+    }
+  };
 
   if (loading)
     return (
@@ -76,6 +212,7 @@ const AdminMemberships = () => {
             Membership Management
           </h1>
           <button
+            onClick={() => setIsAddModalOpen(true)}
             className="
             w-full md:w-auto
             bg-[#8A2BE2] 
@@ -178,6 +315,7 @@ const AdminMemberships = () => {
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                           <button
+                            onClick={() => handleEditClick(m)}
                             className="
                             px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
                             bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30
@@ -186,6 +324,7 @@ const AdminMemberships = () => {
                             Edit
                           </button>
                           <button
+                            onClick={() => handleRevoke(m._id)}
                             className="
                             px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
                             bg-[#ff6b6b]/20 text-[#ff6b6b] hover:bg-[#ff6b6b]/30
@@ -209,6 +348,180 @@ const AdminMemberships = () => {
           </div>
         </div>
       </main>
+
+      {/* Add Plan Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Add New Membership</h2>
+            <form onSubmit={handleAddPlan}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Select User*</label>
+                <select
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={addFormData.userId}
+                  onChange={(e) => setAddFormData({...addFormData, userId: e.target.value})}
+                  required
+                >
+                  <option value="">Select a user</option>
+                  {users.map(user => (
+                    <option key={user._id} value={user._id}>
+                      {user.full_name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Plan Type*</label>
+                <select
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={addFormData.type}
+                  onChange={(e) => setAddFormData({...addFormData, type: e.target.value})}
+                  required
+                >
+                  <option value="Basic">Basic - ₹299/month</option>
+                  <option value="Gold">Gold - ₹599/month</option>
+                  <option value="Platinum">Platinum - ₹999/month</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">Start Date*</label>
+                  <input
+                    type="date"
+                    className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                    value={addFormData.startDate}
+                    onChange={(e) => setAddFormData({...addFormData, startDate: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">End Date*</label>
+                  <input
+                    type="date"
+                    className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                    value={addFormData.endDate}
+                    onChange={(e) => setAddFormData({...addFormData, endDate: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Price (₹)*</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={addFormData.price}
+                  onChange={(e) => setAddFormData({...addFormData, price: e.target.value})}
+                  placeholder="e.g., 299"
+                  required
+                />
+              </div>
+              
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+                  Add Plan
+                </button>
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Plan Modal */}
+      {isEditModalOpen && editingMembership && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit Membership</h2>
+            <form onSubmit={handleUpdatePlan}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">User</label>
+                <input
+                  type="text"
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white bg-opacity-50"
+                  value={editingMembership.userName || ''}
+                  disabled
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Plan Type*</label>
+                <select
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={editFormData.type}
+                  onChange={(e) => setEditFormData({...editFormData, type: e.target.value})}
+                  required
+                >
+                  <option value="Basic">Basic - ₹299/month</option>
+                  <option value="Gold">Gold - ₹599/month</option>
+                  <option value="Platinum">Platinum - ₹999/month</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">Start Date*</label>
+                  <input
+                    type="date"
+                    className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                    value={editFormData.startDate}
+                    onChange={(e) => setEditFormData({...editFormData, startDate: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">End Date*</label>
+                  <input
+                    type="date"
+                    className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                    value={editFormData.endDate}
+                    onChange={(e) => setEditFormData({...editFormData, endDate: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Price (₹)*</label>
+                <input
+                  type="number"
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={editFormData.price}
+                  onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
+                  required
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+                <select
+                  className="w-full bg-black border border-[#333] rounded p-3 text-white"
+                  value={editFormData.status}
+                  onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+                  Update Plan
+                </button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
