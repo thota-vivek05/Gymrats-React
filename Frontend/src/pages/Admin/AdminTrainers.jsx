@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "./components/AdminSidebar";
+import { useNavigate } from "react-router-dom";
 
 
 // Reusable StatCard Component
@@ -30,29 +31,69 @@ const AdminTrainers = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingTrainer, setEditingTrainer] = useState(null);
-  const [editFormData, setEditFormData] = useState({ meetingLink: "" });
+ const [editFormData, setEditFormData] = useState({ 
+  name: "", 
+  email: "", 
+  phone: "", 
+  experience: "", 
+  specializations: [], 
+  status: "Active", 
+  meetingLink: "" 
+});
 
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addFormData, setAddFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    experience: "",
+    specializations: "",
+    status: "Active"
+  });
 
-  useEffect(() => {
-    const fetchTrainers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("/api/admin/trainers", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setTrainers(data.trainers);
-          setStats(data.stats);
-        }
-      } catch (error) {
-        console.error("Error fetching trainers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTrainers();
-  }, []);
+// Initial load effect - only runs once
+useEffect(() => {
+  const loadInitial = async () => {
+    setLoading(true);
+    await fetchTrainers();
+    setLoading(false);
+  };
+  loadInitial();
+}, []);
+
+// Debounced search effect - doesn't trigger loading spinner
+useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchTrainers(searchTerm);
+  }, 500);
+  return () => clearTimeout(timer);
+}, [searchTerm]);
+
+   const fetchTrainers = async (search = "") => {
+  try {
+    
+    const token = localStorage.getItem("token");
+    let url = "/api/admin/trainers";
+    if (search.trim()) {
+      url = `/api/admin/trainers/search?search=${encodeURIComponent(search)}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (data.success) {
+      setTrainers(data.trainers || []);
+      if (!search.trim() && data.stats) setStats(data.stats);
+    }
+  } catch (error) {
+    console.error("Error fetching trainers:", error);
+  } finally {
+  }
+};
 
 
   const handleDelete = async (id) => {
@@ -86,38 +127,97 @@ const AdminTrainers = () => {
     );
 
 
-    const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          ...editingTrainer, 
-          meetingLink: editFormData.meetingLink
-        })
-      });
+  const handleUpdate = async (e) => {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+    
+    // Prepare specializations as array
+    const specializationsArray = editFormData.specializations 
+      ? (Array.isArray(editFormData.specializations) 
+        ? editFormData.specializations 
+        : editFormData.specializations.split(',').map(s => s.trim()))
+      : [];
+    
+    const response = await fetch(`/api/admin/trainers/${editingTrainer._id}`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        name: editFormData.name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        experience: editFormData.experience,
+        specializations: specializationsArray,
+        status: editFormData.status,
+        meetingLink: editFormData.meetingLink
+      })
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-        setTrainers(trainers.map(t => 
-          t._id === editingTrainer._id ? { ...t, meetingLink: editFormData.meetingLink} : t
-        ));
-        setEditingTrainer(null);
-        alert("Success!");
-      } else {
-        alert("Server error: " + data.message);
-      }
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      alert("Check Network Tab in F12");
+    if (data.success) {
+      setTrainers(trainers.map(t => 
+        t._id === editingTrainer._id ? data.trainer : t
+      ));
+      setEditingTrainer(null);
+      alert("Trainer updated successfully!");
+    } else {
+      alert("Server error: " + data.message);
     }
-  };
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    alert("Failed to update trainer");
+  }
+};
+
+const handleAddTrainer = async (e) => {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+    
+
+    const specializationsArray = addFormData.specializations 
+      ? addFormData.specializations.split(',').map(s => s.trim())
+      : [];
+    
+    const response = await fetch("/api/admin/trainers", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: addFormData.name,
+        email: addFormData.email,
+        password: addFormData.password,
+        phone: addFormData.phone,
+        experience: addFormData.experience,
+        specializations: specializationsArray,
+        status: addFormData.status
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setTrainers([data.trainer, ...trainers]);
+      setIsAddModalOpen(false);
+      setAddFormData({
+        name: "", email: "", password: "", phone: "", 
+        experience: "", specializations: "", status: "Active"
+      });
+      alert("Trainer added successfully!");
+    } else {
+      alert("Error: " + data.message);
+    }
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    alert("Failed to add trainer");
+  }
+};
 
   return (
     <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
@@ -130,6 +230,7 @@ const AdminTrainers = () => {
             Trainer Management
           </h1>
           <button
+            onClick={() => setIsAddModalOpen(true)}
             className="
             w-full md:w-auto
             bg-[#8A2BE2] 
@@ -145,7 +246,19 @@ const AdminTrainers = () => {
             + Add Trainer
           </button>
         </div>
-
+         {/* Search Bar */}
+          <div className="mb-6 bg-[#111] p-4 rounded-lg border border-[#333]">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search trainers by name, email, or specialization..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-[#1e1e3a] border border-[#333] text-white px-4 py-3 rounded focus:outline-none focus:border-[#8A2BE2]"
+              />
+              <span className="absolute right-3 top-3 text-gray-500">🔍</span>
+            </div>
+          </div>
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-5 mb-8 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total Trainers" value={stats?.totalTrainers || 0} />
@@ -235,15 +348,23 @@ const AdminTrainers = () => {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                         <button
+                          <button
                             onClick={() => {
-                            setEditingTrainer(t);
-                            setEditFormData({ meetingLink: t.meetingLink || "" });
+                              setEditingTrainer(t);
+                              setEditFormData({ 
+                                name: t.name || "",
+                                email: t.email || "",
+                                phone: t.phone || "",
+                                experience: t.experience || "",
+                                specializations: t.specializations || [],
+                                status: t.status || "Active",
+                                meetingLink: t.meetingLink || "" 
+                              });
                             }}
                             className="px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300 bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30"
-                            >
+                          >
                             Edit
-                            </button>
+                          </button>
                           <button
                             onClick={() => handleDelete(t._id)}
                             className="
@@ -269,42 +390,194 @@ const AdminTrainers = () => {
           </div>
         </div>
       </main>
-       {editingTrainer && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                      <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
-                        <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit {editingTrainer.name}</h2>
-                        <form onSubmit={handleUpdate}>
-                          <div className="mb-6">
-                            <label className="block text-sm font-semibold text-[#cccccc] mb-2 uppercase">
-                              Google Meet / Meeting URL
-                            </label>
-                            <input
-                              type="url"
-                              placeholder="https://meet.google.com/..."
-                              className="w-full bg-black border border-[#333] rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]"
-                              value={editFormData.meetingLink}
-                              onChange={(e) => setEditFormData({ ...editFormData, meetingLink: e.target.value })}
-                            />
-                          </div>
-                          <div className="flex gap-4">
-                            <button 
-                              type="submit" 
-                              className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]"
-                            >
-                              Save Details
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => setEditingTrainer(null)} 
-                              className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
+{editingTrainer && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
+      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit {editingTrainer.name}</h2>
+      <form onSubmit={handleUpdate}>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.name}
+            onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
+          <input
+            type="email"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.email}
+            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.phone}
+            onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.experience}
+            onChange={(e) => setEditFormData({...editFormData, experience: e.target.value})}
+            required
+          >
+            <option value="">Select Experience</option>
+            <option value="1-2">1-2 years</option>
+            <option value="3-5">3-5 years</option>
+            <option value="5-10">5-10 years</option>
+            <option value="10+">10+ years</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label>
+          <input
+            type="text"
+            placeholder="e.g., Calisthenics, Strength Training"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={Array.isArray(editFormData.specializations) ? editFormData.specializations.join(', ') : editFormData.specializations}
+            onChange={(e) => setEditFormData({...editFormData, specializations: e.target.value})}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.status}
+            onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+          >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Meeting Link</label>
+          <input
+            type="url"
+            placeholder="https://meet.google.com/..."
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.meetingLink}
+            onChange={(e) => setEditFormData({...editFormData, meetingLink: e.target.value})}
+          />
+        </div>
+        <div className="flex gap-4">
+          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+            Save Changes
+          </button>
+          <button type="button" onClick={() => setEditingTrainer(null)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+{isAddModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
+      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Add New Trainer</h2>
+      <form onSubmit={handleAddTrainer}>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name*</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.name}
+            onChange={(e) => setAddFormData({...addFormData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email*</label>
+          <input
+            type="email"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.email}
+            onChange={(e) => setAddFormData({...addFormData, email: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Password*</label>
+          <input
+            type="password"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.password}
+            onChange={(e) => setAddFormData({...addFormData, password: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone*</label>
+          <input
+            type="text"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.phone}
+            onChange={(e) => setAddFormData({...addFormData, phone: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience*</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.experience}
+            onChange={(e) => setAddFormData({...addFormData, experience: e.target.value})}
+            required
+          >
+            <option value="">Select Experience</option>
+            <option value="1-2">1-2 years</option>
+            <option value="3-5">3-5 years</option>
+            <option value="5-10">5-10 years</option>
+            <option value="10+">10+ years</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label>
+          <input
+            type="text"
+            placeholder="e.g., Calisthenics, Strength Training"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.specializations}
+            onChange={(e) => setAddFormData({...addFormData, specializations: e.target.value})}
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+          <select
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.status}
+            onChange={(e) => setAddFormData({...addFormData, status: e.target.value})}
+          >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
+        <div className="flex gap-4">
+          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+            Add Trainer
+          </button>
+          <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </div>
   );
 };
