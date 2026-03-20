@@ -437,15 +437,6 @@ useEffect(() => {
                       <td className="p-3">
                         <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                           <button
-                            onClick={() => handleVerifyExercise(e._id, e.verified)}
-                            className={`px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300
-                              ${e.verified 
-                                ? 'bg-[#2e8b57]/20 text-[#90ee90] hover:bg-[#2e8b57]/30' 
-                                : 'bg-[#ffc107]/20 text-[#ffc107] hover:bg-[#ffc107]/30'}`}
-                          >
-                            {e.verified ? 'Verified' : 'Verify'}
-                          </button>
-                          <button
                             onClick={() => handleEditClick(e)}
                             className="px-3 py-1.5 rounded text-sm font-semibold transition-all duration-300 bg-[#8A2BE2]/20 text-[#8A2BE2] hover:bg-[#8A2BE2]/30"
                           >

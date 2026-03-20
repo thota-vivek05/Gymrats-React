@@ -1094,13 +1094,38 @@ getTrainers: async (req, res) => {
 
 
 
-  // Exercise Management - UPDATED
+// Exercise Management - UPDATED
 // Exercise Management - UPDATED with proper search and filters
 // Exercise Management - UPDATED with more precise search
 // Exercise Management - UPDATED with more precise search
 getExercises: async (req, res) => {
   try {
     const { search, category, difficulty, verified } = req.query;
+    const muscleGroups = [
+      "chest",
+      "back",
+      "shoulders",
+      "triceps",
+      "biceps",
+      "legs",
+      "quadriceps",
+      "hamstrings",
+      "glutes",
+      "abs",
+      "core",
+      "cardio",
+      "full body",
+    ];
+    const categoryOptions = [
+      "calisthenics",
+      "weight loss",
+      "hiit",
+      "competitive",
+      "strength training",
+      "cardio",
+      "flexibility",
+      "bodybuilding",
+    ];
     
     // Build query object
     let query = {};
@@ -1122,29 +1147,41 @@ getExercises: async (req, res) => {
       query.verified = false;
     }
     
-    // Apply search filter - MORE PRECISE NOW
+    // Apply partial search filter
     if (search && search.trim() !== '') {
-      const searchRegex = new RegExp(`^${search}$`, 'i'); // Exact match, not partial
-      
-      // Define which fields to search based on search term
-      const muscleGroups = ['chest', 'back', 'shoulders', 'triceps', 'biceps', 'legs', 'quadriceps', 'hamstrings', 'glutes', 'abs', 'core', 'cardio'];
-      const categories = ['calisthenics', 'weight loss', 'hiit', 'strength training', 'cardio', 'flexibility', 'bodybuilding', 'legs', 'full body', 'plyometrics'];
-      
-      if (muscleGroups.includes(search.toLowerCase())) {
-        // If searching for a muscle group, ONLY search in muscle fields
+      const normalizedSearch = search.trim().toLowerCase();
+      const escapedSearch = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escapedSearch, 'i');
+      const exactCategoryMatch = categoryOptions.includes(normalizedSearch);
+      const exactMuscleMatch = muscleGroups.includes(normalizedSearch);
+      const matchesMuscleKeyword = muscleGroups.some((item) => item.includes(normalizedSearch));
+      const matchesCategoryKeyword = categoryOptions.some((item) => item.includes(normalizedSearch));
+
+      if (exactCategoryMatch) {
+        query.category = searchRegex;
+      } else if (exactMuscleMatch) {
         query.$or = [
           { primaryMuscle: searchRegex },
-          { targetMuscles: { $in: [searchRegex] } }
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex }
         ];
-      } 
-      else if (categories.includes(search.toLowerCase())) {
-        // If searching for a category, ONLY search in category field
+      } else if (matchesCategoryKeyword && !matchesMuscleKeyword) {
         query.category = searchRegex;
-        // Don't use $or, just set category directly
-      }
-      else {
-        // For general searches, search in name only
-        query.name = searchRegex;
+      } else if (matchesMuscleKeyword && !matchesCategoryKeyword) {
+        query.$or = [
+          { primaryMuscle: searchRegex },
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex }
+        ];
+      } else {
+        query.$or = [
+          { name: searchRegex },
+          { category: searchRegex },
+          { primaryMuscle: searchRegex },
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex },
+          { instructions: searchRegex }
+        ];
       }
     }
     
@@ -1357,6 +1394,31 @@ verifyExercise: async (req, res) => {
 searchExercises: async (req, res) => {
   try {
     const { search, category, difficulty, verified } = req.query;
+    const muscleGroups = [
+      "chest",
+      "back",
+      "shoulders",
+      "triceps",
+      "biceps",
+      "legs",
+      "quadriceps",
+      "hamstrings",
+      "glutes",
+      "abs",
+      "core",
+      "cardio",
+      "full body",
+    ];
+    const categoryOptions = [
+      "calisthenics",
+      "weight loss",
+      "hiit",
+      "competitive",
+      "strength training",
+      "cardio",
+      "flexibility",
+      "bodybuilding",
+    ];
     let query = {};
 
     // Apply filters
@@ -1374,28 +1436,41 @@ searchExercises: async (req, res) => {
       query.verified = false;
     }
 
-    // Apply search - MORE PRECISE
+    // Apply partial search
     if (search && search.trim() !== '') {
-      const searchRegex = new RegExp(`^${search}$`, 'i'); // Exact match
-      
-      // Define categories list
-      const categories = ['calisthenics', 'weight loss', 'hiit', 'strength training', 'cardio', 'flexibility', 'bodybuilding', 'legs', 'full body', 'plyometrics'];
-      const muscleGroups = ['chest', 'back', 'shoulders', 'triceps', 'biceps', 'legs', 'quadriceps', 'hamstrings', 'glutes', 'abs', 'core', 'cardio'];
-      
-      if (muscleGroups.includes(search.toLowerCase())) {
-        // Search in muscle fields
+      const normalizedSearch = search.trim().toLowerCase();
+      const escapedSearch = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escapedSearch, 'i');
+      const exactCategoryMatch = categoryOptions.includes(normalizedSearch);
+      const exactMuscleMatch = muscleGroups.includes(normalizedSearch);
+      const matchesMuscleKeyword = muscleGroups.some((item) => item.includes(normalizedSearch));
+      const matchesCategoryKeyword = categoryOptions.some((item) => item.includes(normalizedSearch));
+
+      if (exactCategoryMatch) {
+        query.category = searchRegex;
+      } else if (exactMuscleMatch) {
         query.$or = [
           { primaryMuscle: searchRegex },
-          { targetMuscles: { $in: [searchRegex] } }
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex }
         ];
-      }
-      else if (categories.includes(search.toLowerCase())) {
-        // Search in category field only
+      } else if (matchesCategoryKeyword && !matchesMuscleKeyword) {
         query.category = searchRegex;
-      }
-      else {
-        // Search in name only
-        query.name = searchRegex;
+      } else if (matchesMuscleKeyword && !matchesCategoryKeyword) {
+        query.$or = [
+          { primaryMuscle: searchRegex },
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex }
+        ];
+      } else {
+        query.$or = [
+          { name: searchRegex },
+          { category: searchRegex },
+          { primaryMuscle: searchRegex },
+          { targetMuscles: searchRegex },
+          { secondaryMuscles: searchRegex },
+          { instructions: searchRegex }
+        ];
       }
     }
 
