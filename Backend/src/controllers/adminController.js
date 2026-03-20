@@ -1183,11 +1183,15 @@ getExercises: async (req, res) => {
 },
   createExercise: async (req, res) => {
     try {
+      const normalizedCategories = Array.isArray(req.body.category)
+        ? req.body.category.map((item) => item.trim()).filter(Boolean)
+        : typeof req.body.category === "string"
+        ? req.body.category.split(",").map((item) => item.trim()).filter(Boolean)
+        : [];
       
 
       const {
         name,
-        category,
         difficulty,
         targetMuscles,
         instructions,
@@ -1202,7 +1206,7 @@ getExercises: async (req, res) => {
       } = req.body;
 
       // Validate required fields - primaryMuscle is now required
-      if (!name || !category || !difficulty || !targetMuscles || !instructions || !type || !defaultRepsOrDuration || !primaryMuscle) {
+      if (!name || normalizedCategories.length === 0 || !difficulty || !targetMuscles || !instructions || !type || !defaultRepsOrDuration || !primaryMuscle) {
         return res.status(400).json({
           success: false,
           message: 'Missing required fields. Primary muscle is required.'
@@ -1211,7 +1215,7 @@ getExercises: async (req, res) => {
 
       const newExercise = new Exercise({
         name,
-        category,
+        category: normalizedCategories,
         difficulty,
         targetMuscles: Array.isArray(targetMuscles) ? targetMuscles : targetMuscles.split(',').map(m => m.trim()),
         instructions,
@@ -1244,12 +1248,16 @@ getExercises: async (req, res) => {
 
   updateExercise: async (req, res) => {
     try {
+      const normalizedCategories = Array.isArray(req.body.category)
+        ? req.body.category.map((item) => item.trim()).filter(Boolean)
+        : typeof req.body.category === "string"
+        ? req.body.category.split(",").map((item) => item.trim()).filter(Boolean)
+        : [];
       
 
       const exerciseId = req.params.id;
       const {
         name,
-        category,
         difficulty,
         targetMuscles,
         instructions,
@@ -1268,7 +1276,7 @@ getExercises: async (req, res) => {
         exerciseId,
         {
           name,
-          category,
+          category: normalizedCategories,
           difficulty,
           targetMuscles: Array.isArray(targetMuscles) ? targetMuscles : targetMuscles.split(',').map(m => m.trim()),
           instructions,

@@ -386,6 +386,12 @@ router.get(
 const Exercise = require("../model/Exercise");
 const UserExerciseRating = require("../model/UserExerciseRating");
 
+const normalizeExerciseCategories = (category) =>
+  Array.isArray(category) ? category.filter(Boolean) : category ? [category] : [];
+
+const matchesWorkoutType = (category, workoutType) =>
+  normalizeExerciseCategories(category).includes(workoutType);
+
 // Get exercises based on user's workout type
 router.get(
   "/api/exercises",
@@ -472,7 +478,7 @@ router.post(
           rating,
           effectiveness: effectiveness || "Neutral",
           notes: notes || "",
-          workoutType: user?.workout_type || exercise.category,
+          workoutType: user?.workout_type || normalizeExerciseCategories(exercise.category)[0] || "",
         },
         { upsert: true, new: true }
       );
@@ -489,9 +495,16 @@ router.post(
 
       // Update user preferences
       if (rating >= 4) {
+        const preferredCategories = normalizeExerciseCategories(exercise.category);
         await User.findByIdAndUpdate(userId, {
           $addToSet: {
-            "exercisePreferences.preferredCategories": exercise.category,
+            ...(preferredCategories.length > 0
+              ? {
+                  "exercisePreferences.preferredCategories": {
+                    $each: preferredCategories,
+                  },
+                }
+              : {}),
             "exercisePreferences.favoriteExercises": {
               exerciseId: exercise._id,
               rating: rating,
@@ -552,7 +565,7 @@ router.get(
         const preferredCategories = [
           ...new Set(
             validHighRatedExercises
-              .map((r) => r.exerciseId?.category)
+              .flatMap((r) => normalizeExerciseCategories(r.exerciseId?.category))
               .filter(Boolean)
           ),
         ];
@@ -632,8 +645,8 @@ router.get(
       // Final sort: user's workout type exercises first, then by rating
       if (userWorkoutType) {
         recommendedExercises.sort((a, b) => {
-          const aIsUserType = a.category === userWorkoutType;
-          const bIsUserType = b.category === userWorkoutType;
+          const aIsUserType = matchesWorkoutType(a.category, userWorkoutType);
+          const bIsUserType = matchesWorkoutType(b.category, userWorkoutType);
 
           if (aIsUserType && !bIsUserType) return -1;
           if (!aIsUserType && bIsUserType) return 1;
@@ -686,7 +699,7 @@ router.get(
         verified: true,
         _id: { $ne: exerciseId },
         $or: [
-          { category: exercise.category },
+          { category: { $in: normalizeExerciseCategories(exercise.category) } },
           { movementPattern: exercise.movementPattern },
           { primaryMuscle: exercise.primaryMuscle },
         ],

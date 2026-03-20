@@ -6,9 +6,17 @@ const exerciseSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     category: {
-      type: String,
-      enum: ["Calisthenics", "Weight Loss", "HIIT", "Competitive", "Strength Training", "Cardio", "Flexibility", "Bodybuilding"],
+      type: [
+        {
+          type: String,
+          enum: ["Calisthenics", "Weight Loss", "HIIT", "Competitive", "Strength Training", "Cardio", "Flexibility", "Bodybuilding"],
+        },
+      ],
       required: true,
+      validate: {
+        validator: (value) => Array.isArray(value) && value.length > 0,
+        message: "At least one category is required.",
+      },
     },
     difficulty: {
       type: String,
@@ -40,4 +48,3 @@ const exerciseSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Exercise", exerciseSchema);
-

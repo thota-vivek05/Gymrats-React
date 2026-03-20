@@ -3,6 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import DashboardHeader from './components/DashboardHeader'; // Ensure this path is correct
 import Footer from '../../components/common/Footer/Footer'; // Ensure this path is correct
 
+const normalizeCategories = (category) =>
+    Array.isArray(category) ? category.filter(Boolean) : category ? [category] : [];
+
+const formatCategories = (category) => normalizeCategories(category).join(', ');
+
 const UserExercises = () => {
     const { user } = useAuth();
     
@@ -45,7 +50,7 @@ const UserExercises = () => {
             const query = searchQuery.toLowerCase();
             result = result.filter(ex => 
                 ex.name.toLowerCase().includes(query) ||
-                ex.category.toLowerCase().includes(query) ||
+                normalizeCategories(ex.category).some(category => category.toLowerCase().includes(query)) ||
                 (ex.targetMuscles && ex.targetMuscles.some(m => m.toLowerCase().includes(query)))
             );
         }
@@ -195,7 +200,7 @@ const UserExercises = () => {
                                 <div>
                                     <div className="flex gap-3 mb-3">
                                         <span className="px-3 py-1 bg-[#8A2BE2]/20 text-[#8A2BE2] rounded-full text-xs font-bold border border-[#8A2BE2]/50">
-                                            {selectedExercise.category}
+                                            {formatCategories(selectedExercise.category)}
                                         </span>
                                         <span className="px-3 py-1 bg-purple-900/30 text-purple-200 rounded-full text-xs font-bold border border-purple-500/30">
                                             {selectedExercise.difficulty}
@@ -266,7 +271,7 @@ const UserExercises = () => {
                                                 style={{ backgroundImage: `url('${ex.image || ''}')` }}
                                             ></div>
                                             <h4 className="text-white font-medium truncate">{ex.name}</h4>
-                                            <p className="text-xs text-[#8A2BE2]">{ex.category}</p>
+                                            <p className="text-xs text-[#8A2BE2]">{formatCategories(ex.category)}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -404,7 +409,7 @@ const ExerciseCard = ({ exercise, onClick }) => (
             {/* Floating Badges */}
             <div className="absolute top-2 left-2">
                 <span className="bg-[#8A2BE2]/90 text-white text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm">
-                    {exercise.category}
+                    {formatCategories(exercise.category)}
                 </span>
             </div>
             {exercise.userRating && (

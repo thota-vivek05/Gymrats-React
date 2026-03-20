@@ -7,6 +7,11 @@ import { faArrowLeft, faPlus, faMoon, faTrash, faSave, faCheckCircle, faSpinner 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const API_BASE_URL = '/api/trainer';
 
+const normalizeCategories = (category) =>
+    Array.isArray(category) ? category.filter(Boolean) : category ? [category] : [];
+
+const formatCategories = (category) => normalizeCategories(category).join(', ');
+
 // Helper Component for a single Exercise Item
 const ExerciseItem = ({ dayName, exerciseIndex, exercise, onRemove, onInputChange }) => {
     return (
@@ -242,11 +247,11 @@ const EditWorkoutPlan = () => {
     // Filter exercises
     const filteredExercises = availableExercises.filter(exercise => {
         const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = categoryFilter === 'all' || exercise.category.toLowerCase() === categoryFilter;
+        const matchesCategory = categoryFilter === 'all' || normalizeCategories(exercise.category).some(category => category.toLowerCase() === categoryFilter);
         return matchesSearch && matchesCategory;
     });
 
-    const categories = [...new Set(availableExercises.map(e => e.category))];
+    const categories = [...new Set(availableExercises.flatMap(e => normalizeCategories(e.category)))];
 
     const handleCategoryClick = (category) => {
         setCategoryFilter(category);
@@ -428,7 +433,7 @@ const EditWorkoutPlan = () => {
                                                 onClick={() => setSelectedExercise(exercise.name)}
                                             >
                                                 <div className="font-medium text-[1rem] mb-[5px] text-[#f1f1f1]">{exercise.name}</div>
-                                                <div className="text-[0.8rem] text-[#aaa] mb-[8px]">{exercise.category}</div>
+                                                <div className="text-[0.8rem] text-[#aaa] mb-[8px]">{formatCategories(exercise.category)}</div>
                                                 <div className="text-[0.8em] text-[#666] mt-[5px]">
                                                     {exercise.defaultSets} sets × {exercise.defaultRepsOrDuration}
                                                     {exercise.targetMuscles && exercise.targetMuscles.length > 0 && (

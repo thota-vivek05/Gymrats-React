@@ -1,6 +1,21 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "./components/AdminSidebar";
 
+const CATEGORY_OPTIONS = [
+  "Calisthenics",
+  "Weight Loss",
+  "HIIT",
+  "Strength Training",
+  "Cardio",
+  "Flexibility",
+  "Bodybuilding",
+];
+
+const normalizeCategories = (category) =>
+  Array.isArray(category) ? category.filter(Boolean) : category ? [category] : [];
+
+const formatCategories = (category) => normalizeCategories(category).join(", ");
+
 // Reusable StatCard Component
 const StatCard = ({ label, value }) => {
   return (
@@ -38,7 +53,7 @@ const AdminExercises = () => {
   const [editingExercise, setEditingExercise] = useState(null);
   const [addFormData, setAddFormData] = useState({
     name: "",
-    category: "",
+    category: [],
     difficulty: "",
     targetMuscles: "",
     instructions: "",
@@ -52,7 +67,7 @@ const AdminExercises = () => {
   });
   const [editFormData, setEditFormData] = useState({
     name: "",
-    category: "",
+    category: [],
     difficulty: "",
     targetMuscles: "",
     instructions: "",
@@ -137,6 +152,7 @@ useEffect(() => {
         
         const exerciseData = {
           ...addFormData,
+          category: normalizeCategories(addFormData.category),
           targetMuscles: addFormData.targetMuscles.split(',').map(m => m.trim()),
           secondaryMuscles: addFormData.secondaryMuscles ? addFormData.secondaryMuscles.split(',').map(m => m.trim()) : [],
           equipment: addFormData.equipment ? addFormData.equipment.split(',').map(e => e.trim()) : [],
@@ -157,7 +173,7 @@ useEffect(() => {
           setExercises([data.exercise, ...exercises]);
           setIsAddModalOpen(false);
           setAddFormData({
-            name: "", category: "", difficulty: "", targetMuscles: "", instructions: "",
+            name: "", category: [], difficulty: "", targetMuscles: "", instructions: "",
             type: "Reps", defaultSets: 3, defaultRepsOrDuration: "", equipment: "",
             primaryMuscle: "", secondaryMuscles: "", image: ""
           });
@@ -175,7 +191,7 @@ useEffect(() => {
       setEditingExercise(exercise);
       setEditFormData({
         name: exercise.name || "",
-        category: exercise.category || "",
+        category: normalizeCategories(exercise.category),
         difficulty: exercise.difficulty || "",
         targetMuscles: exercise.targetMuscles ? exercise.targetMuscles.join(', ') : "",
         instructions: exercise.instructions || "",
@@ -198,6 +214,7 @@ useEffect(() => {
         
         const exerciseData = {
           ...editFormData,
+          category: normalizeCategories(editFormData.category),
           targetMuscles: editFormData.targetMuscles.split(',').map(m => m.trim()),
           secondaryMuscles: editFormData.secondaryMuscles ? editFormData.secondaryMuscles.split(',').map(m => m.trim()) : [],
           equipment: editFormData.equipment ? editFormData.equipment.split(',').map(e => e.trim()) : [],
@@ -394,7 +411,7 @@ useEffect(() => {
                       className="border-b border-[#333] transition-colors duration-300 hover:bg-[#8A2BE2]/10"
                     >
                       <td className="p-3 text-[#f1f1f1]">{e.name}</td>
-                      <td className="p-3 text-[#f1f1f1]">{e.category}</td>
+                      <td className="p-3 text-[#f1f1f1]">{formatCategories(e.category)}</td>
                       <td className="p-3">
                       <span
                         className={`
@@ -475,20 +492,17 @@ useEffect(() => {
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#cccccc] mb-2">Category*</label>
             <select
+              multiple
               className="w-full bg-black border border-[#333] rounded p-3 text-white"
               value={addFormData.category}
-              onChange={(e) => setAddFormData({...addFormData, category: e.target.value})}
+              onChange={(e) => setAddFormData({...addFormData, category: Array.from(e.target.selectedOptions, (option) => option.value)})}
               required
             >
-              <option value="">Select Category</option>
-              <option value="Calisthenics">Calisthenics</option>
-              <option value="Weight Loss">Weight Loss</option>
-              <option value="HIIT">HIIT</option>
-              <option value="Strength Training">Strength Training</option>
-              <option value="Cardio">Cardio</option>
-              <option value="Flexibility">Flexibility</option>
-              <option value="Bodybuilding">Bodybuilding</option>
+              {CATEGORY_OPTIONS.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
             </select>
+            <p className="mt-2 text-xs text-[#999]">Hold Ctrl/Cmd to choose multiple categories.</p>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#cccccc] mb-2">Difficulty*</label>
@@ -633,20 +647,17 @@ useEffect(() => {
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#cccccc] mb-2">Category*</label>
             <select
+              multiple
               className="w-full bg-black border border-[#333] rounded p-3 text-white"
               value={editFormData.category}
-              onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+              onChange={(e) => setEditFormData({...editFormData, category: Array.from(e.target.selectedOptions, (option) => option.value)})}
               required
             >
-              <option value="">Select Category</option>
-              <option value="Calisthenics">Calisthenics</option>
-              <option value="Weight Loss">Weight Loss</option>
-              <option value="HIIT">HIIT</option>
-              <option value="Strength Training">Strength Training</option>
-              <option value="Cardio">Cardio</option>
-              <option value="Flexibility">Flexibility</option>
-              <option value="Bodybuilding">Bodybuilding</option>
+              {CATEGORY_OPTIONS.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
             </select>
+            <p className="mt-2 text-xs text-[#999]">Hold Ctrl/Cmd to choose multiple categories.</p>
           </div>
           <div className="mb-4">
             <label className="block text-sm font-semibold text-[#cccccc] mb-2">Difficulty*</label>
