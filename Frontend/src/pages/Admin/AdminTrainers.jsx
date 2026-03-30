@@ -54,41 +54,46 @@ const AdminTrainers = () => {
     status: "Active"
   });
 
-      useEffect(() => {
-        fetchTrainers();
-      }, []);
-      
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          fetchTrainers(searchTerm);
-        }, 500);
-        return () => clearTimeout(timer);
-      }, [searchTerm]);
+// Initial load effect - only runs once
+useEffect(() => {
+  const loadInitial = async () => {
+    setLoading(true);
+    await fetchTrainers();
+    setLoading(false);
+  };
+  loadInitial();
+}, []);
 
+// Debounced search effect - doesn't trigger loading spinner
+useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchTrainers(searchTerm);
+  }, 500);
+  return () => clearTimeout(timer);
+}, [searchTerm]);
 
-      const fetchTrainers = async (search = "") => {
-        try {
-          setLoading(true);
-          const token = localStorage.getItem("token");
-          let url = "/api/admin/trainers";
-          if (search.trim()) {
-            url = `/api/admin/trainers/search?search=${encodeURIComponent(search)}`;
-          }
-          
-          const response = await fetch(url, {
-            headers: { "Authorization": `Bearer ${token}` }
-          });
-          const data = await response.json();
-          if (data.success) {
-            setTrainers(data.trainers || []);
-            if (!search.trim() && data.stats) setStats(data.stats);
-          }
-        } catch (error) {
-          console.error("Error fetching trainers:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
+   const fetchTrainers = async (search = "") => {
+  try {
+    
+    const token = localStorage.getItem("token");
+    let url = "/api/admin/trainers";
+    if (search.trim()) {
+      url = `/api/admin/trainers/search?search=${encodeURIComponent(search)}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (data.success) {
+      setTrainers(data.trainers || []);
+      if (!search.trim() && data.stats) setStats(data.stats);
+    }
+  } catch (error) {
+    console.error("Error fetching trainers:", error);
+  } finally {
+  }
+};
 
 
   const handleDelete = async (id) => {
@@ -173,6 +178,11 @@ const handleAddTrainer = async (e) => {
   try {
     const token = localStorage.getItem("token");
     
+
+    const specializationsArray = addFormData.specializations 
+      ? addFormData.specializations.split(',').map(s => s.trim())
+      : [];
+    
     const response = await fetch("/api/admin/trainers", {
       method: "POST",
       headers: { 
@@ -180,8 +190,13 @@ const handleAddTrainer = async (e) => {
         "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({
-        ...addFormData,
-        specializations: addFormData.specializations.split(',').map(s => s.trim())
+        name: addFormData.name,
+        email: addFormData.email,
+        password: addFormData.password,
+        phone: addFormData.phone,
+        experience: addFormData.experience,
+        specializations: specializationsArray,
+        status: addFormData.status
       })
     });
 
@@ -215,6 +230,7 @@ const handleAddTrainer = async (e) => {
             Trainer Management
           </h1>
           <button
+            onClick={() => setIsAddModalOpen(true)}
             className="
             w-full md:w-auto
             bg-[#8A2BE2] 

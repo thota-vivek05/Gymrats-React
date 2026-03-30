@@ -46,6 +46,7 @@ router.get('/exercises/search', adminController.searchExercises);
 router.post('/exercises', adminController.createExercise);
 router.put('/exercises/:id', adminController.updateExercise);
 router.delete('/exercises/:id', adminController.deleteExercise);
+router.put('/exercises/:id/verify', adminController.verifyExercise); 
 
 // Membership Routes
 router.get('/memberships', adminController.getMemberships);

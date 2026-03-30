@@ -66,40 +66,50 @@ const AdminExercises = () => {
     verified: false
   });
 
-   const fetchExercises = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      let url = "/api/admin/exercises";
-      const params = new URLSearchParams();
-      
-      if (searchTerm) params.append("search", searchTerm);
-      if (filterCategory) params.append("category", filterCategory);
-      if (filterDifficulty) params.append("difficulty", filterDifficulty);
-      if (filterVerified) params.append("verified", filterVerified);
-      
-      if (params.toString()) url += `?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setExercises(data.exercises);
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error fetching exercises:", error);
-    } finally {
-      setLoading(false);
+  const fetchExercises = async () => {
+  try {
+    // DON'T set loading here - this causes re-render and focus loss
+    // setLoading(true);  <-- REMOVE THIS
+    
+    const token = localStorage.getItem("token");
+    let url = "/api/admin/exercises";
+    const params = new URLSearchParams();
+    
+    if (searchTerm) params.append("search", searchTerm);
+    if (filterCategory) params.append("category", filterCategory);
+    if (filterDifficulty) params.append("difficulty", filterDifficulty);
+    if (filterVerified) params.append("verified", filterVerified);
+    
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (data.success) {
+      setExercises(data.exercises);
+      setStats(data.stats);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching exercises:", error);
+  } finally {
+    // DON'T set loading here
+    // setLoading(false);  <-- REMOVE THIS
+  }
+};
 
+// Initial load effect - only runs once
 useEffect(() => {
-    fetchExercises();
-  }, []);
+  const loadInitial = async () => {
+    setLoading(true);
+    await fetchExercises();
+    setLoading(false);
+  };
+  loadInitial();
+}, []);
 
-  useEffect(() => {
+// Debounced search/filter effect
+useEffect(() => {
   const timer = setTimeout(() => {
     fetchExercises();
   }, 500);
@@ -386,20 +396,20 @@ useEffect(() => {
                       <td className="p-3 text-[#f1f1f1]">{e.name}</td>
                       <td className="p-3 text-[#f1f1f1]">{e.category}</td>
                       <td className="p-3">
-                        <span
-                          className={`
-                          inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full border
-                          ${
-                            e.difficulty === "Easy"
-                              ? "bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]"
-                              : e.difficulty === "Medium"
-                              ? "bg-[#ffc107]/20 text-[#ffc107] border-[#ffc107]"
-                              : "bg-[#ff6b6b]/20 text-[#ff6b6b] border-[#ff6b6b]"
-                          }
-                        `}
-                        >
-                          {e.difficulty}
-                        </span>
+                      <span
+                        className={`
+                        inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full border
+                        ${
+                          e.difficulty === "Beginner"
+                            ? "bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]"
+                            : e.difficulty === "Intermediate"
+                            ? "bg-[#ffc107]/20 text-[#ffc107] border-[#ffc107]"
+                            : "bg-[#ff6b6b]/20 text-[#ff6b6b] border-[#ff6b6b]"
+                        }
+                      `}
+                      >
+                        {e.difficulty}
+                      </span>
                       </td>
                   <td className="p-3 text-[#f1f1f1]">
                     {e.primaryMuscle || (e.targetMuscles?.join(", ") || "N/A")}
@@ -445,6 +455,329 @@ useEffect(() => {
             </table>
           </div>
         </div>
+        {/* Add Exercise Modal */}
+{isAddModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Add New Exercise</h2>
+      <form onSubmit={handleAddExercise}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name*</label>
+            <input
+              type="text"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.name}
+              onChange={(e) => setAddFormData({...addFormData, name: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Category*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.category}
+              onChange={(e) => setAddFormData({...addFormData, category: e.target.value})}
+              required
+            >
+              <option value="">Select Category</option>
+              <option value="Calisthenics">Calisthenics</option>
+              <option value="Weight Loss">Weight Loss</option>
+              <option value="HIIT">HIIT</option>
+              <option value="Strength Training">Strength Training</option>
+              <option value="Cardio">Cardio</option>
+              <option value="Flexibility">Flexibility</option>
+              <option value="Bodybuilding">Bodybuilding</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Difficulty*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.difficulty}
+              onChange={(e) => setAddFormData({...addFormData, difficulty: e.target.value})}
+              required
+            >
+              <option value="">Select Difficulty</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Type*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.type}
+              onChange={(e) => setAddFormData({...addFormData, type: e.target.value})}
+              required
+            >
+              <option value="Reps">Reps</option>
+              <option value="Time">Time</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Default Sets</label>
+            <input
+              type="number"
+              min="1"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.defaultSets}
+              onChange={(e) => setAddFormData({...addFormData, defaultSets: e.target.value})}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Default Reps/Duration*</label>
+            <input
+              type="text"
+              placeholder="e.g., 10-12 reps or 30 sec"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.defaultRepsOrDuration}
+              onChange={(e) => setAddFormData({...addFormData, defaultRepsOrDuration: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Primary Muscle*</label>
+            <input
+              type="text"
+              placeholder="e.g., Chest, Back, Quadriceps"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.primaryMuscle}
+              onChange={(e) => setAddFormData({...addFormData, primaryMuscle: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Target Muscles*</label>
+            <input
+              type="text"
+              placeholder="comma separated (e.g., Chest, Triceps)"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.targetMuscles}
+              onChange={(e) => setAddFormData({...addFormData, targetMuscles: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Secondary Muscles</label>
+            <input
+              type="text"
+              placeholder="comma separated"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.secondaryMuscles}
+              onChange={(e) => setAddFormData({...addFormData, secondaryMuscles: e.target.value})}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Equipment</label>
+            <input
+              type="text"
+              placeholder="comma separated"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={addFormData.equipment}
+              onChange={(e) => setAddFormData({...addFormData, equipment: e.target.value})}
+            />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Instructions*</label>
+          <textarea
+            rows="3"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.instructions}
+            onChange={(e) => setAddFormData({...addFormData, instructions: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Image URL</label>
+          <input
+            type="url"
+            placeholder="https://example.com/image.jpg"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={addFormData.image}
+            onChange={(e) => setAddFormData({...addFormData, image: e.target.value})}
+          />
+        </div>
+        <div className="flex gap-4">
+          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+            Add Exercise
+          </button>
+          <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+{/* Edit Exercise Modal */}
+{isEditModalOpen && editingExercise && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit Exercise</h2>
+      <form onSubmit={handleUpdateExercise}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name*</label>
+            <input
+              type="text"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.name}
+              onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Category*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.category}
+              onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+              required
+            >
+              <option value="">Select Category</option>
+              <option value="Calisthenics">Calisthenics</option>
+              <option value="Weight Loss">Weight Loss</option>
+              <option value="HIIT">HIIT</option>
+              <option value="Strength Training">Strength Training</option>
+              <option value="Cardio">Cardio</option>
+              <option value="Flexibility">Flexibility</option>
+              <option value="Bodybuilding">Bodybuilding</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Difficulty*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.difficulty}
+              onChange={(e) => setEditFormData({...editFormData, difficulty: e.target.value})}
+              required
+            >
+              <option value="">Select Difficulty</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Type*</label>
+            <select
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.type}
+              onChange={(e) => setEditFormData({...editFormData, type: e.target.value})}
+              required
+            >
+              <option value="Reps">Reps</option>
+              <option value="Time">Time</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Default Sets</label>
+            <input
+              type="number"
+              min="1"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.defaultSets}
+              onChange={(e) => setEditFormData({...editFormData, defaultSets: e.target.value})}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Default Reps/Duration*</label>
+            <input
+              type="text"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.defaultRepsOrDuration}
+              onChange={(e) => setEditFormData({...editFormData, defaultRepsOrDuration: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Primary Muscle*</label>
+            <input
+              type="text"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.primaryMuscle}
+              onChange={(e) => setEditFormData({...editFormData, primaryMuscle: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Target Muscles*</label>
+            <input
+              type="text"
+              placeholder="comma separated"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.targetMuscles}
+              onChange={(e) => setEditFormData({...editFormData, targetMuscles: e.target.value})}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Secondary Muscles</label>
+            <input
+              type="text"
+              placeholder="comma separated"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.secondaryMuscles}
+              onChange={(e) => setEditFormData({...editFormData, secondaryMuscles: e.target.value})}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Equipment</label>
+            <input
+              type="text"
+              placeholder="comma separated"
+              className="w-full bg-black border border-[#333] rounded p-3 text-white"
+              value={editFormData.equipment}
+              onChange={(e) => setEditFormData({...editFormData, equipment: e.target.value})}
+            />
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Instructions*</label>
+          <textarea
+            rows="3"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.instructions}
+            onChange={(e) => setEditFormData({...editFormData, instructions: e.target.value})}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Image URL</label>
+          <input
+            type="url"
+            className="w-full bg-black border border-[#333] rounded p-3 text-white"
+            value={editFormData.image}
+            onChange={(e) => setEditFormData({...editFormData, image: e.target.value})}
+          />
+        </div>
+        <div className="mb-6">
+          <label className="flex items-center gap-2 text-sm font-semibold text-[#cccccc]">
+            <input
+              type="checkbox"
+              checked={editFormData.verified}
+              onChange={(e) => setEditFormData({...editFormData, verified: e.target.checked})}
+              className="w-4 h-4"
+            />
+            Verified Exercise
+          </label>
+        </div>
+        <div className="flex gap-4">
+          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
+            Update Exercise
+          </button>
+          <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
       </main>
     </div>
   );
