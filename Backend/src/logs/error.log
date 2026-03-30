@@ -20,3 +20,31 @@
 ::1 - - [04/Mar/2026:19:14:23 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 ::1 - - [04/Mar/2026:19:16:04 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 ::1 - - [04/Mar/2026:19:16:04 +0000] "GET /api/nutrition/today HTTP/1.1" 404 34 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [05/Mar/2026:07:51:30 +0000] "GET /api/admin/memberships HTTP/1.1" 500 165 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [05/Mar/2026:07:51:30 +0000] "GET /api/admin/memberships HTTP/1.1" 500 165 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-30T09:17:19.250Z]
+MESSAGE: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+STACK: Error: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+-------------------------------------
+::1 - - [30/Mar/2026:09:17:19 +0000] "GET /api HTTP/1.1" 404 164 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+
+[2026-03-30T09:17:19.592Z]
+MESSAGE: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+STACK: Error: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+-------------------------------------
+::1 - - [30/Mar/2026:09:17:19 +0000] "GET /favicon.ico HTTP/1.1" 404 164 "http://localhost:3000/api" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+
+[2026-03-30T09:22:38.813Z]
+MESSAGE: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+STACK: Error: ENOENT: no such file or directory, stat 'C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\Frontend\dist\index.html'
+-------------------------------------
+::1 - - [30/Mar/2026:09:22:38 +0000] "GET /api-docs HTTP/1.1" 404 164 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+
+[2026-03-30T09:28:17.236Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+-------------------------------------
+::1 - - [30/Mar/2026:09:28:17 +0000] "GET /api/user/profile HTTP/1.1" 500 44 "http://localhost:3000/api-docs/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
