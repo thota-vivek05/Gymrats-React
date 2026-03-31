@@ -120,14 +120,18 @@
  *           schema:
  *             type: object
  *             required:
+ *               - trainerId
  *               - rating
  *             properties:
+ *               trainerId:
+ *                 type: string
+ *                 example: "681baf7e0c7b054ee7df1860"
  *               rating:
  *                 type: integer
  *                 minimum: 1
  *                 maximum: 5
  *                 example: 4
- *               review:
+ *               feedback:
  *                 type: string
  *                 example: "Great trainer, very motivating!"
  *     responses:
@@ -139,7 +143,7 @@
  *               success: true
  *               message: "Trainer rated successfully"
  *       400:
- *         description: Invalid rating
+ *         description: Invalid input
  *       401:
  *         description: Unauthorized
  */
@@ -166,7 +170,7 @@
  *                 example: "Schedule conflict"
  *               preferredTrainerId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e4b2a"
+ *                 example: "681baf7e0c7b054ee7df1860"
  *     responses:
  *       200:
  *         description: Change request submitted
@@ -200,11 +204,11 @@
  *               currentPassword:
  *                 type: string
  *                 format: password
- *                 example: "oldPass123"
+ *                 example: "123123"
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 example: "newPass456"
+ *                 example: "123456"
  *     responses:
  *       200:
  *         description: Password changed

@@ -74,33 +74,61 @@ const requestTrainerChange = async (req, res) => {
         const { reason } = req.body;
 
         const user = await User.findById(userId);
+
+        // Check membership type
         if (user.membershipType.toLowerCase() !== 'platinum') {
-            return res.status(403).json({ success: false, error: 'Trainer reassignment is a Platinum exclusive feature.' });
-        }
-
-        const activeMembership = await Membership.findOne({ user_id: userId, status: 'Active' });
-        
-        if (!activeMembership || !activeMembership.trainer_id) {
-            return res.status(400).json({ success: false, error: 'No active trainer found to change.' });
-        }
-
-        // Example logic assuming you add `trainerHistory` array to the Membership schema
-        if (activeMembership.trainerHistory) {
-            activeMembership.trainerHistory.push({
-                trainer_id: activeMembership.trainer_id,
-                removedAt: new Date(),
-                reason: reason
+            return res.status(403).json({ 
+                success: false, 
+                error: 'Trainer reassignment is a Platinum exclusive feature.' 
             });
         }
 
-        // Unassign current trainer so Manager/Admin knows to reassign
-        activeMembership.trainer_id = null;
-        await activeMembership.save();
+        // Check trainer exists
+        if (!user.trainer) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'No trainer is currently assigned.' 
+            });
+        }
 
-        user.trainer = null;
+        // Validate reason
+        if (!reason || reason.trim().length < 5) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please provide a valid reason (min 5 characters).'
+            });
+        }
+
+        // Prevent duplicate requests
+        if (user.trainer_change_request?.requested) {
+            return res.status(400).json({
+                success: false,
+                error: 'Trainer change already requested. Please wait for admin approval.'
+            });
+        }
+
+        // Save current trainer to history
+        user.trainerHistory.push({
+            trainerId: user.trainer,
+            removedAt: new Date()
+        });
+
+        // Create change request
+        user.trainer_change_request = {
+            requested: true,
+            reason,
+            requestedAt: new Date(),
+            resolvedAt: null,
+            resolvedBy: null
+        };
+
         await user.save();
 
-        res.json({ success: true, message: 'Trainer change requested successfully. A new trainer will be assigned shortly.' });
+        res.json({ 
+            success: true, 
+            message: 'Trainer change request submitted. Admin will assign a new trainer soon.' 
+        });
+
     } catch (error) {
         console.error('Error requesting trainer change:', error);
         res.status(500).json({ success: false, error: 'Server error' });
