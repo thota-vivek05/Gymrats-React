@@ -358,8 +358,8 @@ router.get("/api/debug/workout/:id", async (req, res) => {
 
 router.get(
   "/api/debug/workouts",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -416,8 +416,8 @@ router.get("/membership_renewal", protect, (req, res) => {
 // Page routes
 router.get(
   "/user_nutrition",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   (req, res) => {
     res.render("user_nutrition", {
       user: req.user,
@@ -428,8 +428,8 @@ router.get(
 
 router.get(
   "/user_exercises",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const User = require("../model/User");
@@ -458,8 +458,8 @@ const UserExerciseRating = require("../model/UserExerciseRating");
 // Get exercises based on user's workout type
 router.get(
   "/api/exercises",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -507,8 +507,8 @@ router.get(
 // Rate an exercise
 router.post(
   "/api/exercises/:exerciseId/rate",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -585,8 +585,8 @@ router.post(
 // Get recommended exercises based on user ratings
 router.get(
   "/api/exercises/recommended",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -711,8 +711,8 @@ router.get(
 // Get exercise details
 router.get(
   "/api/exercises/:exerciseId",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -762,8 +762,8 @@ router.get(
 // Search exercises
 router.get(
   "/api/exercises/search",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const { query } = req.query;
