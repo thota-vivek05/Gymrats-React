@@ -818,4 +818,9 @@ router.get(
   }
 );
 
+// Scheduling Routes
+router.get('/trainer/:trainerId/availability', protect, userController.getTrainerAvailability);
+router.post('/appointments/request', protect, userController.requestAppointment);
+router.get('/appointments', protect, userController.getUserAppointments);
+
 module.exports = router;

@@ -30,6 +30,24 @@ const TrainerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // NEW: Scheduling & Appointments State
+  const [appointments, setAppointments] = useState([]);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showRespondModal, setShowRespondModal] = useState(false);
+  const [currentAppointment, setCurrentAppointment] = useState(null);
+  const [meetLinkInput, setMeetLinkInput] = useState('');
+  
+  // Default availability template
+  const [availability, setAvailability] = useState([
+    { day: 'Monday', startTime: '09:00', endTime: '17:00', active: true },
+    { day: 'Tuesday', startTime: '09:00', endTime: '17:00', active: true },
+    { day: 'Wednesday', startTime: '09:00', endTime: '17:00', active: true },
+    { day: 'Thursday', startTime: '09:00', endTime: '17:00', active: true },
+    { day: 'Friday', startTime: '09:00', endTime: '17:00', active: true },
+    { day: 'Saturday', startTime: '', endTime: '', active: false },
+    { day: 'Sunday', startTime: '', endTime: '', active: false }
+  ]);
   
   const [searchParams] = useSearchParams(); 
   const navigate = useNavigate();
@@ -51,7 +69,8 @@ const TrainerDashboard = () => {
 
   useEffect(() => {
     fetchClients();
-    fetchTrainerStats(); // NEW: Fetch Stats on Load
+    fetchTrainerStats();
+    fetchAppointments(); // <--- ADD THIS LINE
     const trainerData = JSON.parse(localStorage.getItem('user') || '{}');
     if (trainerData.name) setTrainer(trainerData);
   }, []);
@@ -68,6 +87,100 @@ const TrainerDashboard = () => {
         }
     } catch (error) {
         console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/appointments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAppointments(data.appointments || []);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
+
+  // ==========================================
+  // SCHEDULING ACTION HANDLERS
+  // ==========================================
+
+  // 1. Save Availability Settings
+  const handleSaveAvailability = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Filter out days that are marked as inactive to keep the database clean
+      const activeHours = availability.filter(day => day.active).map(day => ({
+        day: day.day,
+        startTime: day.startTime,
+        endTime: day.endTime
+      }));
+
+      const response = await fetch(`${API_BASE}/availability`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          workingHours: activeHours,
+          // We can add a state for personalMeetLink later if you want a static one, 
+          // for now we will just send the hours.
+        })
+      });
+
+      if (response.ok) {
+        alert('Availability saved successfully!');
+        setShowAvailabilityModal(false);
+      } else {
+        const err = await response.json();
+        alert(`Error: ${err.message}`);
+      }
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      alert('Failed to save availability.');
+    }
+  };
+
+  // 2. Respond to an Appointment Request (Approve/Reject)
+  const handleRespondAppointment = async (appointmentId, status) => {
+    try {
+      // If approving, make sure the trainer provided a Meet link
+      if (status === 'approved' && !meetLinkInput.trim()) {
+        alert("Please provide a Google Meet link to approve this session.");
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/appointments/${appointmentId}/respond`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          status: status,
+          meetLink: status === 'approved' ? meetLinkInput : "" 
+        })
+      });
+
+      if (response.ok) {
+        alert(`Appointment ${status}!`);
+        setShowRespondModal(false);
+        setMeetLinkInput(''); // Clear the input
+        fetchAppointments();  // Refresh the list to show the updated status
+      } else {
+        const err = await response.json();
+        alert(`Error: ${err.message}`);
+      }
+    } catch (error) {
+      console.error('Error responding to appointment:', error);
+      alert('Failed to update appointment.');
     }
   };
 
@@ -316,6 +429,77 @@ const TrainerDashboard = () => {
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
       `}</style>
 
+      {/* Availability Modal */}
+      {showAvailabilityModal && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-80">
+          <div className="bg-[#1e1e3a] p-[30px] rounded-lg w-[90%] max-w-[500px] border border-[#8A2BE2] shadow-[0_0_20px_rgba(138,43,226,0.5)]">
+            <h2 className="text-[1.5rem] font-bold text-[#f1f1f1] mb-[20px]">Set Weekly Availability</h2>
+            <div className="space-y-[10px] mb-[20px] max-h-[300px] overflow-y-auto pr-2">
+              {availability.map((day, idx) => (
+                <div key={day.day} className="flex items-center justify-between bg-[#111] p-[10px] rounded border border-[#333]">
+                  <div className="flex items-center gap-[10px]">
+                    <input 
+                      type="checkbox" 
+                      checked={day.active} 
+                      onChange={(e) => {
+                        const newAvail = [...availability];
+                        newAvail[idx].active = e.target.checked;
+                        setAvailability(newAvail);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <span className="text-[#f1f1f1] w-[80px]">{day.day}</span>
+                  </div>
+                  {day.active && (
+                    <div className="flex gap-[5px] items-center">
+                      <input type="time" value={day.startTime} onChange={(e) => { const newAvail = [...availability]; newAvail[idx].startTime = e.target.value; setAvailability(newAvail); }} className="bg-[#222] text-white border border-[#444] rounded p-1 outline-none" />
+                      <span>-</span>
+                      <input type="time" value={day.endTime} onChange={(e) => { const newAvail = [...availability]; newAvail[idx].endTime = e.target.value; setAvailability(newAvail); }} className="bg-[#222] text-white border border-[#444] rounded p-1 outline-none" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-[10px]">
+              <button onClick={handleSaveAvailability} className="flex-1 py-[10px] bg-[#8A2BE2] text-white rounded hover:bg-[#7020a0]">Save Hours</button>
+              <button onClick={() => setShowAvailabilityModal(false)} className="flex-1 py-[10px] bg-[#333] text-white rounded hover:bg-[#444]">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Respond to Appointment Modal */}
+      {showRespondModal && currentAppointment && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-80">
+          <div className="bg-[#1e1e3a] p-[30px] rounded-lg w-[90%] max-w-[400px] border border-[#8A2BE2] shadow-[0_0_20px_rgba(138,43,226,0.5)]">
+            <h2 className="text-[1.5rem] font-bold text-[#f1f1f1] mb-[15px]">Respond to Request</h2>
+            <div className="text-[#cccccc] mb-[20px] space-y-[8px] bg-[#111] p-[15px] rounded border border-[#333]">
+              <p><span className="font-bold text-white">Client:</span> {currentAppointment.userId?.full_name || currentAppointment.userId?.email || 'Client'}</p>
+              <p><span className="font-bold text-white">Date:</span> {new Date(currentAppointment.date).toLocaleDateString()}</p>
+              <p><span className="font-bold text-white">Time:</span> {currentAppointment.startTime} - {currentAppointment.endTime}</p>
+              {currentAppointment.notes && <p><span className="font-bold text-white">Notes:</span> {currentAppointment.notes}</p>}
+            </div>
+            
+            <div className="mb-[20px]">
+              <label className="block text-[#f1f1f1] mb-[8px] text-sm">Google Meet Link (Required to Approve)</label>
+              <input 
+                type="url" 
+                placeholder="https://meet.google.com/..."
+                value={meetLinkInput}
+                onChange={(e) => setMeetLinkInput(e.target.value)}
+                className="w-full p-[10px] bg-[#111] border border-[#444] rounded text-white focus:border-[#8A2BE2] outline-none"
+              />
+            </div>
+
+            <div className="flex gap-[10px]">
+              <button onClick={() => handleRespondAppointment(currentAppointment._id, 'approved')} className="flex-1 py-[10px] bg-green-600 text-white rounded hover:bg-green-700">Approve</button>
+              <button onClick={() => handleRespondAppointment(currentAppointment._id, 'rejected')} className="flex-1 py-[10px] bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
+              <button onClick={() => { setShowRespondModal(false); setMeetLinkInput(''); }} className="flex-1 py-[10px] bg-[#333] text-white rounded hover:bg-[#444]">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* History Modal */}
       {showHistoryModal && clientHistory && (
         <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-80">
@@ -389,13 +573,20 @@ const TrainerDashboard = () => {
             <a href="/trainer" className="text-[#f1f1f1] text-base font-medium no-underline cursor-pointer relative transition-all duration-100 hover:text-[#8A2BE2]">Home</a>
           </div>
           <div className="hidden md:flex items-center gap-4">
+            <Link 
+                to="/trainer/business-profile"
+                className="text-[#8A2BE2] border border-[#8A2BE2] px-4 py-2 rounded-[30px] text-[0.9rem] font-medium no-underline hover:bg-[#8A2BE2] hover:text-white transition-all duration-300"
+            >
+                Business Profile
+            </Link>
             <div className="loginButton">
               <button 
-                onClick={handleLogout} 
+                onClick={handleLogout}
                 className="bg-[#8A2BE2] px-4 py-2 rounded-[30px] text-[0.9rem] font-medium text-white border-none cursor-pointer transition-all duration-300 hover:bg-[#7020a0]"
               >
                 Logout
               </button>
+
             </div>
           </div>
           <div className="block md:hidden cursor-pointer text-2xl" onClick={() => setSidebarOpen(true)}>
@@ -415,6 +606,56 @@ const TrainerDashboard = () => {
       <div className="bg-[#1e1e3a] p-[30px] rounded-lg text-center my-[30px] mx-auto shadow-[0_4px_8px_rgba(0,0,0,0.2)] max-w-[1200px] w-[90%]">
         <h1 className="mb-[10px] text-[#f1f1f1] text-[2rem] sm:text-[2.5rem]">Welcome, {trainer.name}</h1>
         <p className="text-[1rem] sm:text-[1.2rem] text-[#cccccc] mb-[10px]">Manage your clients and track their progress</p>
+      </div>
+
+      {/* NEW: Upcoming Sessions Widget */}
+      <div className="max-w-[1200px] w-[90%] mx-auto mb-[30px] bg-[#111] rounded-lg p-[20px] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.2)]">
+        <div className="flex justify-between items-center mb-[15px] border-b border-[#333] pb-[10px]">
+          <h2 className="text-[#f1f1f1] text-[1.5rem]">Upcoming & Pending Sessions</h2>
+          <button 
+            onClick={() => setShowAvailabilityModal(true)}
+            className="px-4 py-2 bg-[#1e1e3a] text-[#8A2BE2] text-sm rounded border border-[#8A2BE2] hover:bg-[#8A2BE2] hover:text-white transition-colors"
+          >
+            Set My Availability
+          </button>
+        </div>
+        
+        <div className="flex gap-[15px] overflow-x-auto pb-[10px] [&::-webkit-scrollbar]:h-[6px] [&::-webkit-scrollbar-track]:bg-[#1e1e3a] [&::-webkit-scrollbar-thumb]:bg-[#8A2BE2]">
+          {appointments.length === 0 ? (
+            <p className="text-[#888]">No appointments scheduled or pending.</p>
+          ) : (
+            appointments.map(apt => (
+              <div key={apt._id} className={`min-w-[250px] p-[15px] rounded border ${apt.status === 'pending' ? 'border-yellow-600 bg-[#1a1a0f]' : 'border-green-600 bg-[#0f1a0f]'}`}>
+                <div className="flex justify-between items-start mb-[10px]">
+                  <span className="font-bold text-white">{apt.userId?.full_name || apt.userId?.email || 'Client'}</span>
+                  <span className={`text-[10px] uppercase px-2 py-1 rounded ${apt.status === 'pending' ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'}`}>
+                    {apt.status}
+                  </span>
+                </div>
+                <div className="text-[#cccccc] text-sm space-y-[2px] mb-[15px]">
+                  <p>🗓️ {new Date(apt.date).toLocaleDateString()}</p>
+                  <p>⏰ {apt.startTime} - {apt.endTime}</p>
+                </div>
+                
+                {apt.status === 'pending' ? (
+                  <button 
+                    onClick={() => { setCurrentAppointment(apt); setShowRespondModal(true); }}
+                    className="w-full py-[6px] bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 transition"
+                  >
+                    Respond to Request
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => window.open(apt.meetLink, '_blank')}
+                    className="w-full py-[6px] bg-[#8A2BE2] text-white rounded text-sm hover:bg-[#7020a0] transition"
+                  >
+                    Join Google Meet
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* NEW: Trainer Revenue & Stats Section */}

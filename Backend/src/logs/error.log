@@ -820,3 +820,459 @@ STACK: Error: Not authorized, no token
 ::1 - - [02/Mar/2026:17:51:16 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 ::1 - - [02/Mar/2026:17:51:30 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 ::1 - - [02/Mar/2026:17:51:30 +0000] "GET /api/admin/trainer-assignment-data HTTP/1.1" 401 42 "http://localhost:5173/admin/trainer-assignment" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:38:08 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:38:08 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:39:58.985Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:39:58 +0000] "GET /api/user/profile HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:39:58.995Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.000Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.004Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.009Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:39:58 +0000] "GET /api/workout/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:39:59.016Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/nutrition/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:39:59.024Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.029Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.033Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.039Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/workout/weekly-stats HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:39:59.064Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:39:59.074Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/exercise/progress HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/class/upcoming HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/user/profile HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/workout/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/nutrition/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/workout/weekly-stats HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/exercise/progress HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:39:59 +0000] "GET /api/class/upcoming HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:40:08.950Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:40:08 +0000] "GET /api/user/profile HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:40:08.954Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:08.958Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:08.971Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:08.997Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:40:08 +0000] "GET /api/workout/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:40:09.002Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:40:08 +0000] "GET /api/nutrition/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:40:09.011Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:09.013Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:09.017Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:09.020Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+
+[2026-03-06T04:40:09.024Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:40:08 +0000] "GET /api/workout/weekly-stats HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-06T04:40:09.029Z]
+MESSAGE: Not authorized
+STACK: Error: Not authorized
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:26:13
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:175:3)
+-------------------------------------
+::1 - - [06/Mar/2026:04:40:08 +0000] "GET /api/exercise/progress HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/class/upcoming HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/user/profile HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/workout/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/nutrition/today HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/workout/weekly-stats HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/exercise/progress HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:40:09 +0000] "GET /api/class/upcoming HTTP/1.1" 500 44 "http://localhost:5173/dashboard" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:41:52 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [06/Mar/2026:04:41:52 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:04 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:04 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:14 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:14 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:17 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:17 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:42 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:22:42 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:24:50 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:24:50 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:32:16 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:06:32:16 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:11:33:43 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:11:33:43 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+
+[2026-03-13T11:36:20.148Z]
+MESSAGE: Not authorized, no token
+STACK: Error: Not authorized, no token
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\middleware\authMiddleware.js:31:11
+    at asyncUtilWrap (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express-async-handler\index.js:3:20)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:284:15
+    at param (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:365:14)
+    at param (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:376:14)
+    at Function.process_params (C:\Users\Jayanth\Documents\Jay\Gymrats-React\Backend\src\node_modules\express\lib\router\index.js:421:3)
+-------------------------------------
+::1 - - [13/Mar/2026:11:36:20 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 500 54 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:04:36 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:04:36 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:04:40 +0000] "GET /api/trainer/expiring-clients HTTP/1.1" 500 59 "http://localhost:5173/trainer/business-profile" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:04:40 +0000] "GET /api/trainer/expiring-clients HTTP/1.1" 500 59 "http://localhost:5173/trainer/business-profile" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:05:37 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:05:37 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:07:55 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:07:55 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:09:14 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [13/Mar/2026:12:09:14 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:44:11 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:44:11 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:06 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:06 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:08 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:08 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:17 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:18 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:38 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:38 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:46:49 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:19 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:19 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:20 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:20 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:35 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:35 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:44 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:47:45 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:55:26 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:55:27 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:56:17 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:56:18 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:56:22 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [31/Mar/2026:03:56:22 +0000] "GET /api/trainer/nutrition/68ebafbc3991d0b91dd9481d HTTP/1.1" 404 51 "http://localhost:5173/trainer" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"

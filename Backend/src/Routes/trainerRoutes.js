@@ -116,4 +116,13 @@ router.get('/exercises/list', protect, async (req, res) => {
     }
 });
 
+// Scheduling Routes
+router.post('/availability', protect, trainerController.setAvailability);
+router.get('/appointments', protect, trainerController.getTrainerAppointments);
+router.put('/appointments/:id/respond', protect, trainerController.respondToAppointment);
+
+// Business Analytics Routes
+router.get('/business-kpis', protect, trainerController.getBusinessKPIs);
+router.get('/expiring-clients', protect, trainerController.getExpiringClients);
+
 module.exports = router;

@@ -5,8 +5,13 @@ const User = require('../model/User');
 const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
 const Exercise = require('../model/Exercise'); 
+const TrainerAvailability = require('../model/TrainerAvailability');
+const Appointment = require('../model/Appointment');
 const UserExerciseRating = require('../model/UserExerciseRating'); // ADD THIS LINE
 const Payment = require('../model/Payment');
+const TrainerReview = require('../model/TrainerReview');
+const Membership = require('../model/Membership');
+
 const moment = require('moment');
 const multer = require('multer');
 
@@ -1418,6 +1423,185 @@ const getClientHistory = async (req, res) => {
     }
 };
 
+// ==========================================
+// SCHEDULING & APPOINTMENT CONTROLLERS
+// ==========================================
+
+// 1. Set or Update Availability
+const setAvailability = async (req, res) => {
+  try {
+    const trainerId = getTrainerId(req);
+    const { workingHours, personalMeetLink } = req.body;
+
+    // Check if availability already exists for this trainer
+    let availability = await TrainerAvailability.findOne({ trainerId });
+
+    if (availability) {
+      // Update existing
+      availability.workingHours = workingHours || availability.workingHours;
+      availability.personalMeetLink = personalMeetLink || availability.personalMeetLink;
+      await availability.save();
+    } else {
+      // Create new
+      availability = new TrainerAvailability({
+        trainerId,
+        workingHours,
+        personalMeetLink
+      });
+      await availability.save();
+    }
+
+    res.status(200).json({ message: "Availability updated successfully", availability });
+  } catch (error) {
+    console.error("Error setting availability:", error);
+    res.status(500).json({ message: "Server error while setting availability." });
+  }
+};
+
+// 2. Get Trainer's Appointments (Pending, Approved, etc.)
+const getTrainerAppointments = async (req, res) => {
+  try {
+    const trainerId = getTrainerId(req);
+    
+    // Fetch appointments and populate user details (name, email)
+    const appointments = await Appointment.find({ trainerId })
+      .populate('userId', 'full_name email profilePicture') // Adjust fields based on your User model
+      .sort({ date: 1, startTime: 1 }); // Sort by soonest
+
+    res.status(200).json({ appointments });
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    res.status(500).json({ message: "Server error while fetching appointments." });
+  }
+};
+
+// 3. Respond to an Appointment Request
+const respondToAppointment = async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+    const { status, meetLink } = req.body; 
+
+    // Validate request
+    if (status === 'approved' && !meetLink) {
+      return res.status(400).json({ message: "A Google Meet link is required to approve an appointment." });
+    }
+
+    const appointment = await Appointment.findById(appointmentId);
+    
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found." });
+    }
+
+    // Ensure the logged-in trainer actually owns this appointment
+    if (appointment.trainerId.toString() !== getTrainerId(req).toString()) {
+        return res.status(403).json({ message: "Unauthorized to update this appointment." });
+    }
+
+    // Update fields
+    appointment.status = status;
+    if (status === 'approved') {
+      appointment.meetLink = meetLink;
+    }
+
+    await appointment.save();
+
+    res.status(200).json({ 
+      message: `Appointment ${status} successfully.`, 
+      appointment 
+    });
+
+  } catch (error) {
+    console.error("Error responding to appointment:", error);
+    res.status(500).json({ message: "Server error while updating appointment." });
+  }
+};
+
+// ==========================================
+// BUSINESS & ANALYTICS CONTROLLERS
+// ==========================================
+
+// 1. Get Core Business KPIs (Revenue, Clients, Rating)
+const getBusinessKPIs = async (req, res) => {
+  try {
+    const trainerId = getTrainerId(req);
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // 1. Active Clients Count
+    const activeClients = await User.countDocuments({ assignedTrainer: trainerId });
+
+    // 2. Revenue Calculations (Total & This Month)
+    // Adjust 'amount' and 'status' based on your actual Payment schema
+    const revenueStats = await Payment.aggregate([
+      { $match: { trainerId: trainerId, status: 'completed' } },
+      { 
+        $group: {
+          _id: null,
+          totalLifetimeEarnings: { $sum: "$amount" },
+          monthlyRevenue: {
+            $sum: {
+              $cond: [{ $gte: ["$createdAt", startOfThisMonth] }, "$amount", 0]
+            }
+          }
+        }
+      }
+    ]);
+
+    const totalEarnings = revenueStats.length > 0 ? revenueStats[0].totalLifetimeEarnings : 0;
+    const mrr = revenueStats.length > 0 ? revenueStats[0].monthlyRevenue : 0;
+
+    // 3. Reputation / Ratings
+    const reviewStats = await TrainerReview.aggregate([
+      { $match: { trainerId: trainerId } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const averageRating = reviewStats.length > 0 ? Number(reviewStats[0].averageRating.toFixed(1)) : 0;
+    const totalReviews = reviewStats.length > 0 ? reviewStats[0].totalReviews : 0;
+
+    res.status(200).json({
+      activeClients,
+      mrr,
+      totalEarnings,
+      averageRating,
+      totalReviews
+    });
+
+  } catch (error) {
+    console.error("Error fetching business KPIs:", error);
+    res.status(500).json({ message: "Server error while fetching business stats." });
+  }
+};
+
+// 2. Get Clients Expiring Soon (For Retention)
+const getExpiringClients = async (req, res) => {
+  try {
+    const trainerId = getTrainerId(req);
+    const now = new Date();
+    const fourteenDaysFromNow = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
+
+    // Find memberships linked to this trainer that expire in the next 14 days
+    // Adjust fields based on your actual Membership schema
+    const expiringMemberships = await Membership.find({
+      trainerId: trainerId,
+      endDate: { $gte: now, $lte: fourteenDaysFromNow },
+      status: 'active'
+    }).populate('userId', 'full_name email profilePicture')
+
+    res.status(200).json({ expiringClients: expiringMemberships });
+
+  } catch (error) {
+    console.error("Error fetching expiring clients:", error);
+    res.status(500).json({ message: "Server error while fetching expiring clients." });
+  }
+};
+
 module.exports = { 
     signupTrainer,
     getClients,
@@ -1438,5 +1622,10 @@ module.exports = {
     getClientExerciseRatings,
     getClientProgress,
     getTrainerStats,
-    getClientHistory
+    getClientHistory,
+    setAvailability,
+    getTrainerAppointments,
+    respondToAppointment,
+    getBusinessKPIs,
+    getExpiringClients
 };

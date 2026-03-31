@@ -8,6 +8,7 @@ import ExercisePage from "./pages/Home/related/ExercisePage";
 import NutritionPage from "./pages/Home/related/NutritionPage";
 import AboutPage from "./pages/Home/related/AboutPage";
 import ContactPage from "./pages/Home/related/ContactPage";
+import TrainerProfile from './pages/Trainer/TrainerProfile';
 
 // import UserDashboard from './pages/User/UserDashboard';
 import TrainerDashboard from "./pages/Trainer/TrainerDashboard";
@@ -78,6 +79,8 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={["trainer"]} />}>
               {/* Update path from "/trainer/dashboard" to "/trainer" */}
               <Route path="/trainer" element={<TrainerDashboard />} />
+
+              <Route path="/trainer/business-profile" element={<TrainerProfile />} />
 
               {/* 2b. Edit Workout Plan Route */}
               <Route

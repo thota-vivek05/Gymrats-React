@@ -8,6 +8,8 @@ const Membership = require('../model/Membership'); // Add this line
 const Payment = require('../model/Payment');
 const moment = require('moment');
 const TrainerReview = require('../model/TrainerReview');
+const TrainerAvailability = require('../model/TrainerAvailability');
+const Appointment = require('../model/Appointment');
 //brimstone
 // for membership management           REYNA
 const Trainer = require('../model/Trainer');
@@ -1912,6 +1914,74 @@ const getWorkoutStats = async (req, res) => {
     }
 };
 
+// ==========================================
+// SCHEDULING & APPOINTMENT CONTROLLERS
+// ==========================================
+
+// 1. Get a specific Trainer's Availability
+const getTrainerAvailability = async (req, res) => {
+  try {
+    const trainerId = req.params.trainerId;
+    const availability = await TrainerAvailability.findOne({ trainerId });
+    
+    if (!availability) {
+      return res.status(404).json({ message: "Trainer has not set their availability yet." });
+    }
+
+    // We purposely DO NOT send the personalMeetLink here for privacy.
+    // They only get the link once the appointment is approved.
+    res.status(200).json({ workingHours: availability.workingHours });
+  } catch (error) {
+    console.error("Error fetching trainer availability:", error);
+    res.status(500).json({ message: "Server error while fetching availability." });
+  }
+};
+
+// 2. Request an Appointment with a Trainer
+const requestAppointment = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const { trainerId, date, startTime, endTime, notes } = req.body;
+
+    const newAppointment = new Appointment({
+      trainerId,
+      userId,
+      date,
+      startTime,
+      endTime,
+      notes,
+      status: 'pending' // Always starts as pending
+    });
+
+    await newAppointment.save();
+    
+    res.status(201).json({ 
+      message: "Appointment requested successfully. Awaiting trainer approval.", 
+      appointment: newAppointment 
+    });
+  } catch (error) {
+    console.error("Error requesting appointment:", error);
+    res.status(500).json({ message: "Server error while requesting appointment." });
+  }
+};
+
+// 3. Get User's own appointments (to show on their dashboard)
+const getUserAppointments = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    
+    // Fetch appointments and populate trainer details so the user sees who it's with
+    const appointments = await Appointment.find({ userId })
+      .populate('trainerId', 'firstName lastName profilePicture') // Adjust these fields to match your Trainer schema
+      .sort({ date: 1, startTime: 1 }); // Sort soonest first
+
+    res.status(200).json({ appointments });
+  } catch (error) {
+    console.error("Error fetching user appointments:", error);
+    res.status(500).json({ message: "Server error while fetching appointments." });
+  }
+};
+
 module.exports = {
     //loginUser,
     signupUser,
@@ -1933,5 +2003,8 @@ module.exports = {
     getPurchaseHistory,
     // getUserProgress,
     getUserProgressGraph,
-    getWorkoutStats
+    getWorkoutStats,
+    getTrainerAvailability,
+    requestAppointment,
+    getUserAppointments
 };
