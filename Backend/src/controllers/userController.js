@@ -696,80 +696,73 @@ const markExerciseCompleted = async (req, res) => {
             return res.status(401).json({ error: 'Please log in to complete the exercise' });
         }
 
-        const userId = req.user.id;
-        const { workoutPlanId, exerciseName } = req.body;
+        const userId = req.user.id || req.user._id;
+        const { workoutId, exerciseId, weight, reps, sets } = req.body;
 
-        if (!workoutPlanId || !exerciseName) {
-            return res.status(400).json({ error: 'Workout ID and exercise name are required' });
+        if (!workoutId || !exerciseId) {
+            return res.status(400).json({ 
+                error: 'Workout ID and exercise ID are required' 
+            });
         }
 
-        // Calculate today's day name (Asia/Kolkata)
-        const today = new Date();
-        const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-        const todayDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][localDate.getDay()];
+        // Find workout
+        const workout = await WorkoutHistory.findOne({ 
+            _id: workoutId, 
+            userId 
+        });
 
-        // Find the workout
-        const workout = await WorkoutHistory.findOne({ _id: workoutPlanId, userId });
-        
         if (!workout) {
-            return res.status(404).json({ error: 'Workout not found. Please refresh your dashboard.' });
+            return res.status(404).json({ 
+                error: 'Workout not found. Please refresh your dashboard.' 
+            });
         }
 
-        // --- FIND EXERCISE LOGIC ---
-        let exerciseIndex = -1;
-        
-        // 1. Strict Match: Name + Day
-        exerciseIndex = workout.exercises.findIndex(ex => ex.name === exerciseName && ex.day === todayDayName);
+        // 🔥 Find exercise using Mongo subdocument ID
+        const exercise = workout.exercises.id(exerciseId);
 
-        // 2. Fallback Match: Name Only (ignoring Day and Status)
-        // This ensures we find the exercise even if the day is mismatched or if it's already done.
-        if (exerciseIndex === -1) {
-             exerciseIndex = workout.exercises.findIndex(ex => ex.name === exerciseName);
+        if (!exercise) {
+            return res.status(404).json({ 
+                error: 'Exercise not found in this workout' 
+            });
         }
 
-        if (exerciseIndex === -1) {
-             return res.status(404).json({ error: `Exercise "${exerciseName}" not found in today's plan.` });
-        }
-        
-        const exercise = workout.exercises[exerciseIndex];
-
+        // Prevent duplicate completion
         if (exercise.completed) {
-            // It's already done, so we can return success (idempotent) or error.
-            // Returning error tells user why the button was confusing.
-            return res.status(400).json({ error: 'Exercise already completed' });
+            return res.status(400).json({ 
+                error: 'Exercise already completed' 
+            });
         }
 
-        // Mark as completed
-        workout.exercises[exerciseIndex].completed = true;
+        // ✅ Mark as completed
+        exercise.completed = true;
 
-        // Recalculate progress for TODAY'S exercises
-        // We filter by todayDayName to keep the progress bar accurate for "Today"
-        const todaysExercises = workout.exercises.filter(ex => ex.day === todayDayName);
-        
-        // If fallback was used and the exercise day is different, we should probably include it in stats?
-        // But for consistency, let's stick to the day filter.
-        const completedExercises = todaysExercises.filter(ex => ex.completed).length;
-        const totalExercises = todaysExercises.length;
-        
-        const progress = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 100;
+        // ✅ Optional updates (if sent)
+        if (weight !== undefined) exercise.weight = weight;
+        if (reps !== undefined) exercise.reps = reps;
+        if (sets !== undefined) exercise.sets = sets;
 
+        // 🔥 Recalculate progress (ALL exercises)
+        const totalExercises = workout.exercises.length;
+        const completedExercises = workout.exercises.filter(ex => ex.completed).length;
+
+        const progress = Math.round((completedExercises / totalExercises) * 100);
         workout.progress = progress;
-        
-        // Check if ENTIRE workout is done (all exercises in the history object)
-        const allExercisesCompleted = workout.exercises.every(ex => ex.completed);
-        if (allExercisesCompleted) {
-            workout.completed = true; 
+
+        // If all completed
+        if (completedExercises === totalExercises) {
+            workout.completed = true;
+            workout.isComplete = true;
+            workout.completedAt = new Date();
         }
 
-        workout.markModified('exercises'); 
         await workout.save();
-        
-        res.json({ 
+
+        res.json({
             success: true,
             message: 'Exercise marked as completed',
-            progress: progress,
-            completedExercises: completedExercises,
-            totalExercises: totalExercises
+            progress,
+            completedExercises,
+            totalExercises
         });
 
     } catch (error) {
@@ -1540,65 +1533,45 @@ const completeWorkout = async (req, res) => {
 };
 
 const markWorkoutCompleted = async (req, res) => {
-// ... (omitted for brevity)
     try {
         const { workoutId } = req.body;
-        
+
         if (!req.user) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
-        
-        const userId = req.user.id;
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        // Check if workout history exists for today
-        let workoutEntry = await WorkoutHistory.findOne({
-            userId,
-            workoutPlanId: workoutId,
-            date: { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) }
+
+        const userId = req.user.id || req.user._id;
+
+        // Find workout history directly
+        const workoutEntry = await WorkoutHistory.findOne({
+            _id: workoutId,
+            userId
         });
-        
-        if (workoutEntry) {
-            // Update existing entry
-            workoutEntry.completed = true;
-            workoutEntry.progress = 100;
-            if (workoutEntry.exercises) {
-                workoutEntry.exercises.forEach(exercise => {
-                    exercise.completed = true;
-                });
-            }
-            await workoutEntry.save();
-        } else {
-            // Fetch workout plan
-            const workoutPlan = await WorkoutPlan.findById(workoutId);
-            if (!workoutPlan) {
-                return res.status(404).json({ error: 'Workout plan not found' });
-            }
-            
-            // Create new workout history entry
-            const newWorkoutEntry = new WorkoutHistory({
-                userId,
-                workoutPlanId: workoutId,
-                date: today,
-                completed: true,
-                progress: 100,
-                exercises: workoutPlan.exercises.map(exercise => ({
-                    day: new Date().toLocaleString('en-US', { weekday: 'long' }),
-                    name: exercise.name,
-                    sets: exercise.sets || 3,
-                    reps: exercise.reps || 10,
-                    duration: exercise.duration,
-                    weight: exercise.weight,
-                    completed: true
-                }))
-            });
-            
-            await newWorkoutEntry.save();
+
+        if (!workoutEntry) {
+            return res.status(404).json({ error: 'Workout not found' });
         }
-        
-        res.json({ success: true });
+
+        // Mark workout as completed
+        workoutEntry.completed = true;
+        workoutEntry.isComplete = true;
+        workoutEntry.progress = 100;
+        workoutEntry.completedAt = new Date();
+
+        // Mark all exercises completed
+        if (workoutEntry.exercises) {
+            workoutEntry.exercises.forEach(exercise => {
+                exercise.completed = true;
+            });
+        }
+
+        await workoutEntry.save();
+
+        res.json({
+            success: true,
+            message: 'Workout completed successfully'
+        });
+
     } catch (error) {
         console.error('Error marking workout as completed:', error);
         res.status(500).json({ error: 'Server error' });

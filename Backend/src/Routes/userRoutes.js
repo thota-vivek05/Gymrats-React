@@ -336,7 +336,7 @@ router.get("/api/class/upcoming", protect, userController.checkMembershipActive,
 router.post("/signup", userController.signupUser);
 router.get("/profile", userController.getUserProfile);
 router.post("/complete-workout", userController.completeWorkout);
-router.post("/api/workout/complete", userController.markWorkoutCompleted);
+router.post("/api/workout/complete", protect, userController.markWorkoutCompleted);
 router.post('/api/exercise/complete', protect, userController.checkMembershipActive, userController.markExerciseCompleted);
 
 // Debug routes

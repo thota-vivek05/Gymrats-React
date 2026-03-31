@@ -340,11 +340,15 @@
  *           schema:
  *             type: object
  *             required:
+ *               - workoutId
  *               - exerciseId
  *             properties:
+ *               workoutId:
+ *                 type: string
+ *                 example: "69aeaa9353f8e1561f856a72"
  *               exerciseId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e5a11"
+ *                 example: "69aeda76ad0ea1845acbcc2e"
  *               weight:
  *                 type: number
  *                 example: 60
@@ -459,7 +463,7 @@
  *             properties:
  *               foodName:
  *                 type: string
- *                 example: "Grilled Chicken Breast"
+ *                 example: "Chicken Breast"
  *               calories:
  *                 type: integer
  *                 example: 350
