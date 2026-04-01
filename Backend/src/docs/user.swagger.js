@@ -92,21 +92,6 @@
 
 /**
  * @swagger
- * /api/user/purchases:
- *   get:
- *     summary: Get purchase history
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of purchases
- *       401:
- *         description: Unauthorized
- */
-
-/**
- * @swagger
  * /api/user/trainer/rate:
  *   post:
  *     summary: Rate your assigned trainer
