@@ -828,6 +828,14 @@
  *               password:
  *                 type: string
  *                 example: "verifierPass123"
+ *               phone:
+ *                 type: string
+ *                 example: "+91 9876543210"
+ *               experienceYears:
+ *                 type: integer
+ *                 minimum: 1
+ *                 default: 1
+ *                 example: 2
  *     responses:
  *       201:
  *         description: Verifier created

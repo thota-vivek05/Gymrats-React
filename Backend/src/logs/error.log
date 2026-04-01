@@ -887,3 +887,7 @@ STACK: Error: Not authorized, token failed
     at C:\Users\Anvesh\Downloads\FDFED LAST\Gymrats-React\Backend\src\middleware\authMiddleware.js:59:13
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
 -------------------------------------
+::1 - - [01/Apr/2026:10:03:40 +0000] "POST /api/admin/verifiers HTTP/1.1" 400 50 "http://localhost:3000/api-docs/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [01/Apr/2026:10:09:20 +0000] "GET /api/admin/memberships HTTP/1.1" 500 165 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [01/Apr/2026:10:09:20 +0000] "GET /api/admin/memberships HTTP/1.1" 500 165 "http://localhost:5173/admin/memberships" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+::1 - - [01/Apr/2026:10:09:53 +0000] "PUT /api/admin/verifiers/681ba1c30c7b054ee7df1857/approve HTTP/1.1" 404 48 "http://localhost:3000/api-docs/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
