@@ -461,27 +461,47 @@ const deleteAccount = async (req, res) => {
 const signupUser = async (req, res) => {
 // ... (omitted for brevity)
     try {
-        const {
-            userFullName,
-            dateOfBirth,
-            gender,
-            userEmail,
-            phoneNumber,
-            userPassword,
-            userConfirmPassword,
-            membershipPlan,
-            membershipDuration,
-            cardType,
-            cardNumber,
-            expirationDate,
-            cvv,
-            terms,
-            weight,
-            height,
-            // REYNA
-            workoutType,
-            weightGoal
-        } = req.body;
+        const body = req.body || {};
+        const userFullName = body.userFullName || body.full_name;
+        const dateOfBirth = body.dateOfBirth || body.dob;
+        const age = body.age;
+        const gender = body.gender;
+        const userEmail = body.userEmail || body.email;
+        const phoneNumber = body.phoneNumber || body.phone;
+        const userPassword = body.userPassword || body.password;
+        const userConfirmPassword = body.userConfirmPassword || body.confirmPassword || body.password;
+        const membershipPlan = body.membershipPlan || body.membershipType;
+        const membershipDuration = body.membershipDuration;
+        const cardType = body.cardType;
+        const cardNumber = body.cardNumber;
+        const expirationDate = body.expirationDate;
+        const cvv = body.cvv;
+        const terms = body.terms;
+        const weight = body.weight;
+        const height = body.height;
+        const workoutTypeRaw = body.workoutType || body.workout_type;
+        const weightGoal = body.weightGoal ?? body?.fitness_goals?.weight_goal ?? body.weight;
+
+        const workoutTypeMap = {
+            strength: 'Strength Training',
+            'strength training': 'Strength Training',
+            cardio: 'Cardio',
+            hiit: 'HIIT',
+            calisthenics: 'Calisthenics',
+            competitive: 'Competitive',
+            'weight loss': 'Weight Loss',
+            flexibility: 'Flexibility',
+            bodybuilding: 'Bodybuilding'
+        };
+        const workoutType = workoutTypeRaw
+            ? (workoutTypeMap[String(workoutTypeRaw).trim().toLowerCase()] || workoutTypeRaw)
+            : workoutTypeRaw;
+
+        const resolvedDob = dateOfBirth
+            ? new Date(dateOfBirth)
+            : (age !== undefined && age !== null && !isNaN(age)
+                ? new Date(new Date().getFullYear() - Number(age), 0, 1)
+                : null);
 
         //  console.log('Signup request received:', {
         //     userFullName, dateOfBirth, gender, userEmail, phoneNumber,
@@ -491,7 +511,7 @@ const signupUser = async (req, res) => {
 
         if (
             !userFullName ||
-            !dateOfBirth ||
+            !resolvedDob ||
             !gender ||
             !userEmail ||
             !phoneNumber ||
@@ -499,17 +519,13 @@ const signupUser = async (req, res) => {
             !userConfirmPassword ||
             !membershipPlan ||
             !membershipDuration ||
-            !cardType ||
-            !cardNumber ||
-            !expirationDate ||
-            !cvv ||
-            !terms ||
             weight === undefined||
+            height === undefined ||
             !workoutType ||        // ADD THIS VALIDATION
             weightGoal === undefined
         ) {
             //  console.log('Validation failed: Missing fields');
-            return res.status(400).json({ error: 'All fields are required, including weight' });
+            return res.status(400).json({ error: 'Required fields are missing (name, email, password, phone, gender, dob/age, membership, workout_type, weight, height)' });
         }
 
         if (userPassword !== userConfirmPassword) {
@@ -596,7 +612,7 @@ const signupUser = async (req, res) => {
             full_name: userFullName,
             email: userEmail,
             password_hash,
-            dob: new Date(dateOfBirth),
+            dob: resolvedDob,
             gender: gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase(),
             phone: phoneNumber,
             membershipType: membershipPlan.charAt(0).toUpperCase() + membershipPlan.slice(1).toLowerCase(),
@@ -623,7 +639,7 @@ const signupUser = async (req, res) => {
             height: height !== undefined ? Number(height) : null,
             BMI: calculatedBMI,
             //REYNA
-            workout_type: workoutType 
+            workout_type: workoutType
         });
         //  console.log('New user object created:', newUser);
 
