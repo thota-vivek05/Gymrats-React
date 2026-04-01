@@ -5,6 +5,14 @@ const Trainer = require("../model/Trainer");
 const User = require("../model/User");
 const mongoose = require("mongoose");
 
+// Accept legacy and case variants so analytics does not miss older payment rows.
+const SUCCESSFUL_PAYMENT_QUERY = {
+    status: { $regex: /^(success|completed|paid)$/i }
+};
+const AMOUNT_AS_NUMBER = {
+    $convert: { input: "$amount", to: "double", onError: 0, onNull: 0 }
+};
+
 /**
  * @desc    Get total revenue from all successful payments
  * @route   GET /api/admin/analytics/total-revenue
@@ -13,11 +21,11 @@ const mongoose = require("mongoose");
 exports.getTotalRevenue = async (req, res) => {
     try {
         const result = await Payment.aggregate([
-            { $match: { status: "Success" } },
+            { $match: SUCCESSFUL_PAYMENT_QUERY },
             {
                 $group: {
                     _id: null,
-                    totalRevenue: { $sum: "$amount" },
+                    totalRevenue: { $sum: AMOUNT_AS_NUMBER },
                     totalTransactions: { $sum: 1 }
                 }
             }
@@ -51,11 +59,11 @@ exports.getTotalRevenue = async (req, res) => {
 exports.getMonthlyRevenue = async (req, res) => {
     try {
         const result = await Payment.aggregate([
-            { $match: { status: "Success" } },
+            { $match: SUCCESSFUL_PAYMENT_QUERY },
             {
                 $group: {
                     _id: "$revenueMonth",
-                    total: { $sum: "$amount" },
+                    total: { $sum: AMOUNT_AS_NUMBER },
                     count: { $sum: 1 },
                     renewals: {
                         $sum: { $cond: ["$isRenewal", 1, 0] }
@@ -97,11 +105,11 @@ exports.getMonthlyRevenue = async (req, res) => {
 exports.getMonthlyGrowth = async (req, res) => {
     try {
         const data = await Payment.aggregate([
-            { $match: { status: "Success" } },
+            { $match: SUCCESSFUL_PAYMENT_QUERY },
             {
                 $group: {
                     _id: "$revenueMonth",
-                    total: { $sum: "$amount" }
+                    total: { $sum: AMOUNT_AS_NUMBER }
                 }
             },
             { $sort: { _id: 1 } }
@@ -167,19 +175,42 @@ exports.getTrainerRevenue = async (req, res) => {
     try {
         const result = await Payment.aggregate([
             { 
-                $match: { 
-                    status: "Success", 
-                    trainerId: { $ne: null } 
-                } 
+                $match: SUCCESSFUL_PAYMENT_QUERY
+            },
+            // Some legacy payments don't store trainerId directly.
+            // Fallback to the user's assigned trainer for analytics visibility.
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$userDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    effectiveTrainerId: { $ifNull: ["$trainerId", "$userDetails.trainer"] }
+                }
+            },
+            {
+                $match: {
+                    effectiveTrainerId: { $ne: null }
+                }
             },
             {
                 $group: {
-                    _id: "$trainerId",
-                    totalRevenue: { $sum: "$amount" },
+                    _id: "$effectiveTrainerId",
+                    totalRevenue: { $sum: AMOUNT_AS_NUMBER },
                     transactionCount: { $sum: 1 },
                     uniqueUsers: { $addToSet: "$userId" },
                     lastPayment: { $max: "$paymentDate" },
-                    averageTransaction: { $avg: "$amount" }
+                    averageTransaction: { $avg: AMOUNT_AS_NUMBER }
                 }
             },
             {
@@ -190,14 +221,19 @@ exports.getTrainerRevenue = async (req, res) => {
                     as: "trainerDetails"
                 }
             },
-            { $unwind: "$trainerDetails" },
+            {
+                $unwind: {
+                    path: "$trainerDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
             {
                 $project: {
                     trainerId: "$_id",
-                    trainerName: "$trainerDetails.name",
-                    trainerEmail: "$trainerDetails.email",
-                    specialization: "$trainerDetails.specializations",
-                    rating: "$trainerDetails.rating",
+                    trainerName: { $ifNull: ["$trainerDetails.name", "Unknown Trainer"] },
+                    trainerEmail: { $ifNull: ["$trainerDetails.email", "N/A"] },
+                    specialization: { $ifNull: ["$trainerDetails.specializations", []] },
+                    rating: { $ifNull: ["$trainerDetails.rating", 0] },
                     totalRevenue: 1,
                     transactionCount: 1,
                     uniqueUserCount: { $size: "$uniqueUsers" },
@@ -233,14 +269,14 @@ exports.getMembershipRevenue = async (req, res) => {
         const result = await Payment.aggregate([
             { 
                 $match: { 
-                    status: "Success", 
+                    ...SUCCESSFUL_PAYMENT_QUERY,
                     membershipPlan: { $ne: null } 
                 } 
             },
             {
                 $group: {
                     _id: "$membershipPlan",
-                    revenue: { $sum: "$amount" },
+                    revenue: { $sum: AMOUNT_AS_NUMBER },
                     count: { $sum: 1 },
                     uniqueUsers: { $addToSet: "$userId" }
                 }
@@ -292,16 +328,16 @@ exports.getMembershipRevenue = async (req, res) => {
 exports.getRevenuePerUser = async (req, res) => {
     try {
         const result = await Payment.aggregate([
-            { $match: { status: "Success" } },
+            { $match: SUCCESSFUL_PAYMENT_QUERY },
             {
                 $group: {
                     _id: "$userId",
-                    totalSpent: { $sum: "$amount" },
+                    totalSpent: { $sum: AMOUNT_AS_NUMBER },
                     transactionCount: { $sum: 1 },
                     firstPurchase: { $min: "$paymentDate" },
                     lastPurchase: { $max: "$paymentDate" },
                     plans: { $addToSet: "$membershipPlan" },
-                    averageTransaction: { $avg: "$amount" }
+                    averageTransaction: { $avg: AMOUNT_AS_NUMBER }
                 }
             },
             {
@@ -369,9 +405,9 @@ exports.getRevenueForUser = async (req, res) => {
             });
         }
 
-        const payments = await Payment.find({ 
-            userId, 
-            status: "Success" 
+        const payments = await Payment.find({
+            userId,
+            ...SUCCESSFUL_PAYMENT_QUERY
         }).sort({ paymentDate: -1 });
 
         const user = await User.findById(userId).select('full_name email membershipType status');
@@ -428,84 +464,131 @@ exports.getRevenueForUser = async (req, res) => {
 exports.getTrainerPerformance = async (req, res) => {
     try {
         console.log('📊 Fetching trainer performance...');
-        
-        const result = await Trainer.aggregate([
-            {
-                $lookup: {
-                    from: "payments",
-                    localField: "_id",
-                    foreignField: "trainerId",
-                    as: "payments"
-                }
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "clients.userId",
-                    foreignField: "_id",
-                    as: "clientDetails"
-                }
-            },
-            {
-                $addFields: {
-                    // Calculate active clients count
-                    activeClients: {
-                        $size: {
-                            $filter: {
-                                input: { $ifNull: ["$clients", []] },
-                                as: "client",
-                                cond: "$$client.isActive"
-                            }
-                        }
-                    },
-                    // Calculate total revenue from payments
-                    totalRevenue: {
-                        $reduce: {
-                            input: { $ifNull: ["$payments", []] },
-                            initialValue: 0,
-                            in: { $add: ["$$value", "$$this.amount"] }
-                        }
-                    },
-                    // Get unique clients from payments
-                    uniquePayingClients: {
-                        $size: { 
-                            $setUnion: [
-                                { $ifNull: ["$payments.userId", []] }
-                            ] 
-                        }
-                    },
-                    // Last payment date
-                    lastPaymentDate: {
-                        $max: "$payments.paymentDate"
-                    }
-                }
-            },
-            {
-                $project: {
-                    name: 1,
-                    email: 1,
-                    specializations: 1,
-                    rating: 1,
-                    experience: 1,
-                    status: 1,
-                    maxClients: 1,
-                    totalClients: 1,
-                    activeClients: 1,
-                    joined_users_count: 1,
-                    dropped_users_count: 1,
-                    totalRevenue: 1,
-                    uniquePayingClients: 1,
-                    lastPaymentDate: 1,
-                    // Include monthly revenue trend
-                    monthlyRevenue: { $ifNull: ["$monthly_revenue", []] },
-                    // Sample of recent clients
-                    recentClients: {
-                        $slice: [{ $ifNull: ["$clientDetails", []] }, 5]
-                    }
-                }
-            },
-            { $sort: { totalRevenue: -1 } }
+
+        const trainers = await Trainer.find({})
+            .select("name email specializations rating experience status maxClients totalClients joined_users_count dropped_users_count monthly_revenue clients")
+            .lean();
+
+        const [payments, usersWithTrainer] = await Promise.all([
+            Payment.find(SUCCESSFUL_PAYMENT_QUERY)
+                .select("userId trainerId amount paymentDate")
+                .lean(),
+            User.find({ trainer: { $ne: null } })
+                .select("_id trainer")
+                .lean()
         ]);
+
+        const userToTrainer = new Map(
+            usersWithTrainer.map((u) => [u._id.toString(), u.trainer?.toString() || null])
+        );
+
+        // Fallback map from trainer client history for legacy datasets where user.trainer may be null.
+        const clientHistoryToTrainer = new Map();
+        trainers.forEach((trainer) => {
+            (trainer.clients || []).forEach((client) => {
+                const userId = client?.userId?.toString();
+                if (!userId) return;
+
+                const existing = clientHistoryToTrainer.get(userId);
+                const joinedAtTs = client?.joinedAt ? new Date(client.joinedAt).getTime() : 0;
+                if (!existing || joinedAtTs > existing.joinedAtTs) {
+                    clientHistoryToTrainer.set(userId, {
+                        trainerId: trainer._id.toString(),
+                        joinedAtTs
+                    });
+                }
+            });
+        });
+
+        const allClientIds = [
+            ...new Set(
+                trainers.flatMap((t) =>
+                    (t.clients || [])
+                        .map((c) => c?.userId?.toString())
+                        .filter(Boolean)
+                )
+            )
+        ];
+
+        const clientProfiles = await User.find({ _id: { $in: allClientIds } })
+            .select("_id full_name email membershipType status")
+            .lean();
+
+        const clientProfileMap = new Map(
+            clientProfiles.map((u) => [u._id.toString(), u])
+        );
+
+        const revenueByTrainer = new Map();
+        payments.forEach((payment) => {
+            const userId = payment.userId?.toString();
+            const effectiveTrainerId =
+                payment.trainerId?.toString() ||
+                (userId ? userToTrainer.get(userId) : null) ||
+                (userId ? clientHistoryToTrainer.get(userId)?.trainerId : null);
+            if (!effectiveTrainerId) return;
+
+            if (!revenueByTrainer.has(effectiveTrainerId)) {
+                revenueByTrainer.set(effectiveTrainerId, {
+                    totalRevenue: 0,
+                    transactionCount: 0,
+                    uniqueUsers: new Set(),
+                    lastPaymentDate: null
+                });
+            }
+
+            const metric = revenueByTrainer.get(effectiveTrainerId);
+            const amount = Number(payment.amount) || 0;
+            metric.totalRevenue += amount;
+            metric.transactionCount += 1;
+            if (userId) metric.uniqueUsers.add(userId);
+
+            if (payment.paymentDate) {
+                const paymentDate = new Date(payment.paymentDate);
+                if (!metric.lastPaymentDate || paymentDate > metric.lastPaymentDate) {
+                    metric.lastPaymentDate = paymentDate;
+                }
+            }
+        });
+
+        const result = trainers
+            .map((trainer) => {
+                const trainerId = trainer._id.toString();
+                const revenueMetric = revenueByTrainer.get(trainerId) || {
+                    totalRevenue: 0,
+                    transactionCount: 0,
+                    uniqueUsers: new Set(),
+                    lastPaymentDate: null
+                };
+
+                const clients = trainer.clients || [];
+                const activeClients = clients.filter((c) => c?.isActive).length;
+                const recentClients = clients.slice(0, 5).map((client) => {
+                    const profile = client?.userId ? clientProfileMap.get(client.userId.toString()) : null;
+                    return {
+                        _id: profile?._id || client?.userId || null,
+                        full_name: profile?.full_name || "Unknown User",
+                        email: profile?.email || "N/A",
+                        membershipType: profile?.membershipType || "N/A",
+                        status: profile?.status || "Unknown",
+                        isActive: !!client?.isActive,
+                        joinedAt: client?.joinedAt || null,
+                        droppedAt: client?.droppedAt || null
+                    };
+                });
+
+                return {
+                    ...trainer,
+                    totalClients: clients.length,
+                    activeClients,
+                    totalRevenue: Math.round(revenueMetric.totalRevenue),
+                    transactionCount: revenueMetric.transactionCount,
+                    uniquePayingClients: revenueMetric.uniqueUsers.size,
+                    lastPaymentDate: revenueMetric.lastPaymentDate,
+                    monthlyRevenue: trainer.monthly_revenue || [],
+                    recentClients
+                };
+            })
+            .sort((a, b) => b.totalRevenue - a.totalRevenue);
 
         console.log(`✅ Found performance data for ${result.length} trainers`);
 
@@ -553,19 +636,54 @@ exports.getTrainerUserRevenue = async (req, res) => {
 
         // FIX: Create ObjectId instance with 'new' keyword
         const trainerObjectId = new mongoose.Types.ObjectId(trainerId);
+        const trainerClientUserIds = (trainer.clients || [])
+            .map((c) => c?.userId)
+            .filter(Boolean);
+        const currentlyAssignedUserIds = await User.find({ trainer: trainerObjectId })
+            .select("_id")
+            .lean();
+        const fallbackUserIdSet = new Set([
+            ...trainerClientUserIds.map((id) => id.toString()),
+            ...currentlyAssignedUserIds.map((u) => u._id.toString())
+        ]);
+        const fallbackUserIds = [...fallbackUserIdSet].map((id) => new mongoose.Types.ObjectId(id));
 
         // Get revenue grouped by user for this trainer
         const result = await Payment.aggregate([
             {
+                $match: SUCCESSFUL_PAYMENT_QUERY
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "paymentUser"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$paymentUser",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    effectiveTrainerId: { $ifNull: ["$trainerId", "$paymentUser.trainer"] }
+                }
+            },
+            {
                 $match: {
-                    trainerId: trainerObjectId,
-                    status: "Success"
+                    $or: [
+                        { effectiveTrainerId: trainerObjectId },
+                        { userId: { $in: fallbackUserIds } }
+                    ]
                 }
             },
             {
                 $group: {
                     _id: "$userId",
-                    totalPaid: { $sum: "$amount" },
+                    totalPaid: { $sum: AMOUNT_AS_NUMBER },
                     transactionCount: { $sum: 1 },
                     firstPayment: { $min: "$paymentDate" },
                     lastPayment: { $max: "$paymentDate" },
@@ -669,7 +787,7 @@ exports.getTrainerMonthlyTrend = async (req, res) => {
             });
         }
 
-        const trainer = await Trainer.findById(trainerId).select('name monthly_revenue');
+        const trainer = await Trainer.findById(trainerId).select('name monthly_revenue clients');
         if (!trainer) {
             return res.status(404).json({
                 success: false,
@@ -679,19 +797,65 @@ exports.getTrainerMonthlyTrend = async (req, res) => {
 
         // FIX: Create ObjectId instance with 'new' keyword
         const trainerObjectId = new mongoose.Types.ObjectId(trainerId);
+        const trainerClientUserIds = (trainer.clients || [])
+            .map((c) => c?.userId)
+            .filter(Boolean);
+        const currentlyAssignedUserIds = await User.find({ trainer: trainerObjectId })
+            .select("_id")
+            .lean();
+        const fallbackUserIdSet = new Set([
+            ...trainerClientUserIds.map((id) => id.toString()),
+            ...currentlyAssignedUserIds.map((u) => u._id.toString())
+        ]);
+        const fallbackUserIds = [...fallbackUserIdSet].map((id) => new mongoose.Types.ObjectId(id));
 
         // Get monthly revenue from payments
         const monthlyRevenue = await Payment.aggregate([
             {
+                $match: SUCCESSFUL_PAYMENT_QUERY
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "paymentUser"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$paymentUser",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    effectiveTrainerId: { $ifNull: ["$trainerId", "$paymentUser.trainer"] },
+                    monthKey: {
+                        $ifNull: [
+                            "$revenueMonth",
+                            {
+                                $dateToString: {
+                                    format: "%Y-%m",
+                                    date: { $ifNull: ["$paymentDate", "$createdAt"] }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            {
                 $match: {
-                    trainerId: trainerObjectId,
-                    status: "Success"
+                    $or: [
+                        { effectiveTrainerId: trainerObjectId },
+                        { userId: { $in: fallbackUserIds } }
+                    ]
                 }
             },
             {
                 $group: {
-                    _id: "$revenueMonth",
-                    revenue: { $sum: "$amount" },
+                    _id: "$monthKey",
+                    revenue: { $sum: AMOUNT_AS_NUMBER },
                     transactions: { $sum: 1 },
                     uniqueUsers: { $addToSet: "$userId" }
                 }
@@ -785,11 +949,11 @@ exports.getActiveUsers = async (req, res) => {
         // Enhance with payment summary
         const userIds = activeUsers.map(u => u._id);
         const paymentSummary = await Payment.aggregate([
-            { $match: { userId: { $in: userIds }, status: "Success" } },
+            { $match: { userId: { $in: userIds }, ...SUCCESSFUL_PAYMENT_QUERY } },
             {
                 $group: {
                     _id: "$userId",
-                    totalSpent: { $sum: "$amount" },
+                    totalSpent: { $sum: AMOUNT_AS_NUMBER },
                     lastPayment: { $max: "$paymentDate" }
                 }
             }
@@ -866,11 +1030,11 @@ exports.getExpiredUsers = async (req, res) => {
         // Enhance with payment summary
         const userIds = expiredUsers.map(u => u._id);
         const paymentSummary = await Payment.aggregate([
-            { $match: { userId: { $in: userIds }, status: "Success" } },
+            { $match: { userId: { $in: userIds }, ...SUCCESSFUL_PAYMENT_QUERY } },
             {
                 $group: {
                     _id: "$userId",
-                    totalSpent: { $sum: "$amount" },
+                    totalSpent: { $sum: AMOUNT_AS_NUMBER },
                     lastPayment: { $max: "$paymentDate" }
                 }
             }
@@ -1032,7 +1196,7 @@ exports.getRenewalTracking = async (req, res) => {
 
         const recentRenewals = await Payment.find({
             isRenewal: true,
-            status: "Success",
+            ...SUCCESSFUL_PAYMENT_QUERY,
             paymentDate: { $gte: thirtyDaysAgo }
         })
         .populate('userId', 'full_name email')
@@ -1050,7 +1214,7 @@ exports.getRenewalTracking = async (req, res) => {
 
         const totalRenewalsLast30Days = await Payment.countDocuments({
             isRenewal: true,
-            status: "Success",
+            ...SUCCESSFUL_PAYMENT_QUERY,
             paymentDate: { $gte: thirtyDaysAgo }
         });
 
