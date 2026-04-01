@@ -92,21 +92,6 @@
 
 /**
  * @swagger
- * /api/user/purchases:
- *   get:
- *     summary: Get purchase history
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of purchases
- *       401:
- *         description: Unauthorized
- */
-
-/**
- * @swagger
  * /api/user/trainer/rate:
  *   post:
  *     summary: Rate your assigned trainer
@@ -120,14 +105,18 @@
  *           schema:
  *             type: object
  *             required:
+ *               - trainerId
  *               - rating
  *             properties:
+ *               trainerId:
+ *                 type: string
+ *                 example: "681baf7e0c7b054ee7df1860"
  *               rating:
  *                 type: integer
  *                 minimum: 1
  *                 maximum: 5
  *                 example: 4
- *               review:
+ *               feedback:
  *                 type: string
  *                 example: "Great trainer, very motivating!"
  *     responses:
@@ -139,7 +128,7 @@
  *               success: true
  *               message: "Trainer rated successfully"
  *       400:
- *         description: Invalid rating
+ *         description: Invalid input
  *       401:
  *         description: Unauthorized
  */
@@ -166,7 +155,7 @@
  *                 example: "Schedule conflict"
  *               preferredTrainerId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e4b2a"
+ *                 example: "681baf7e0c7b054ee7df1860"
  *     responses:
  *       200:
  *         description: Change request submitted
@@ -200,11 +189,11 @@
  *               currentPassword:
  *                 type: string
  *                 format: password
- *                 example: "oldPass123"
+ *                 example: "123123"
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 example: "newPass456"
+ *                 example: "123456"
  *     responses:
  *       200:
  *         description: Password changed
@@ -336,11 +325,15 @@
  *           schema:
  *             type: object
  *             required:
+ *               - workoutId
  *               - exerciseId
  *             properties:
+ *               workoutId:
+ *                 type: string
+ *                 example: "69aeaa9353f8e1561f856a72"
  *               exerciseId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e5a11"
+ *                 example: "69aeda76ad0ea1845acbcc2e"
  *               weight:
  *                 type: number
  *                 example: 60
@@ -455,7 +448,7 @@
  *             properties:
  *               foodName:
  *                 type: string
- *                 example: "Grilled Chicken Breast"
+ *                 example: "Chicken Breast"
  *               calories:
  *                 type: integer
  *                 example: 350
