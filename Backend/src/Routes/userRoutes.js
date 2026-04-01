@@ -336,7 +336,7 @@ router.get("/api/class/upcoming", protect, userController.checkMembershipActive,
 router.post("/signup", userController.signupUser);
 router.get("/profile", userController.getUserProfile);
 router.post("/complete-workout", userController.completeWorkout);
-router.post("/api/workout/complete", userController.markWorkoutCompleted);
+router.post("/api/workout/complete", protect, userController.markWorkoutCompleted);
 router.post('/api/exercise/complete', protect, userController.checkMembershipActive, userController.markExerciseCompleted);
 
 // Debug routes
@@ -358,8 +358,8 @@ router.get("/api/debug/workout/:id", async (req, res) => {
 
 router.get(
   "/api/debug/workouts",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -416,8 +416,8 @@ router.get("/membership_renewal", protect, (req, res) => {
 // Page routes
 router.get(
   "/user_nutrition",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   (req, res) => {
     res.render("user_nutrition", {
       user: req.user,
@@ -428,8 +428,8 @@ router.get(
 
 router.get(
   "/user_exercises",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const User = require("../model/User");
@@ -458,8 +458,8 @@ const UserExerciseRating = require("../model/UserExerciseRating");
 // Get exercises based on user's workout type
 router.get(
   "/api/exercises",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -507,8 +507,8 @@ router.get(
 // Rate an exercise
 router.post(
   "/api/exercises/:exerciseId/rate",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -585,8 +585,8 @@ router.post(
 // Get recommended exercises based on user ratings
 router.get(
   "/api/exercises/recommended",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -708,62 +708,12 @@ router.get(
   }
 );
 
-// Get exercise details
-router.get(
-  "/api/exercises/:exerciseId",
-  userController.checkMembershipActive,
-  protect,
-  async (req, res) => {
-    try {
-      const userId = req.user._id;
-      const { exerciseId } = req.params;
-
-      const exercise = await Exercise.findById(exerciseId);
-      if (!exercise) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Exercise not found" });
-      }
-
-      const userRating = await UserExerciseRating.findOne({
-        userId,
-        exerciseId,
-      });
-
-      const similarExercises = await Exercise.find({
-        verified: true,
-        _id: { $ne: exerciseId },
-        $or: [
-          { category: exercise.category },
-          { movementPattern: exercise.movementPattern },
-          { primaryMuscle: exercise.primaryMuscle },
-        ],
-      }).limit(4);
-
-      res.json({
-        success: true,
-        exercise: {
-          ...exercise.toObject(),
-          userRating: userRating?.rating || null,
-          userEffectiveness: userRating?.effectiveness || null,
-          userNotes: userRating?.notes || null,
-        },
-        similarExercises,
-      });
-    } catch (error) {
-      console.error("Error fetching exercise details:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Error fetching exercise details" });
-    }
-  }
-);
 
 // Search exercises
 router.get(
   "/api/exercises/search",
-  userController.checkMembershipActive,
   protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const { query } = req.query;
@@ -817,5 +767,57 @@ router.get(
     }
   }
 );
+
+// Get exercise details
+router.get(
+  "/api/exercises/:exerciseId",
+  protect,
+  userController.checkMembershipActive,
+  async (req, res) => {
+    try {
+      const userId = req.user._id;
+      const { exerciseId } = req.params;
+
+      const exercise = await Exercise.findById(exerciseId);
+      if (!exercise) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Exercise not found" });
+      }
+
+      const userRating = await UserExerciseRating.findOne({
+        userId,
+        exerciseId,
+      });
+
+      const similarExercises = await Exercise.find({
+        verified: true,
+        _id: { $ne: exerciseId },
+        $or: [
+          { category: exercise.category },
+          { movementPattern: exercise.movementPattern },
+          { primaryMuscle: exercise.primaryMuscle },
+        ],
+      }).limit(4);
+
+      res.json({
+        success: true,
+        exercise: {
+          ...exercise.toObject(),
+          userRating: userRating?.rating || null,
+          userEffectiveness: userRating?.effectiveness || null,
+          userNotes: userRating?.notes || null,
+        },
+        similarExercises,
+      });
+    } catch (error) {
+      console.error("Error fetching exercise details:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Error fetching exercise details" });
+    }
+  }
+);
+
 
 module.exports = router;

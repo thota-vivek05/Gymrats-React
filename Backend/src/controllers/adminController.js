@@ -6,6 +6,7 @@ const Verifier = require('../model/Verifier');
 const TrainerApplication = require('../model/TrainerApplication');
 const WorkoutHistory = require('../model/WorkoutHistory');
 const NutritionHistory = require('../model/NutritionHistory');
+const TrainerReview = require('../model/TrainerReview');
 const Manager = require('../model/Manager'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -1465,26 +1466,18 @@ searchExercises: async (req, res) => {
 
       const { name, email, password, phone, experienceYears } = req.body;
 
-      // Enhanced validation with better error messages
-      if (!name || !email || !phone || !experienceYears) {
+      // Keep only essential fields required from client payload.
+      if (!name || !email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Missing required fields: name, email, phone, and experience are required',
+          message: 'Missing required fields: name, email, and password are required',
           missing: {
             name: !name,
             email: !email,
-            phone: !phone,
-            experienceYears: !experienceYears,
+            phone: false,
+            experienceYears: false,
             password: !password
           }
-        });
-      }
-
-      // Check if password exists
-      if (!password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Password is required'
         });
       }
 
@@ -1493,13 +1486,19 @@ searchExercises: async (req, res) => {
         return res.status(400).json({ success: false, message: 'Email already in use' });
       }
 
+      const parsedExperienceYears = Number.parseInt(experienceYears, 10);
+      const finalExperienceYears =
+        Number.isFinite(parsedExperienceYears) && parsedExperienceYears > 0
+          ? parsedExperienceYears
+          : 1;
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const newVerifier = new Verifier({
         name,
         email,
         password: hashedPassword,
         phone,
-        experienceYears: parseInt(experienceYears)
+        experienceYears: finalExperienceYears
       });
 
       await newVerifier.save();
@@ -1882,7 +1881,10 @@ const getTopRatedExercises = async (req, res) => {
 // Get trainer ratings leaderboard
 const getTrainerRatingLeaderboard = async (req, res) => {
   try {
-    const { minReviews = 1, limit = 20 } = req.query;
+    const minReviews = Number.parseInt(req.query.minReviews, 10);
+    const limit = Number.parseInt(req.query.limit, 10);
+    const minReviewsValue = Number.isFinite(minReviews) ? minReviews : 0;
+    const limitValue = Number.isFinite(limit) && limit > 0 ? limit : 20;
     
     const trainers = await Trainer.aggregate([
       {
@@ -1895,8 +1897,10 @@ const getTrainerRatingLeaderboard = async (req, res) => {
       },
       {
         $addFields: {
-          avgRating: { $avg: '$reviews.rating' },
+          computedAvgRating: { $avg: '$reviews.rating' },
           reviewCount: { $size: '$reviews' },
+          // Fall back to trainer.rating when no review docs exist yet.
+          avgRating: { $ifNull: [{ $avg: '$reviews.rating' }, '$rating'] },
           // Count flagged reviews
           flaggedReviews: {
             $size: {
@@ -1911,7 +1915,7 @@ const getTrainerRatingLeaderboard = async (req, res) => {
       },
       {
         $match: {
-          reviewCount: { $gte: parseInt(minReviews) },
+          reviewCount: { $gte: minReviewsValue },
           avgRating: { $ne: null }
         }
       },
@@ -1919,7 +1923,34 @@ const getTrainerRatingLeaderboard = async (req, res) => {
         $sort: { avgRating: -1, reviewCount: -1 }
       },
       {
-        $limit: parseInt(limit)
+        $limit: limitValue
+      },
+      {
+        $addFields: {
+          activeClients: {
+            $size: {
+              $filter: {
+                input: { $ifNull: ['$clients', []] },
+                as: 'client',
+                cond: '$$client.isActive'
+              }
+            }
+          },
+          isAvailable: {
+            $lt: [
+              {
+                $size: {
+                  $filter: {
+                    input: { $ifNull: ['$clients', []] },
+                    as: 'client',
+                    cond: '$$client.isActive'
+                  }
+                }
+              },
+              { $ifNull: ['$maxClients', 20] }
+            ]
+          }
+        }
       },
       {
         $project: {
@@ -1927,10 +1958,12 @@ const getTrainerRatingLeaderboard = async (req, res) => {
           email: 1,
           specializations: 1,
           avgRating: { $round: ['$avgRating', 1] },
+          profileRating: '$rating',
           reviewCount: 1,
           flaggedReviews: 1,
           status: 1,
           totalClients: 1,
+          activeClients: 1,
           maxClients: 1,
           isAvailable: 1
         }
@@ -1949,7 +1982,7 @@ const getTrainerRatingLeaderboard = async (req, res) => {
       },
       {
         $addFields: {
-          avgRating: { $avg: '$reviews.rating' },
+          avgRating: { $ifNull: [{ $avg: '$reviews.rating' }, '$rating'] },
           reviewCount: { $size: '$reviews' }
         }
       },
@@ -1992,10 +2025,20 @@ const getTrainerRatingLeaderboard = async (req, res) => {
 const getTrainerReviews = async (req, res) => {
   try {
     const { trainerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(trainerId)) {
+      return res.status(400).json({ success: false, message: 'Invalid trainer ID format' });
+    }
+
+    const trainerExists = await Trainer.exists({ _id: trainerId });
+    if (!trainerExists) {
+      return res.status(404).json({ success: false, message: 'Trainer not found' });
+    }
     
     const reviews = await TrainerReview.find({ trainerId })
       .populate('userId', 'full_name email')
-      .sort({ reviewedAt: -1 });
+      .sort({ reviewedAt: -1 })
+      .lean();
     
     // Calculate average
     const avgRating = reviews.length > 0
@@ -2013,7 +2056,11 @@ const getTrainerReviews = async (req, res) => {
     });
   } catch (error) {
     console.error('Get trainer reviews error:', error);
-    res.status(500).json({ success: false, message: 'Error fetching reviews' });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching reviews',
+      error: error.message
+    });
   }
 };
 
@@ -2027,7 +2074,8 @@ const flagReviewForReassignment = async (req, res) => {
       {
         flaggedForReassignment: true,
         'reassignedBy.managerId': req.user._id,
-        'reassignedBy.reassignedAt': new Date()
+        // Keep this null until reassignment is actually completed.
+        'reassignedBy.reassignedAt': null
       },
       { new: true }
     );
@@ -2302,7 +2350,7 @@ const getPendingReassignmentFlags = async (req, res) => {
   try {
     const flaggedReviews = await TrainerReview.find({
       flaggedForReassignment: true,
-      'reassignedBy.managerId': null
+      'reassignedBy.reassignedAt': null
     })
       .populate('userId', 'full_name email')
       .populate('trainerId', 'name email')
