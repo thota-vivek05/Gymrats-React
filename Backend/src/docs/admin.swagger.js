@@ -95,6 +95,7 @@
  */
 
 // ═══════════════ USERS CRUD ═══════════════
+// ═══════════════ USERS CRUD ═══════════════
 
 /**
  * @swagger
@@ -107,6 +108,11 @@
  *     responses:
  *       200:
  *         description: Array of users
+ */
+
+/**
+ * @swagger
+ * /api/admin/users:
  *   post:
  *     summary: Create a new user
  *     tags: [Admin Dashboard]
@@ -119,12 +125,19 @@
  *           schema:
  *             type: object
  *             required:
- *               - full_name
+ *               - fullName
  *               - email
  *               - password
+ *               - dob
+ *               - gender
+ *               - phone
+ *               - height
+ *               - weight
+ *               - workoutType
  *               - membershipType
+ *               - fitnessGoals
  *             properties:
- *               full_name:
+ *               fullName:
  *                 type: string
  *                 example: "Jane Smith"
  *               email:
@@ -134,36 +147,62 @@
  *               password:
  *                 type: string
  *                 example: "securePass123"
- *               phone:
+ *               dob:
  *                 type: string
- *                 example: "9876543210"
- *               age:
- *                 type: integer
- *                 example: 28
+ *                 format: date
+ *                 example: "1998-06-12"
  *               gender:
  *                 type: string
  *                 enum: [Male, Female, Other]
  *                 example: "Female"
+ *               phone:
+ *                 type: string
+ *                 example: "9876543210"
  *               height:
  *                 type: number
  *                 example: 165
  *               weight:
  *                 type: number
  *                 example: 60
+ *               workoutType:
+ *                 type: string
+ *                 enum:
+ *                   - Calisthenics
+ *                   - Weight Loss
+ *                   - HIIT
+ *                   - Competitive
+ *                   - Strength Training
+ *                   - Cardio
+ *                   - Flexibility
+ *                   - Bodybuilding
+ *                 example: "Cardio"
  *               membershipType:
  *                 type: string
- *                 enum: [Silver, Gold, Platinum]
+ *                 enum: [Basic, Gold, Platinum]
  *                 example: "Gold"
  *               membershipDuration:
- *                 type: string
- *                 enum: ["1", "3", "6", "12"]
- *                 example: "6"
- *               workout_type:
- *                 type: string
- *                 example: "Cardio"
+ *                 type: object
+ *                 properties:
+ *                   monthsRemaining:
+ *                     type: integer
+ *                     example: 6
+ *               fitnessGoals:
+ *                 type: object
+ *                 required:
+ *                   - weightGoal
+ *                 properties:
+ *                   calorieGoal:
+ *                     type: number
+ *                     example: 2200
+ *                   proteinGoal:
+ *                     type: number
+ *                     example: 90
+ *                   weightGoal:
+ *                     type: number
+ *                     example: 65
  *     responses:
  *       201:
- *         description: User created
+ *         description: User created successfully
  *       400:
  *         description: Validation error
  */
@@ -180,6 +219,7 @@
  *       200:
  *         description: Array of dropped users
  */
+
 
 /**
  * @swagger
@@ -203,6 +243,7 @@
  *         description: User not found
  */
 
+
 /**
  * @swagger
  * /api/admin/users/{id}:
@@ -225,49 +266,41 @@
  *           schema:
  *             type: object
  *             properties:
- *               full_name:
+ *               fullName:
  *                 type: string
- *                 example: "Jane Smith Updated"
+ *                 example: "John Doe"
  *               email:
  *                 type: string
  *                 format: email
- *               phone:
+ *                 example: "john@example.com"
+ *               dob:
  *                 type: string
- *               age:
- *                 type: integer
+ *                 format: date
+ *                 example: "1998-05-20"
  *               gender:
  *                 type: string
  *                 enum: [Male, Female, Other]
- *               height:
- *                 type: number
+ *                 example: "Male"
+ *               phone:
+ *                 type: string
+ *                 example: "9876543210"
  *               weight:
  *                 type: number
- *               membershipType:
- *                 type: string
- *                 enum: [Silver, Gold, Platinum]
+ *                 example: 75
+ *               height:
+ *                 type: number
+ *                 example: 175
  *               status:
  *                 type: string
- *                 enum: [Active, Inactive, Suspended]
+ *                 enum: [Active, Inactive, Suspended, Expired]
+ *                 example: "Active"
+ *               membershipType:
+ *                 type: string
+ *                 enum: [Basic, Gold, Platinum]
+ *                 example: "Gold"
  *     responses:
  *       200:
- *         description: User updated
- *       404:
- *         description: User not found
- *   delete:
- *     summary: Delete a user
- *     tags: [Admin Dashboard]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: User deleted
+ *         description: User updated successfully
  *       404:
  *         description: User not found
  */
@@ -300,6 +333,8 @@
  *               - name
  *               - email
  *               - password
+ *               - phone
+ *               - experience
  *             properties:
  *               name:
  *                 type: string
@@ -311,14 +346,27 @@
  *               password:
  *                 type: string
  *                 example: "trainerPass123"
+ *               phone:
+ *                 type: string
+ *                 example: "9876543210"
+ *               experience:
+ *                 type: string
+ *                 enum: ["1-2","3-5","5-10","10+"]
+ *                 example: "3-5"
  *               specializations:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["Strength Training", "HIIT"]
- *               experience:
- *                 type: integer
- *                 example: 5
+ *                   enum:
+ *                     - Calisthenics
+ *                     - Weight Loss
+ *                     - HIIT
+ *                     - Competitive
+ *                     - Strength Training
+ *                     - Cardio
+ *                     - Flexibility
+ *                     - Bodybuilding
+ *                 example: ["Strength Training","HIIT"]
  *               maxClients:
  *                 type: integer
  *                 example: 20
@@ -353,40 +401,52 @@
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Mike Trainer Updated"
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: "mike@gymrats.com"
+ *               phone:
+ *                 type: string
+ *                 example: "9876543210"
  *               specializations:
  *                 type: array
  *                 items:
  *                   type: string
+ *                   enum:
+ *                     - Calisthenics
+ *                     - Weight Loss
+ *                     - HIIT
+ *                     - Competitive
+ *                     - Strength Training
+ *                     - Cardio
+ *                     - Flexibility
+ *                     - Bodybuilding
+ *                 example:
+ *                   - Strength Training
+ *                   - HIIT
  *               experience:
- *                 type: integer
+ *                 type: string
+ *                 enum:
+ *                   - "1-2"
+ *                   - "3-5"
+ *                   - "5-10"
+ *                   - "10+"
+ *                 example: "5-10"
  *               maxClients:
  *                 type: integer
+ *                 example: 30
  *               status:
  *                 type: string
- *                 enum: [Active, Inactive]
+ *                 enum:
+ *                   - Active
+ *                   - Inactive
+ *                   - Suspended
+ *                   - Expired
+ *                 example: "Active"
  *     responses:
  *       200:
- *         description: Trainer updated
- *       404:
- *         description: Trainer not found
- *   delete:
- *     summary: Delete a trainer
- *     tags: [Admin Dashboard]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Trainer ID
- *     responses:
- *       200:
- *         description: Trainer deleted
+ *         description: Trainer updated successfully
  *       404:
  *         description: Trainer not found
  */
