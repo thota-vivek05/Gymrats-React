@@ -10,7 +10,7 @@
  * /api/trainer/signup:
  *   post:
  *     summary: Trainer signup / application
- *     description: Submit a trainer application with a resume file upload. No auth required.
+ *     description: Submit a trainer application with resume upload
  *     tags: [Trainer]
  *     requestBody:
  *       required: true
@@ -19,48 +19,67 @@
  *           schema:
  *             type: object
  *             required:
- *               - name
+ *               - firstName
+ *               - lastName
  *               - email
  *               - password
+ *               - confirmPassword
+ *               - phone
  *               - specializations
  *               - experience
+ *               - termsAgree
  *             properties:
- *               name:
+ *               firstName:
  *                 type: string
- *                 example: "Mike Johnson"
+ *                 example: Mike
+ *               lastName:
+ *                 type: string
+ *                 example: Johnson
  *               email:
  *                 type: string
  *                 format: email
- *                 example: "mike@gymrats.com"
+ *                 example: mike@gymrats.com
  *               password:
  *                 type: string
  *                 format: password
- *                 example: "trainerPass123"
+ *                 example: trainerPass123
+ *               confirmPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: trainerPass123
  *               phone:
  *                 type: string
  *                 example: "9876543210"
  *               specializations:
  *                 type: string
- *                 example: "Strength Training, HIIT"
- *                 description: Comma-separated list of specializations
+ *                 example: Strength Training, HIIT
+ *                 description: Comma-separated list
  *               experience:
- *                 type: integer
- *                 example: 5
- *                 description: Years of experience
+ *                 type: string
+ *                 example: "3-5"
+ *                 description: Must be one of 1-2, 3-5, 5-10, 10+
+ *               termsAgree:
+ *                 type: boolean
+ *                 example: true
  *               resume:
  *                 type: string
  *                 format: binary
- *                 description: PDF or Word resume file (max 5MB)
  *     responses:
  *       201:
- *         description: Trainer application submitted
+ *         description: Trainer application submitted successfully
  *         content:
  *           application/json:
- *             example:
- *               success: true
- *               message: "Trainer application submitted successfully"
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Trainer application submitted successfully
  *       400:
- *         description: Validation error / email already exists
+ *         description: Validation error
  *       500:
  *         description: Server error
  */
@@ -180,13 +199,13 @@
  *           schema:
  *             type: object
  *             required:
- *               - userId
- *               - exercises
+ *               - clientId
+ *               - currentWeek
  *             properties:
- *               userId:
+ *               clientId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e4a3f"
- *               exercises:
+ *                 example: "68ebb8c34657d1d8dac05856"
+ *               currentWeek:
  *                 type: array
  *                 items:
  *                   type: object
@@ -196,7 +215,6 @@
  *                       example: "Barbell Squat"
  *                     day:
  *                       type: string
- *                       enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
  *                       example: "Monday"
  *                     sets:
  *                       type: integer
@@ -254,7 +272,7 @@
  * @swagger
  * /api/trainer/edit_nutritional_plan:
  *   post:
- *     summary: Save / update a client's nutrition plan
+ *     summary: Save / update a client's nutrition plan (ONE DAY at a time)
  *     tags: [Trainer]
  *     security:
  *       - bearerAuth: []
@@ -266,32 +284,42 @@
  *             type: object
  *             required:
  *               - userId
+ *               - day
+ *               - foods
  *             properties:
  *               userId:
  *                 type: string
- *                 example: "60d5ec49f1b2c72b7c8e4a3f"
- *               calorie_goal:
+ *                 example: "68ebb8c34657d1d8dac05856"
+ *               day:
+ *                 type: string
+ *                 enum: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+ *                 example: "Monday"
+ *               calorieGoal:
  *                 type: integer
  *                 example: 2200
- *               protein_goal:
+ *               proteinGoal:
  *                 type: integer
  *                 example: 90
- *               daily_nutrition:
- *                 type: object
- *                 description: Keyed by day name (Monday, Tuesday, etc.)
- *                 example:
- *                   Monday:
- *                     foods:
- *                       - name: "Oatmeal with Banana"
- *                         calories: 350
- *                         protein: 12
- *                         carbs: 55
- *                         fats: 8
- *                       - name: "Grilled Chicken Salad"
- *                         calories: 450
- *                         protein: 40
- *                         carbs: 20
- *                         fats: 15
+ *               foods:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: "Oatmeal with Banana"
+ *                     calories:
+ *                       type: number
+ *                       example: 350
+ *                     protein:
+ *                       type: number
+ *                       example: 12
+ *                     carbs:
+ *                       type: number
+ *                       example: 55
+ *                     fats:
+ *                       type: number
+ *                       example: 8
  *     responses:
  *       200:
  *         description: Nutrition plan saved
