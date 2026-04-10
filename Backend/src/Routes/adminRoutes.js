@@ -74,4 +74,8 @@ router.get('/reassignment/potential-trainers/:userId', adminController.getPotent
 router.post('/reassignment/assign', adminController.reassignUserToTrainer);
 router.get('/reassignment/pending-flags', adminController.getPendingReassignmentFlags);
 
+// ============ TRAINER CHANGE REQUEST ROUTES ============
+router.get('/trainer-change-requests', adminController.getTrainerChangeRequests);
+router.put('/trainer-change-requests/:userId/resolve', adminController.resolveTrainerChangeRequest);
+
 module.exports = router;

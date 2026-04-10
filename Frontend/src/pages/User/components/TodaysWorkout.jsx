@@ -1,11 +1,17 @@
 import React from "react";
 
 const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
-  const markExerciseAsDone = async (workoutId, exerciseName) => {
+  const markExerciseAsDone = async (workoutId, exerciseId) => {
     // Debugging check
     if (!workoutId) {
       alert("Error: Missing Workout ID. Please refresh the page.");
       console.error("Missing workoutId", { todayWorkout });
+      return;
+    }
+
+    if (!exerciseId) {
+      alert("Error: Missing Exercise ID. Please refresh the page.");
+      console.error("Missing exerciseId");
       return;
     }
 
@@ -23,8 +29,8 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          workoutPlanId: workoutId,
-          exerciseName: exerciseName,
+          workoutId: workoutId,
+          exerciseId: exerciseId,
         }),
       });
 
@@ -133,7 +139,7 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
                     onClick={() =>
                       markExerciseAsDone(
                         todayWorkout.id,
-                        exercise.name
+                        exercise._id
                       )
                     }
                     disabled={exercise.completed}

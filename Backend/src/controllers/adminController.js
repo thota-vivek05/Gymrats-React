@@ -2365,7 +2365,128 @@ const getPendingReassignmentFlags = async (req, res) => {
     console.error('Get pending flags error:', error);
     res.status(500).json({ success: false, message: 'Error fetching pending flags' });
   }
-};// End of adminController object
+};
+
+// ============ TRAINER CHANGE REQUESTS ============
+const getTrainerChangeRequests = async (req, res) => {
+  try {
+    const users = await User.find({
+      'trainer_change_request.requested': true
+    })
+      .populate('trainer', 'name email specializations')
+      .select('full_name email membershipType trainer trainer_change_request workout_type')
+      .sort({ 'trainer_change_request.requestedAt': -1 });
+
+    res.json({
+      success: true,
+      count: users.length,
+      requests: users.map(u => ({
+        userId: u._id,
+        userName: u.full_name,
+        userEmail: u.email,
+        membershipType: u.membershipType,
+        workoutType: u.workout_type,
+        currentTrainer: u.trainer ? {
+          _id: u.trainer._id,
+          name: u.trainer.name,
+          email: u.trainer.email,
+          specializations: u.trainer.specializations
+        } : null,
+        reason: u.trainer_change_request?.reason || '',
+        requestedAt: u.trainer_change_request?.requestedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get trainer change requests error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching change requests' });
+  }
+};
+
+const resolveTrainerChangeRequest = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { action, newTrainerId } = req.body; // action: 'approve' | 'reject'
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (!user.trainer_change_request?.requested) {
+      return res.status(400).json({ success: false, message: 'No pending change request for this user' });
+    }
+
+    if (action === 'approve') {
+      if (!newTrainerId) {
+        return res.status(400).json({ success: false, message: 'New trainer ID is required for approval' });
+      }
+
+      const newTrainer = await Trainer.findById(newTrainerId);
+      if (!newTrainer) {
+        return res.status(404).json({ success: false, message: 'New trainer not found' });
+      }
+
+      // Remove user from old trainer's client list
+      if (user.trainer) {
+        const oldTrainer = await Trainer.findById(user.trainer);
+        if (oldTrainer) {
+          oldTrainer.clients = oldTrainer.clients.filter(
+            c => c.toString() !== userId.toString()
+          );
+          await oldTrainer.save();
+        }
+      }
+
+      // Assign new trainer
+      user.trainer = newTrainerId;
+
+      // Add to new trainer's client list
+      if (!newTrainer.clients.includes(userId)) {
+        newTrainer.clients.push(userId);
+        await newTrainer.save();
+      }
+
+      // Resolve the change request
+      user.trainer_change_request = {
+        requested: false,
+        reason: user.trainer_change_request.reason,
+        requestedAt: user.trainer_change_request.requestedAt,
+        resolvedAt: new Date(),
+        resolvedBy: req.user ? req.user._id : null
+      };
+
+      await user.save();
+
+      res.json({
+        success: true,
+        message: `Trainer changed successfully. ${user.full_name} is now assigned to ${newTrainer.name}.`
+      });
+
+    } else if (action === 'reject') {
+      // Just clear the request
+      user.trainer_change_request = {
+        requested: false,
+        reason: user.trainer_change_request.reason,
+        requestedAt: user.trainer_change_request.requestedAt,
+        resolvedAt: new Date(),
+        resolvedBy: req.user ? req.user._id : null
+      };
+
+      await user.save();
+
+      res.json({
+        success: true,
+        message: `Trainer change request for ${user.full_name} has been rejected.`
+      });
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid action. Use "approve" or "reject".' });
+    }
+
+  } catch (error) {
+    console.error('Resolve trainer change request error:', error);
+    res.status(500).json({ success: false, message: 'Error resolving change request' });
+  }
+};
 
 module.exports = {
   ...adminController,
@@ -2378,4 +2499,6 @@ module.exports = {
   getPotentialTrainersForUser,
   reassignUserToTrainer,
   getPendingReassignmentFlags,
+  getTrainerChangeRequests,
+  resolveTrainerChangeRequest,
 };

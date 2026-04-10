@@ -19,6 +19,12 @@ const UserProfile = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
 
+    // TRAINER MANAGEMENT STATES
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [ratingData, setRatingData] = useState({ rating: 5, feedback: '' });
+    const [showChangeModal, setShowChangeModal] = useState(false);
+    const [changeReason, setChangeReason] = useState('');
+
     // 2. Real Graph Data State
     const [graphData, setGraphData] = useState({
         workoutLabels: [],
@@ -143,6 +149,56 @@ const UserProfile = () => {
                 }
             } catch (err) { alert("Error deleting account"); }
         }
+    };
+
+    // --- TRAINER HANDLERS ---
+    const isPlatinum = dbUser?.membershipType?.toLowerCase() === 'platinum';
+
+    const submitTrainerRating = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/user/trainer/rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ trainerId: dbUser?.trainer?._id, ...ratingData })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                alert("Trainer rated successfully! Thank you for your feedback.");
+                setShowRatingModal(false);
+                setRatingData({ rating: 5, feedback: '' });
+            } else {
+                alert(data.error || "Failed to submit rating");
+            }
+        } catch (err) { alert("Error submitting rating"); }
+    };
+
+    const handleRequestTrainerChange = async (e) => {
+        e.preventDefault();
+        if (changeReason.trim().length < 5) {
+            alert("Please provide a valid reason (minimum 5 characters).");
+            return;
+        }
+        try {
+            const res = await fetch('/api/user/trainer/change', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ reason: changeReason })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                setShowChangeModal(false);
+                setChangeReason('');
+                // Refresh profile data
+                const token = localStorage.getItem('token');
+                const userRes = await fetch('/api/user/profile', { headers: { 'Authorization': `Bearer ${token}` } });
+                const userData = await userRes.json();
+                if (userData.success) setDbUser(userData.user);
+            } else {
+                alert(data.error || "Failed to request trainer change");
+            }
+        } catch (err) { alert("Error requesting trainer change"); }
     };
 
     // --- EXISTING HELPERS & HANDLERS ---
@@ -406,6 +462,70 @@ const UserProfile = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* My Personal Trainer Card (Platinum Only) */}
+                        {isPlatinum && (
+                            <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50 h-fit">
+                                <div className="p-5 border-b border-[#333] flex items-center gap-3">
+                                    <i className="fas fa-user-tie text-[#8A2BE2] text-xl"></i>
+                                    <h2 className="text-xl font-semibold text-white">My Personal Trainer</h2>
+                                </div>
+                                <div className="p-6">
+                                    {dbUser?.trainer ? (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#8A2BE2] to-[#4A00E0] flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-purple-900/30">
+                                                    {dbUser.trainer.name?.charAt(0)?.toUpperCase() || 'T'}
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-lg font-semibold text-[#daa520]">{dbUser.trainer.name}</h4>
+                                                    <p className="text-sm text-gray-400">{dbUser.trainer.email}</p>
+                                                    {dbUser.trainer.specializations && (
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            <i className="fas fa-star text-yellow-500 mr-1"></i>
+                                                            {dbUser.trainer.specializations.join(', ')}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Pending change request notice */}
+                                            {dbUser.trainer_change_request?.requested && (
+                                                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-yellow-400 text-sm flex items-center gap-2">
+                                                    <i className="fas fa-hourglass-half"></i>
+                                                    <span>Trainer change request pending. Awaiting admin approval.</span>
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-col gap-2">
+                                                <button
+                                                    onClick={() => setShowRatingModal(true)}
+                                                    className="w-full px-4 py-2.5 bg-[#8A2BE2]/20 border border-[#8A2BE2]/50 text-[#8A2BE2] hover:bg-[#8A2BE2] hover:text-white rounded-lg text-sm font-medium transition-all"
+                                                >
+                                                    <i className="fas fa-star mr-2"></i>Rate Trainer
+                                                </button>
+                                                {!dbUser.trainer_change_request?.requested && (
+                                                    <button
+                                                        onClick={() => setShowChangeModal(true)}
+                                                        className="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-sm font-medium transition-all"
+                                                    >
+                                                        <i className="fas fa-exchange-alt mr-2"></i>Request Trainer Change
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <div className="inline-block p-3 rounded-full bg-[#222] mb-3">
+                                                <i className="fas fa-hourglass-half text-[#daa520] text-xl"></i>
+                                            </div>
+                                            <p className="text-gray-300 font-medium">No trainer assigned yet.</p>
+                                            <p className="text-gray-500 text-sm mt-1">Our managers are pairing you with the perfect coach!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -606,6 +726,91 @@ const UserProfile = () => {
                               </div>
                           )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- TRAINER RATING MODAL --- */}
+            {showRatingModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-[#161616] p-6 rounded-xl border border-[#333] shadow-2xl w-full max-w-sm">
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-xl font-bold text-white">Rate Your Trainer</h2>
+                            <button onClick={() => setShowRatingModal(false)} className="text-[#aaa] hover:text-white text-xl">&times;</button>
+                        </div>
+                        <form onSubmit={submitTrainerRating} className="space-y-5">
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-2">Rating (1 to 5 Stars)</label>
+                                <div className="flex items-center gap-2 mb-2">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setRatingData({...ratingData, rating: star})}
+                                            className={`text-3xl focus:outline-none transition-colors duration-200 ${
+                                                ratingData.rating >= star ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-600 hover:text-gray-400'
+                                            }`}
+                                        >
+                                            ★
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-500 italic">Ratings of 2 stars or below will notify management for a review.</p>
+                            </div>
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-2">Feedback / Comments</label>
+                                <textarea
+                                    rows="3"
+                                    required
+                                    value={ratingData.feedback}
+                                    onChange={(e) => setRatingData({...ratingData, feedback: e.target.value})}
+                                    className="w-full bg-[#222] border border-[#444] rounded-lg p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors"
+                                    placeholder="Tell us about your experience..."
+                                ></textarea>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button type="button" onClick={() => setShowRatingModal(false)} className="px-4 py-2 text-gray-400 hover:text-white transition-colors">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#8A2BE2] hover:bg-[#7a1bd2] text-white rounded font-medium transition-colors">Submit Rating</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* --- TRAINER CHANGE REQUEST MODAL --- */}
+            {showChangeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-[#161616] p-6 rounded-xl border border-[#333] shadow-2xl w-full max-w-md">
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-xl font-bold text-white">Request Trainer Change</h2>
+                            <button onClick={() => setShowChangeModal(false)} className="text-[#aaa] hover:text-white text-xl">&times;</button>
+                        </div>
+
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-5 text-yellow-400 text-sm">
+                            <i className="fas fa-exclamation-triangle mr-2"></i>
+                            This will submit a request to admin. A new trainer will be assigned after approval.
+                        </div>
+
+                        <form onSubmit={handleRequestTrainerChange} className="space-y-4">
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-2">Reason for Change <span className="text-red-400">*</span></label>
+                                <textarea
+                                    rows="4"
+                                    required
+                                    minLength={5}
+                                    value={changeReason}
+                                    onChange={(e) => setChangeReason(e.target.value)}
+                                    className="w-full bg-[#222] border border-[#444] rounded-lg p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors resize-none"
+                                    placeholder="Please describe why you'd like a different trainer (min 5 characters)..."
+                                ></textarea>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button type="button" onClick={() => setShowChangeModal(false)} className="px-4 py-2 text-gray-400 hover:text-white transition-colors">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded font-medium transition-colors">
+                                    <i className="fas fa-paper-plane mr-2"></i>Submit Request
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
