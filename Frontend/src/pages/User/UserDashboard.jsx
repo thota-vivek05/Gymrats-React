@@ -9,6 +9,7 @@ import TodaysWorkout from "./components/TodaysWorkout";
 import UpcomingClass from "./components/UpcomingClass";
 import ProgressTracking from "./components/ProgressTracking";
 import NutritionTracking from "./components/NutritionTracking";
+import BookTrainerSession from "./components/BookTrainerSession";
 
 const UserDashboard = () => {
   const { type } = useParams();
@@ -73,6 +74,7 @@ const UserDashboard = () => {
         statsResponse,
         progressResponse,
         classResponse,
+        appointmentsResponse,
       ] = await Promise.all([
         fetch("/api/user/profile", { headers }),
         fetch("/api/workout/today", { headers }),
@@ -80,6 +82,7 @@ const UserDashboard = () => {
         fetch("/api/workout/weekly-stats", { headers }),
         fetch("/api/exercise/progress", { headers }),
         fetch("/api/class/upcoming", { headers }),
+        fetch("/appointments", { headers }),
       ]);
 
       if (userResponse.status === 401 || userResponse.status === 403) {
@@ -95,9 +98,41 @@ const UserDashboard = () => {
       const statsData = statsResponse.ok ? await statsResponse.json() : null;
       const progressData = progressResponse.ok ? await progressResponse.json() : null;
       const classData = classResponse.ok ? await classResponse.json() : null;
+      const appointmentsData = appointmentsResponse.ok ? await appointmentsResponse.json() : null;
 
       if (userData && userData.success) {
         setUser(userData.user);
+      }
+
+      // Find the next approved appointment with a meet link (for Upcoming Class)
+      let approvedSession = null;
+      if (appointmentsData?.appointments) {
+        const now = new Date();
+        const futureApproved = appointmentsData.appointments
+          .filter((apt) => apt.status === 'approved' && new Date(apt.date) >= new Date(now.toDateString()))
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        if (futureApproved.length > 0) {
+          const apt = futureApproved[0];
+          approvedSession = {
+            name: 'Personal Training Session',
+            date: apt.date,
+            time: `${apt.startTime} – ${apt.endTime}`,
+            meetLink: apt.meetLink || '',
+            trainerName: apt.trainerId?.name || 'Trainer',
+            description: apt.notes || '',
+          };
+        }
+      }
+
+      // Use approved appointment as upcoming class if no scheduled class exists,
+      // or if the appointment is sooner than the scheduled class
+      const scheduledClass = classData?.success ? classData.upcomingClass : null;
+      let finalUpcomingClass = scheduledClass;
+      if (approvedSession) {
+        if (!scheduledClass || new Date(approvedSession.date) <= new Date(scheduledClass.date)) {
+          finalUpcomingClass = approvedSession;
+        }
       }
 
       setDashboardData((prev) => ({
@@ -107,7 +142,7 @@ const UserDashboard = () => {
         todaysConsumedFoods: nutritionData?.success ? nutritionData.todaysConsumedFoods : prev.todaysConsumedFoods,
         weeklyWorkouts: statsData?.success ? statsData.weeklyWorkouts : prev.weeklyWorkouts,
         exerciseProgress: progressData?.success ? progressData.exerciseProgress : prev.exerciseProgress,
-        upcomingClass: classData?.success ? classData.upcomingClass : prev.upcomingClass,
+        upcomingClass: finalUpcomingClass,
       }));
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -273,6 +308,13 @@ const UserDashboard = () => {
               )}
           </div>
         </div>
+
+        {/* Book Trainer Session - Full Width (Platinum Only) */}
+        {hasAccess("Platinum") && user.trainer && (
+          <div className="mb-10">
+            <BookTrainerSession trainer={user.trainer} />
+          </div>
+        )}
 
         {/* 4. Progress Tracking - PLATINUM ONLY */}
         {hasAccess("Platinum") && (
