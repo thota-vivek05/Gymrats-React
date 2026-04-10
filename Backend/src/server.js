@@ -57,6 +57,7 @@ const verifierRoutes = require("./Routes/verifierRoutes");
 // In server.js - Add these lines after other route imports
 const authRoutes = require("./Routes/authRoutes");
 const adminAnalyticsRoutes = require("./Routes/adminAnalyticsRoutes");
+const setupSwagger = require("./docs/swaggerConfig");
 
 // Enhanced CORS configuration
 app.use(
@@ -138,6 +139,9 @@ const upload = multer({
 });
 
 app.use("/uploads", express.static("uploads"));
+
+// ========== SWAGGER DOCS ==========
+setupSwagger(app);
 
 // ========== API ROUTES (MUST COME FIRST) ==========
 app.use("/api/admin", adminRoutes);
