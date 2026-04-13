@@ -668,10 +668,34 @@ const signupUser = async (req, res) => {
             weight: Number(weight),
             height: height !== undefined ? Number(height) : null,
             BMI: calculatedBMI,
-            //REYNA
+        //REYNA
             workout_type: workoutType
         });
         //  console.log('New user object created:', newUser);
+
+        // Calculate price for payment history
+        const durationInt = parseInt(membershipDuration);
+        const planKey = String(membershipPlan).toLowerCase();
+        const priceConfig = {
+            basic: { 1: 299, 3: 750, 6: 1350, 12: 2400 },
+            gold: { 1: 599, 3: 1550, 6: 2700, 12: 4800 },
+            platinum: { 1: 999, 3: 2500, 6: 4500, 12: 8000 },
+        };
+        const amount = priceConfig[planKey] && priceConfig[planKey][durationInt] ? priceConfig[planKey][durationInt] : 0;
+
+        const Payment = require('../model/Payment');
+        const newPayment = new Payment({
+            userId: newUser._id,
+            amount: amount,
+            paymentFor: 'Membership',
+            paymentMethod: 'Card', // Defaulted to Card since signup captures card info
+            membershipPlan: planKey,
+            status: 'Success'
+        });
+        await newPayment.save();
+        
+        // Add payment to purchase history
+        newUser.purchase_history = [newPayment._id];
 
         await newUser.save();
         //  console.log('User saved to MongoDB:', userEmail);
