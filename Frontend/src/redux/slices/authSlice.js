@@ -46,6 +46,16 @@ const authSlice = createSlice({
         },
         clearError: (state) => {
             state.error = null;
+        },
+        // --- ADD THIS NEW REDUCER ---
+        googleAuthSuccess: (state, action) => {
+            state.loading = false;
+            state.user = action.payload.user;
+            state.token = action.payload.token;
+            state.error = null;
+            // Establish the session in persistence
+            localStorage.setItem('user', JSON.stringify(action.payload.user));
+            localStorage.setItem('token', action.payload.token);
         }
     },
     extraReducers: (builder) => {
@@ -73,5 +83,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, googleAuthSuccess } = authSlice.actions;
 export default authSlice.reducer;

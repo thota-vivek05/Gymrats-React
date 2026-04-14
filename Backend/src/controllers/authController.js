@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../model/User');
 const Trainer = require('../model/Trainer');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = 'gymrats-secret-key'; // In production, use environment variable
 
@@ -104,6 +106,73 @@ const login = async (req, res) => {
     }
 };
 
+// ==========================================
+// GOOGLE OAUTH LOGIN
+// ==========================================
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // 1. Verify the Google Token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    // 2. Extract the user's Google details
+    const { email } = ticket.getPayload();
+
+    // 3. Check if the user already exists in GymRats
+    let user = await User.findOne({ email });
+
+    // 4. Reject if account does not exist (Enforces standard signup)
+    if (!user) {
+        return res.status(404).json({ 
+            success: false, 
+            message: 'Account not found. Please complete the standard signup process first.' 
+        });
+    }
+
+    // 5. Check account status (Matches standard login logic)
+    if (user.status !== 'Active') {
+        return res.status(403).json({ 
+            success: false, 
+            message: `Your account is ${user.status.toLowerCase()}. Please contact support.` 
+        });
+    }
+
+    // 6. EXACT MATCH: Create JWT token identically to standard login
+    const jwtToken = jwt.sign(
+        { 
+            id: user._id, 
+            email: user.email, 
+            role: 'user',
+            name: user.full_name || user.name 
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+    );
+
+    // 7. EXACT MATCH: Send the exact same user object back to React
+    res.status(200).json({
+        success: true,
+        message: 'Google Login Successful',
+        token: jwtToken,
+        user: {
+            id: user._id,
+            email: user.email,
+            name: user.full_name || user.name,
+            role: 'user',
+            membershipType: user.membershipType // Critical for routing and dashboard rendering
+        }
+    });
+
+  } catch (error) {
+    console.error("Google Auth Error:", error);
+    res.status(500).json({ success: false, message: "Server error during Google Authentication" });
+  }
+};
+
 const verifyToken = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
@@ -136,5 +205,6 @@ const getProfile = (req, res) => {
 module.exports = {
     login,
     verifyToken,
-    getProfile
+    getProfile,
+    googleLogin
 };

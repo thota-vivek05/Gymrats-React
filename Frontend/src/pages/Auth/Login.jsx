@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // Updated import to 'react-router-dom' for best practice
 // REMOVE: import { useAuth } from '../../context/AuthContext'; 
 import { useDispatch, useSelector } from 'react-redux'; //
-import { loginUser, clearError } from '../../redux/slices/authSlice'; // Import Redux actions
+import { loginUser, clearError, googleAuthSuccess } from '../../redux/slices/authSlice'; // Import Redux actions
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 
 import Modal from './Modal';
 import Header from '../../components/common/Header/Header';
 import Footer from '../../components/common/Footer/Footer';
+
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -47,6 +49,43 @@ const Login = () => {
             [e.target.name]: e.target.value
         });
     };
+
+       // ==========================================
+  // GOOGLE LOGIN HANDLER
+  // ==========================================
+const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch('http://localhost:3000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // 1. Dispatch to Redux to globally establish the session
+        dispatch(googleAuthSuccess({ user: data.user, token: data.token }));
+        
+        showModal('success', 'Google Login successful! Redirecting...');
+        
+        setTimeout(() => {
+            closeModal();
+
+            // 2. Route directly to the appropriate dashboard based on role
+            if (data.user.role === 'admin') navigate('/admin/dashboard');
+            else if (data.user.role === 'trainer') navigate('/trainer');
+            else navigate('/dashboard'); 
+        }, 1000);
+      } else {
+        // If the user doesn't exist (the 404 we set up on the backend)
+        showModal('error', data.message || 'Account not found. Please sign up first.');
+      }
+    } catch (err) {
+      showModal('error', 'An error occurred during Google Login.');
+      console.error(err);
+    }
+  };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -165,6 +204,19 @@ const labelClasses = "block mb-[8px] text-[#f1f1f1]";
                             {loading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
+
+                    {/* ADD THE GOOGLE BUTTON HERE */}
+                    <div className="flex justify-center mt-[20px]">
+                       <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  console.log('Google Login Failed');
+                }}
+                theme="filled_black"
+                shape="pill"
+              />
+                    </div>
+                    {/* END GOOGLE BUTTON */}
 
                     <div className="text-center mt-[20px] text-[#cccccc]">
                         <p className="mb-2">

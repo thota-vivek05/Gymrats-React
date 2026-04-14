@@ -9,4 +9,6 @@ router.post('/login', authController.login);
 // Protected route example
 router.get('/profile', authController.verifyToken, authController.getProfile);
 
+router.post('/google', authController.googleLogin);
+
 module.exports = router;
