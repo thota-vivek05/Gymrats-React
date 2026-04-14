@@ -118,7 +118,9 @@ app.use(
 mongoose
   .connect("mongodb://localhost:27017/gymrats")
   .then(() => {
-    console.log("Connected to MongoDB database");
+    if (process.env.NODE_ENV !== 'test') {
+      console.log("Connected to MongoDB database");
+    }
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
@@ -260,18 +262,23 @@ STACK: ${err.stack}
     errorMessage
   );
 
-  res.status(err.status || 500).json({
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(err.status || statusCode).json({
     success:false,
     message: err.message || "Internal Server Error"
   });
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Backend API: http://localhost:${PORT}/api`);
-  console.log(`Frontend: http://localhost:5173`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Backend API: http://localhost:${PORT}/api`);
+    console.log(`Frontend: http://localhost:5173`);
+  });
+}
+
+module.exports = app;
 
 // // In your React components
 // fetch('/api/user/profile')

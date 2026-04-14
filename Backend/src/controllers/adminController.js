@@ -32,7 +32,9 @@ const seedAdmin = async () => {
         console.error('Failed to seed admin:', error);
     }
 };
-seedAdmin();
+if (process.env.NODE_ENV !== 'test') {
+    seedAdmin();
+}
 
 const adminAuthController = {
   getAdminLogin: (req, res) => {
