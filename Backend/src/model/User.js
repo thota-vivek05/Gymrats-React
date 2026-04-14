@@ -222,4 +222,9 @@ userSchema.methods.decreaseMembershipMonth = function () {
     return Promise.resolve(this);
 };
 
+// Indexing for faster queries
+userSchema.index({ full_name: "text", email: "text" });
+userSchema.index({ status: 1 });
+userSchema.index({ membershipType: 1 });
+
 module.exports = mongoose.model('User', userSchema);

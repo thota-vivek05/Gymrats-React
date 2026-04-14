@@ -122,4 +122,8 @@ trainerSchema.virtual('isAvailable').get(function () {
 trainerSchema.set('toJSON', { virtuals: true });
 trainerSchema.set('toObject', { virtuals: true });
 
+// Indexing for faster queries
+trainerSchema.index({ name: "text", email: "text" });
+trainerSchema.index({ status: 1 });
+
 module.exports = mongoose.model('Trainer', trainerSchema);

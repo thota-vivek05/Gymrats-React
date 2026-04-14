@@ -302,15 +302,11 @@ getUsers: async (req, res) => {
     const { search } = req.query;
     let query = {};
 
-    // Global Search Logic - Now includes status, membershipType, and date
+    // Global Search Logic using Optimized MongoDB Text Indexes
     if (search && search.trim() !== '') {
-      const searchRegex = new RegExp(search, 'i');
-      
-      // Try to parse search as date if it looks like a date
       let dateQuery = {};
       const possibleDate = new Date(search);
       if (!isNaN(possibleDate.getTime())) {
-        // If it's a valid date, search for matches in created_at
         const startOfDay = new Date(possibleDate.setHours(0, 0, 0, 0));
         const endOfDay = new Date(possibleDate.setHours(23, 59, 59, 999));
         dateQuery = {
@@ -321,18 +317,13 @@ getUsers: async (req, res) => {
         };
       }
 
-      query = {
-        $or: [
-          // Text searches
-          { full_name: searchRegex },
-          { email: searchRegex },
-          { phone: searchRegex },
-          { status: searchRegex },
-          { membershipType: searchRegex },
-          // Date search if valid
-          ...(Object.keys(dateQuery).length > 0 ? [dateQuery] : [])
-        ]
-      };
+      const textSearch = { $text: { $search: search } };
+
+      if (Object.keys(dateQuery).length > 0) {
+          query = { $or: [ textSearch, dateQuery ] };
+      } else {
+          query = textSearch;
+      }
     }
 
     const users = await User.find(query)
@@ -585,15 +576,10 @@ getTrainers: async (req, res) => {
       query.experience = experience;
     }
     
-    // Apply search
+    // Apply search using Optimized MongoDB Text Indexes
     if (search && search.trim() !== '') {
-      const searchRegex = new RegExp(search, 'i');
       const searchQuery = {
-        $or: [
-          { name: searchRegex },
-          { email: searchRegex },
-          { specializations: { $in: [searchRegex] } }
-        ]
+        $text: { $search: search }
       };
       
       // Merge with existing query

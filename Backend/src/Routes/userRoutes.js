@@ -6,6 +6,7 @@ const NutritionHistory = require("../model/NutritionHistory");
 const WorkoutHistory = require("../model/WorkoutHistory");
 const User = require("../model/User");
 const { protect } = require("../middleware/authMiddleware");
+const { cacheMiddleware } = require('../middleware/redisCache');
 
 router.get('/api/exercise/progress', protect, userController.getUserProgressGraph);
 
@@ -460,6 +461,7 @@ router.get(
   "/api/exercises",
   protect,
   userController.checkMembershipActive,
+  cacheMiddleware(600),
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -587,6 +589,7 @@ router.get(
   "/api/exercises/recommended",
   protect,
   userController.checkMembershipActive,
+  cacheMiddleware(300),
   async (req, res) => {
     try {
       const userId = req.user._id;
