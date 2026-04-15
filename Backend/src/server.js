@@ -8,17 +8,17 @@ const path = require("path");
 const cors = require("cors");
 const methodOverride = require("method-override");
 const JWT_SECRET = process.env.JWT_SECRET || "gymrats-secret-key"; // Use environment variable in production
-//logs 
+//logs
 const morgan = require("morgan");
 const rfs = require("rotating-file-stream");
 const fs = require("fs");
 
 // Ensure upload directories exist
-const uploadDirs = ['uploads/', 'uploads/trainer-resumes/'];
-uploadDirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+const uploadDirs = ["uploads/", "uploads/trainer-resumes/"];
+uploadDirs.forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 });
 
 process.env.TZ = "Asia/Kolkata";
@@ -47,13 +47,12 @@ const errorLogStream = rfs.createStream("error.log", {
   maxFiles: 7,
 });
 
-
-
 // Import routes
 const adminRoutes = require("./Routes/adminRoutes");
 const userRoutes = require("./Routes/userRoutes");
 const trainerRoutes = require("./Routes/trainerRoutes");
 const verifierRoutes = require("./Routes/verifierRoutes");
+const adminController = require("./controllers/adminController");
 // In server.js - Add these lines after other route imports
 const authRoutes = require("./Routes/authRoutes");
 const adminAnalyticsRoutes = require("./Routes/adminAnalyticsRoutes");
@@ -66,7 +65,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  })
+  }),
 );
 
 // Handle preflight requests
@@ -79,7 +78,7 @@ app.options("*", cors());
 app.use(
   morgan("combined", {
     stream: accessLogStream,
-  })
+  }),
 );
 
 // log only failed requests to error.log
@@ -87,13 +86,11 @@ app.use(
   morgan("combined", {
     stream: errorLogStream,
     skip: function (req, res) {
-      return res.statusCode < 400; 
+      return res.statusCode < 400;
       // log only 4xx and 5xx errors
     },
-  })
+  }),
 );
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -101,15 +98,17 @@ app.use(methodOverride("_method"));
 
 // Execution timer middleware for analytics
 app.use((req, res, next) => {
-    const start = process.hrtime();
-    res.on('finish', () => {
-        const diff = process.hrtime(start);
-        const time = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3); // ms
-        if (process.env.NODE_ENV !== 'test') {
-            console.log(`[API Timer] ${req.method} ${req.originalUrl} took ${time} ms`);
-        }
-    });
-    next();
+  const start = process.hrtime();
+  res.on("finish", () => {
+    const diff = process.hrtime(start);
+    const time = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3); // ms
+    if (process.env.NODE_ENV !== "test") {
+      console.log(
+        `[API Timer] ${req.method} ${req.originalUrl} took ${time} ms`,
+      );
+    }
+  });
+  next();
 });
 
 // Session setup
@@ -124,15 +123,21 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
     },
-  })
+  }),
 );
 
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI || "mongodb://mongo:27017/gymrats")
-  .then(() => {
-    if (process.env.NODE_ENV !== 'test') {
+  .then(async () => {
+    if (process.env.NODE_ENV !== "test") {
       console.log("Connected to MongoDB database");
+    }
+    if (
+      process.env.NODE_ENV !== "test" &&
+      typeof adminController.seedAdmin === "function"
+    ) {
+      await adminController.seedAdmin();
     }
   })
   .catch((err) => {
@@ -168,8 +173,14 @@ app.use("/api/admin/analytics", adminAnalyticsRoutes);
 
 // react signup
 // Add these before the catch-all handler
-const spaRoutes = ['/login', '/signup/user', '/signup/trainer', '/dashboard', '/trainer'];
-spaRoutes.forEach(route => {
+const spaRoutes = [
+  "/login",
+  "/signup/user",
+  "/signup/trainer",
+  "/dashboard",
+  "/trainer",
+];
+spaRoutes.forEach((route) => {
   app.get(route, (req, res) => {
     res.sendFile(path.join(__dirname, "../../Frontend/dist/index.html"));
   });
@@ -180,10 +191,10 @@ app.get("/admin_dashboard", (req, res) => res.redirect("/api/admin/dashboard"));
 app.get("/admin_user", (req, res) => res.redirect("/api/admin/users"));
 app.get("/admin_trainers", (req, res) => res.redirect("/api/admin/trainers"));
 app.get("/admin_membership", (req, res) =>
-  res.redirect("/api/admin/memberships")
+  res.redirect("/api/admin/memberships"),
 );
 app.get("/admin_nutrition", (req, res) =>
-  res.redirect("/api/admin/nutrition-plans")
+  res.redirect("/api/admin/nutrition-plans"),
 );
 app.get("/admin_exercises", (req, res) => res.redirect("/api/admin/exercises"));
 app.get("/admin_verifier", (req, res) => res.redirect("/api/admin/verifier"));
@@ -243,7 +254,7 @@ app.post("/api/logout", (req, res) => {
 app.use(
   express.static(path.join(__dirname, "../Frontend/dist"), {
     index: false, // Important: don't serve index.html for API routes
-  })
+  }),
 );
 
 // ========== CATCH-ALL FOR REACT APP ==========
@@ -262,7 +273,6 @@ app.use("/api/*", (req, res) => {
 
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
-
   const errorMessage = `
 [${new Date().toISOString()}]
 MESSAGE: ${err.message}
@@ -270,18 +280,14 @@ STACK: ${err.stack}
 -------------------------------------
 `;
 
-  fs.appendFileSync(
-    path.join(logDir, "error.log"),
-    errorMessage
-  );
+  fs.appendFileSync(path.join(logDir, "error.log"), errorMessage);
 
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(err.status || statusCode).json({
-    success:false,
-    message: err.message || "Internal Server Error"
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 });
-
 
 if (require.main === module) {
   app.listen(PORT, () => {
