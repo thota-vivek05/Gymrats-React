@@ -2,6 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const session = require("express-session");
+const RedisStore = require("connect-redis").default;
+const redis = require("redis");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
@@ -111,14 +113,26 @@ app.use((req, res, next) => {
   next();
 });
 
-// Session setup
+// Redis client for sessions
+const sessionRedisClient = redis.createClient({
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+});
+
+sessionRedisClient.connect().catch((err) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.warn("Redis session store connection warning:", err.message);
+  }
+});
+
+// Session setup with Redis store
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    store: new RedisStore({ client: sessionRedisClient }),
+    secret: process.env.SESSION_SECRET || "gymrats-session-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 3600000,
       httpOnly: true,
       sameSite: "lax",
