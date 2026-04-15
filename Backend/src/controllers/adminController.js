@@ -624,13 +624,11 @@ const adminController = {
         created_at: new Date(),
       });
       await newUser.save();
-      res
-        .status(201)
-        .json({
-          success: true,
-          message: "User created successfully",
-          user: newUser,
-        });
+      res.status(201).json({
+        success: true,
+        message: "User created successfully",
+        user: newUser,
+      });
     } catch (error) {
       console.error("Create user error:", error);
       res
@@ -682,13 +680,11 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "User not found" });
       }
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "User updated successfully",
-          user: updatedUser,
-        });
+      res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+        user: updatedUser,
+      });
     } catch (error) {
       console.error("Update user error:", error);
       res
@@ -1274,13 +1270,11 @@ const adminController = {
       });
       await newMembership.save();
       await User.findByIdAndUpdate(userId, { membershipType: type });
-      res
-        .status(201)
-        .json({
-          success: true,
-          message: "Membership created successfully",
-          membership: newMembership,
-        });
+      res.status(201).json({
+        success: true,
+        message: "Membership created successfully",
+        membership: newMembership,
+      });
     } catch (error) {
       console.error("Create membership error:", error);
       res
@@ -1314,13 +1308,11 @@ const adminController = {
           membershipType: type,
         });
       }
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Membership updated successfully",
-          membership: updatedMembership,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Membership updated successfully",
+        membership: updatedMembership,
+      });
     } catch (error) {
       console.error("Update membership error:", error);
       res
@@ -1888,13 +1880,11 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "Verifier not found" });
       }
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Verifier updated successfully",
-          verifier: updatedVerifier,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Verifier updated successfully",
+        verifier: updatedVerifier,
+      });
     } catch (error) {
       console.error("Update verifier error:", error);
       res
@@ -1936,13 +1926,11 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "Verifier not found" });
       }
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Verifier approved successfully",
-          verifier: updatedVerifier,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Verifier approved successfully",
+        verifier: updatedVerifier,
+      });
     } catch (error) {
       console.error("Approve verifier error:", error);
       res
@@ -1964,13 +1952,11 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "Verifier not found" });
       }
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Verifier rejected successfully",
-          verifier: updatedVerifier,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Verifier rejected successfully",
+        verifier: updatedVerifier,
+      });
     } catch (error) {
       console.error("Reject verifier error:", error);
       res
@@ -2712,12 +2698,10 @@ const reassignUserToTrainer = async (req, res) => {
     const activeClients =
       newTrainer.clients?.filter((c) => c.isActive).length || 0;
     if (activeClients >= newTrainer.maxClients) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Trainer has reached maximum client capacity",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Trainer has reached maximum client capacity",
+      });
     }
 
     // Remove user from old trainer's clients list
@@ -2853,22 +2837,18 @@ const resolveTrainerChangeRequest = async (req, res) => {
     }
 
     if (!user.trainer_change_request?.requested) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "No pending change request for this user",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "No pending change request for this user",
+      });
     }
 
     if (action === "approve") {
       if (!newTrainerId) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "New trainer ID is required for approval",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "New trainer ID is required for approval",
+        });
       }
 
       const newTrainer = await Trainer.findById(newTrainerId);
@@ -2930,12 +2910,10 @@ const resolveTrainerChangeRequest = async (req, res) => {
         message: `Trainer change request for ${user.full_name} has been rejected.`,
       });
     } else {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: 'Invalid action. Use "approve" or "reject".',
-        });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid action. Use "approve" or "reject".',
+      });
     }
   } catch (error) {
     console.error("Resolve trainer change request error:", error);
