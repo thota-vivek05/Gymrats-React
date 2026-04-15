@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://gymrats-api.onrender.com/api/$1" },
+    { "source": "/signup/(.*)", "destination": "https://gymrats-api.onrender.com/signup/$1" },
+    { "source": "/trainer/(.*)", "destination": "https://gymrats-api.onrender.com/trainer/$1" },
+    { "source": "/appointments/(.*)", "destination": "https://gymrats-api.onrender.com/appointments/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
