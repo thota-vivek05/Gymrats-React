@@ -11,7 +11,7 @@ services:
       - redis
     environment:
       - MONGO_URI=mongodb://mongo:27017/gymrats
-      - REDIS_URI=redis://redis:6379
+      - REDIS_URL=redis://redis:6379
 
   frontend:
     build: ./Frontend

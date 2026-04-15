@@ -7,22 +7,22 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://backend:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/signup": {
-        target: "http://backend:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/trainer": {
-        target: "http://backend:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/appointments": {
-        target: "http://backend:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },

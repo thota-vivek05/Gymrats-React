@@ -63,7 +63,12 @@ const setupSwagger = require("./docs/swaggerConfig");
 // Enhanced CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "https://gymrats-react.vercel.app",
+      process.env.FRONTEND_URL
+    ].filter(Boolean),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -135,7 +140,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       maxAge: 3600000,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   }),
 );
