@@ -16,6 +16,10 @@ const options = {
     },
     servers: [
       {
+        url: "https://gymrats-api.onrender.com",
+        description: "Production Server (Render)",
+      },
+      {
         url: "http://localhost:3000",
         description: "Local Development Server",
       },
