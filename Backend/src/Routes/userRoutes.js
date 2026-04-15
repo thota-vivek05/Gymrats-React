@@ -773,8 +773,11 @@ router.get(
 
 // Scheduling Routes
 router.get('/trainer/:trainerId/availability', protect, userController.getTrainerAvailability);
+router.get('/api/trainer/:trainerId/availability', protect, userController.getTrainerAvailability);
 router.post('/appointments/request', protect, userController.requestAppointment);
+router.post('/api/appointments/request', protect, userController.requestAppointment);
 router.get('/appointments', protect, userController.getUserAppointments);
+router.get('/api/user/appointments', protect, userController.getUserAppointments);
 router.put('/api/user/appointments/:id/cancel', protect, userController.cancelAppointment);
 
 // Get exercise details
