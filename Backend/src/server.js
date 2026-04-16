@@ -29,25 +29,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ===== LOGGING SETUP =====
+const isTest = process.env.NODE_ENV === "test";
 
 // create logs directory if it doesn't exist
 const logDir = path.join(__dirname, "logs");
 
 fs.mkdirSync(logDir, { recursive: true });
 
-// create rotating stream
-const accessLogStream = rfs.createStream("access.log", {
-  interval: "1d", // rotates daily
-  path: logDir,
-  maxFiles: 7,
-});
+// Rotating file streams are skipped during tests because their internal
+// setInterval timers prevent Jest workers from exiting gracefully.
+let accessLogStream = null;
+let errorLogStream = null;
 
-// create error log stream
-const errorLogStream = rfs.createStream("error.log", {
-  interval: "1d",
-  path: logDir,
-  maxFiles: 7,
-});
+if (!isTest) {
+  accessLogStream = rfs.createStream("access.log", {
+    interval: "1d", // rotates daily
+    path: logDir,
+    maxFiles: 7,
+  });
+
+  errorLogStream = rfs.createStream("error.log", {
+    interval: "1d",
+    path: logDir,
+    maxFiles: 7,
+  });
+}
 
 // Import routes
 const adminRoutes = require("./Routes/adminRoutes");
@@ -78,26 +84,26 @@ app.use(
 // Handle preflight requests
 app.options("*", cors());
 
-// log to console (developer friendly)
-// app.use(morgan("dev"));     use if some error occurs later
+// File logging is only active outside of test runs
+if (!isTest) {
+  // log to file (production logging)
+  app.use(
+    morgan("combined", {
+      stream: accessLogStream,
+    }),
+  );
 
-// log to file (production logging)
-app.use(
-  morgan("combined", {
-    stream: accessLogStream,
-  }),
-);
-
-// log only failed requests to error.log
-app.use(
-  morgan("combined", {
-    stream: errorLogStream,
-    skip: function (req, res) {
-      return res.statusCode < 400;
-      // log only 4xx and 5xx errors
-    },
-  }),
-);
+  // log only failed requests to error.log
+  app.use(
+    morgan("combined", {
+      stream: errorLogStream,
+      skip: function (req, res) {
+        return res.statusCode < 400;
+        // log only 4xx and 5xx errors
+      },
+    }),
+  );
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -317,6 +323,7 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.sessionRedisClient = sessionRedisClient;
 
 // // In your React components
 // fetch('/api/user/profile')

@@ -1,12 +1,14 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../server');
+const { sessionRedisClient } = require('../server');
 
 describe('Admin API Tests', () => {
 
   afterAll(async () => {
-    // Close DB connection after tests
+    // Close DB and Redis connections after tests to prevent hanging worker
     await mongoose.connection.close();
+    if (sessionRedisClient.isOpen) await sessionRedisClient.quit();
   });
 
   it('GET /api/admin/login should allow access (unprotected route)', async () => {

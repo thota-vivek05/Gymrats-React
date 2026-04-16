@@ -1,12 +1,14 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../server'); 
+const app = require('../server');
+const { sessionRedisClient } = require('../server'); 
 
 describe('Auth API Tests', () => {
 
   afterAll(async () => {
-    // Close mongoose connection after tests prevent memory leaks and hanging
+    // Close DB and Redis connections after tests to prevent hanging worker
     await mongoose.connection.close();
+    if (sessionRedisClient.isOpen) await sessionRedisClient.quit();
   });
 
   it('POST /api/auth/login should fail and return 401 with incorrect credentials', async () => {
