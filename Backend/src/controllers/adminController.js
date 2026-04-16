@@ -1129,7 +1129,7 @@ const adminController = {
                       {
                         $subtract: [
                           new Date(),
-                          "$membershipDuration.start_date",
+                          { $toDate: "$membershipDuration.start_date" },
                         ],
                       },
                       1000 * 60 * 60 * 24 * 30, // milliseconds in a month

@@ -23,16 +23,11 @@ const checkMembershipActive = async (req, res, next) => {
         const user = await User.findById(req.user.id || req.user._id);
         
         if (user && !user.isMembershipActive()) {
-            // ✅ THE FIX IS HERE: Handling React API requests natively
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(403).json({ 
-                    success: false, 
-                    error: 'Membership expired', 
-                    action: 'redirect_renewal' // <--- This is the flag the frontend needs
-                });
-            }
-            // Fallback for EJS/direct browser hits
-            return res.redirect('/membership/renewal');
+            return res.status(403).json({ 
+                success: false, 
+                error: 'Membership expired', 
+                action: 'redirect_renewal'
+            });
         }
 
         next();
@@ -145,7 +140,7 @@ const checkTrainerSubscription = async (req, res, next) => {
 
         const trainer = await Trainer.findById(req.trainer.id);
         if (trainer && trainer.subscription.months_remaining === 0) {
-            return res.redirect('/trainer/subscription/renewal');
+            return res.status(403).json({ success: false, error: 'Trainer subscription expired' });
         }
 
         next();
@@ -192,13 +187,7 @@ const getUserProfile = async (req, res) => {
         
         // 1. Check Authentication
         if (!userId) {
-            // IF REACT/API REQUEST -> SEND JSON 401
-            // (Checks for AJAX request or explicit JSON accept header)
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(401).json({ success: false, error: 'Unauthorized' });
-            }
-            // IF BROWSER REQUEST -> REDIRECT TO LOGIN
-            return res.redirect('/login_signup?form=login');
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
         
         // 2. Fetch User Data
@@ -318,21 +307,12 @@ const getUserProfile = async (req, res) => {
         };
 
         // 8. Send Response
-        // If React/JSON requested -> Send JSON
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json(responseData);
-        }
-        
-        // Else -> Render EJS View
-        res.render('userprofile', responseData);
+        // Always send JSON since EJS is removed
+        return res.json(responseData);
 
     } catch (error) {
         console.error('Error fetching user profile:', error);
-        // Return JSON error for API requests
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ success: false, error: 'Server error' });
-        }
-        res.status(500).json({ error: 'Server error' });
+        return res.status(500).json({ success: false, error: 'Server error: ' + error.message });
     }
 };
 const changePassword = async (req, res) => {

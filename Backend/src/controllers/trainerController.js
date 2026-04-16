@@ -289,8 +289,7 @@ const signupTrainer = async (req, res) => {
 const renderTrainerDashboard = async (req, res) => {
     try {
         if (!req.session.trainer) {
-            //  console.log('Unauthorized access to trainer dashboard');
-            return res.redirect('/trainer_login');
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
 
         const trainerId = req.session.trainer.id;
@@ -418,7 +417,8 @@ if (selectedClient) {
     }
 }
 
-        res.render('trainer', {
+        return res.json({
+            success: true,
             trainer: req.session.trainer,
             clients,
             selectedClient,
@@ -426,19 +426,15 @@ if (selectedClient) {
             nutritionData
         });
     } catch (error) {
-        console.error('Error rendering trainer dashboard:', error);
-        res.status(500).render('trainer_login', {
-            errorMessage: 'Server error. Please try again later.',
-            email: ''
-        });
+        console.error('Error fetching trainer dashboard data:', error);
+        return res.status(500).json({ success: false, error: 'Server error: ' + error.message });
     }
 };
 
 const renderEditWorkoutPlan = async (req, res) => {
     try {
         if (!req.session.trainer) {
-            //  console.log('Unauthorized access to edit workout plan');
-            return res.redirect('/trainer_login');
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
 
         const userId = req.params.userId;
@@ -454,9 +450,9 @@ const renderEditWorkoutPlan = async (req, res) => {
             .lean();
 
         if (!user) {
-            //  console.log('Platinum user not found or not assigned to trainer:', userId);
-            return res.status(404).render('trainer', {
-                errorMessage: 'Client not found, not a Platinum member, or not assigned to you'
+            return res.status(404).json({
+                success: false,
+                error: 'Client not found, not a member, or not assigned to you'
             });
         }
 
@@ -494,7 +490,8 @@ const renderEditWorkoutPlan = async (req, res) => {
             Sunday: currentWorkout.exercises.filter(ex => ex.day === 'Sunday')
         } : {};
 
-        res.render('workoutplanedit', {
+        return res.json({
+            success: true,
             trainer: req.session.trainer,
             id: user._id,
             name: user.full_name,
@@ -504,8 +501,8 @@ const renderEditWorkoutPlan = async (req, res) => {
             exercises: exercises
         });
     } catch (error) {
-        console.error('Error rendering edit workout plan:', error);
-        res.redirect('/trainer?error=Failed to load workout plan editor');
+        console.error('Error fetching workout plan editor data:', error);
+        return res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 
@@ -622,8 +619,7 @@ const saveWorkoutPlan = async (req, res) => {
 const renderEditNutritionPlan = async (req, res) => {
     try {
         if (!req.session.trainer) {
-            //  console.log('Unauthorized access to edit nutrition plan');
-            return res.redirect('/trainer_login');
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
 
         const userId = req.params.userId;
@@ -639,9 +635,9 @@ const renderEditNutritionPlan = async (req, res) => {
             .lean();
 
         if (!user) {
-            //  console.log('Platinum user not found or not assigned to trainer:', userId);
-            return res.status(404).render('trainer', {
-                errorMessage: 'Client not found, not a Platinum member, or not assigned to you'
+            return res.status(404).json({
+                success: false,
+                error: 'Client not found, not a Platinum member, or not assigned to you'
             });
         }
 
@@ -655,7 +651,8 @@ const renderEditNutritionPlan = async (req, res) => {
             date: { $gte: today, $lt: tomorrow }
         }).lean() || null;
 
-        res.render('edit_nutritional_plan', {
+        return res.json({
+            success: true,
             trainer: req.session.trainer,
             client: {
                 id: user._id,
@@ -666,10 +663,8 @@ const renderEditNutritionPlan = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error rendering edit nutrition plan:', error);
-        res.status(500).render('trainer', {
-            errorMessage: 'Server error. Please try again later.'
-        });
+        console.error('Error fetching nutrition plan data:', error);
+        return res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 
@@ -1086,18 +1081,14 @@ const getNutritionData = async (req, res) => {
 const renderTrainerAssignment = async (req, res) => {
     try {
         if (!req.session.trainer) {
-            //  console.log('Unauthorized access to trainer assignment');
-            return res.redirect('/trainer_login');
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
 
         const trainerId = req.session.trainer.id;
         const trainer = await Trainer.findById(trainerId);
         
         if (!trainer) {
-            //  console.log('Trainer not found:', trainerId);
-            return res.status(404).render('trainer', {
-                errorMessage: 'Trainer not found'
-            });
+            return res.status(404).json({ success: false, error: 'Trainer not found' });
         }
 
         // Find unassigned users (trainer field is null) that match trainer's specializations
@@ -1115,16 +1106,15 @@ const renderTrainerAssignment = async (req, res) => {
 //     membership: u.membershipType
 // })));
 
-        res.render('trainer_assignment', {
+        return res.json({
+            success: true,
             trainer: req.session.trainer,
             unassignedUsers: unassignedUsers || [],
             trainerSpecializations: trainer.specializations
         });
     } catch (error) {
-        console.error('Error rendering trainer assignment page:', error);
-        res.status(500).render('trainer', {
-            errorMessage: 'Server error. Please try again later.'
-        });
+        console.error('Error fetching trainer assignment data:', error);
+        return res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 

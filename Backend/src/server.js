@@ -8,7 +8,6 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-const methodOverride = require("method-override");
 const JWT_SECRET = process.env.JWT_SECRET || "gymrats-secret-key"; // Use environment variable in production
 //logs
 const morgan = require("morgan");
@@ -59,7 +58,6 @@ if (!isTest) {
 const adminRoutes = require("./Routes/adminRoutes");
 const userRoutes = require("./Routes/userRoutes");
 const trainerRoutes = require("./Routes/trainerRoutes");
-const verifierRoutes = require("./Routes/verifierRoutes");
 const adminController = require("./controllers/adminController");
 // In server.js - Add these lines after other route imports
 const authRoutes = require("./Routes/authRoutes");
@@ -107,7 +105,6 @@ if (!isTest) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride("_method"));
 
 // Execution timer middleware for analytics
 app.use((req, res, next) => {
@@ -192,7 +189,6 @@ setupSwagger(app);
 app.use("/api/admin", adminRoutes);
 app.use("/", userRoutes);
 app.use("/api/trainer", trainerRoutes);
-app.use("/api/verifier", verifierRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 
@@ -224,45 +220,6 @@ app.get("/admin_nutrition", (req, res) =>
 app.get("/admin_exercises", (req, res) => res.redirect("/api/admin/exercises"));
 app.get("/admin_verifier", (req, res) => res.redirect("/api/admin/verifier"));
 app.get("/admin_settings", (req, res) => res.redirect("/api/admin/settings"));
-
-// API Routes for static pages data (if needed)
-const pages = [
-  "about",
-  "blog",
-  "calculators",
-  "contact",
-  "home",
-  "isolation",
-  "login_signup",
-  "nutrition",
-  "privacy_policy",
-  "schedule",
-  "signup",
-  "terms",
-  "testimonial",
-  "trainer_form",
-  "trainer",
-  "trainers",
-  "verifier_form",
-  "verifier",
-  "workout_plans",
-  "trainer_login",
-  "edit_nutritional_plan",
-  "admin_login",
-  "pendingverifications",
-  "verifier_login",
-  "user_nutrition",
-  "user_exercises",
-  "userprofile",
-];
-
-// Optional: Provide API endpoints for page data
-pages.forEach((page) => {
-  app.get(`/api/${page}`, (req, res) => {
-    // Return data for React components instead of rendering EJS
-    res.json({ page: page, data: {} });
-  });
-});
 
 // Logout API Route
 app.post("/api/logout", (req, res) => {
