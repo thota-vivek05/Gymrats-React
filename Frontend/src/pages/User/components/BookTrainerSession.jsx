@@ -26,7 +26,7 @@ const BookTrainerSession = ({ trainer }) => {
     if (!trainer?._id) return;
     try {
       setLoading(true);
-      const res = await fetch(`/trainer/${trainer._id}/availability`, { headers });
+      const res = await fetch(`/api/trainer/${trainer._id}/availability`, { headers });
       if (res.ok) {
         const data = await res.json();
         setAvailability(data.workingHours || []);
@@ -43,7 +43,7 @@ const BookTrainerSession = ({ trainer }) => {
   // ── Fetch user appointments ──
   const fetchAppointments = useCallback(async () => {
     try {
-      const res = await fetch('/appointments', { headers });
+      const res = await fetch('/api/user/appointments', { headers });
       if (res.ok) {
         const data = await res.json();
         setAppointments(data.appointments || []);
@@ -110,7 +110,7 @@ const BookTrainerSession = ({ trainer }) => {
       setErrorMsg('');
       setSuccessMsg('');
 
-      const res = await fetch('/appointments/request', {
+      const res = await fetch('/api/appointments/request', {
         method: 'POST',
         headers,
         body: JSON.stringify({

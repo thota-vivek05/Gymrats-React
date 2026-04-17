@@ -6,6 +6,7 @@ const NutritionHistory = require("../model/NutritionHistory");
 const WorkoutHistory = require("../model/WorkoutHistory");
 const User = require("../model/User");
 const { protect } = require("../middleware/authMiddleware");
+const { cacheMiddleware } = require('../middleware/redisCache');
 
 router.get('/api/exercise/progress', protect, userController.getUserProgressGraph);
 
@@ -460,6 +461,7 @@ router.get(
   "/api/exercises",
   protect,
   userController.checkMembershipActive,
+  cacheMiddleware(600),
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -587,6 +589,7 @@ router.get(
   "/api/exercises/recommended",
   protect,
   userController.checkMembershipActive,
+  cacheMiddleware(300),
   async (req, res) => {
     try {
       const userId = req.user._id;
@@ -770,8 +773,11 @@ router.get(
 
 // Scheduling Routes
 router.get('/trainer/:trainerId/availability', protect, userController.getTrainerAvailability);
+router.get('/api/trainer/:trainerId/availability', protect, userController.getTrainerAvailability);
 router.post('/appointments/request', protect, userController.requestAppointment);
+router.post('/api/appointments/request', protect, userController.requestAppointment);
 router.get('/appointments', protect, userController.getUserAppointments);
+router.get('/api/user/appointments', protect, userController.getUserAppointments);
 router.put('/api/user/appointments/:id/cancel', protect, userController.cancelAppointment);
 
 // Get exercise details

@@ -65,3 +65,22 @@ in command line use :-
 ### Start Frontend Server
 `cd .\Frontend\src\`
 `npm run dev`
+
+## Testing
+
+We implemented testing using Jest and Supertest.
+
+### How to run tests:
+```bash
+cd .\Backend\src\
+npm test
+```
+
+### Coverage:
+Generated inside the `Backend/src/coverage/lcov-report/` folder.
+
+### Tested modules:
+- Authentication APIs
+- User APIs
+- Admin APIs
+- Edge cases (invalid input, unauthorized access, unknown routes)

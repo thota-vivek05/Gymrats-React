@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { admin_Protect } = require('../middleware/authMiddleware');
+const { cacheMiddleware } = require('../middleware/redisCache');
 
 // Public Admin Login Route (No protection needed)
 router.get('/login', adminController.getAdminLogin);
@@ -16,7 +17,7 @@ router.get('/dashboard', adminController.getDashboard);
 router.get('/', (req, res) => res.redirect('/admin/dashboard'));
 
 // User Routes
-router.get('/users', adminController.getUsers);
+router.get('/users', cacheMiddleware(300), adminController.getUsers);
 router.get('/users/dropped', adminController.getDroppedUsers); 
 router.get('/users/:id/details', adminController.getUserDetails);
 router.post('/users', adminController.createUser);
@@ -24,7 +25,7 @@ router.put('/users/:id', adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);
 
 // Trainer Routes
-router.get('/trainers', adminController.getTrainers);
+router.get('/trainers', cacheMiddleware(300), adminController.getTrainers);
 router.post('/trainers', adminController.createTrainer);
 router.put('/trainers/:id', adminController.updateTrainer);
 router.delete('/trainers/:id', adminController.deleteTrainer);
@@ -41,7 +42,7 @@ router.get('/trainer-assignment-data', adminController.getTrainerAssignmentData)
 router.post('/assign-trainer-admin', adminController.assignTrainerToUserAdmin);
 
 // Exercise Routes
-router.get('/exercises', adminController.getExercises);
+router.get('/exercises', cacheMiddleware(600), adminController.getExercises);
 router.get('/exercises/search', adminController.searchExercises);
 router.post('/exercises', adminController.createExercise);
 router.put('/exercises/:id', adminController.updateExercise);
@@ -49,7 +50,7 @@ router.delete('/exercises/:id', adminController.deleteExercise);
 router.put('/exercises/:id/verify', adminController.verifyExercise); 
 
 // Membership Routes
-router.get('/memberships', adminController.getMemberships);
+router.get('/memberships', cacheMiddleware(3600), adminController.getMemberships);
 router.post('/memberships', adminController.createMembership);
 router.put('/memberships/:id', adminController.updateMembership);
 router.delete('/memberships/:id', adminController.deleteMembership);

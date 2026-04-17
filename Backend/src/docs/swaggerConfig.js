@@ -16,6 +16,10 @@ const options = {
     },
     servers: [
       {
+        url: "https://gymrats-api.onrender.com",
+        description: "Production Server (Render)",
+      },
+      {
         url: "http://localhost:3000",
         description: "Local Development Server",
       },
@@ -59,7 +63,9 @@ function setupSwagger(app) {
     })
   );
 
-  console.log("Swagger docs available at http://localhost:3000/api-docs");
+  if (process.env.NODE_ENV !== 'test') {
+    console.log("Swagger docs available at http://localhost:3000/api-docs");
+  }
 }
 
 module.exports = setupSwagger;

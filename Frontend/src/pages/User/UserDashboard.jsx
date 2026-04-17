@@ -79,7 +79,7 @@ const UserDashboard = () => {
         fetch("/api/workout/weekly-stats", { headers }),
         fetch("/api/exercise/progress", { headers }),
         fetch("/api/class/upcoming", { headers }),
-        fetch("/appointments", { headers }),
+        fetch("/api/user/appointments", { headers }),
       ]);
 
       if (userResponse.status === 401 || userResponse.status === 403) {

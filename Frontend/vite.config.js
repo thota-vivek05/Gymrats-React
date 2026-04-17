@@ -12,24 +12,35 @@ export default defineConfig({
     // --- YOUR PROXIES ---
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/signup": {
-        target: "http://localhost:3000",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/trainer": {
-        target: "http://localhost:3000",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/appointments": {
-        target: "http://localhost:3000",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3000",
         changeOrigin: true,
         secure: false,
+      },
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          redux: ["redux", "react-redux", "@reduxjs/toolkit"],
+        },
       },
     },
   },
