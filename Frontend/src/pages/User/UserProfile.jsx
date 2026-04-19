@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-// ...
+import DashboardHeader from './components/DashboardHeader';
+
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -12,7 +13,7 @@ const UserProfile = () => {
     const [dbUser, setDbUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
-    
+
     // NEW STATES: Purchase History & Account Settings
     const [purchaseHistory, setPurchaseHistory] = useState([]);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -54,11 +55,11 @@ const UserProfile = () => {
 
             try {
                 const headers = { 'Authorization': `Bearer ${token}` };
-                
+
                 // Fetch User Profile, Stats, and Purchase History
                 const [userRes, progressRes, statsRes, purchasesRes] = await Promise.all([
                     fetch('/api/user/profile', { headers }),
-                    fetch('/api/exercise/progress', { headers }), 
+                    fetch('/api/exercise/progress', { headers }),
                     fetch('/api/workout/weekly-stats', { headers }),
                     fetch('/api/user/purchases', { headers })
                 ]);
@@ -263,8 +264,8 @@ const UserProfile = () => {
             const data = await response.json();
 
             if (data.success) {
-                setShowMembershipModal(false); 
-                setShowPayment(false); 
+                setShowMembershipModal(false);
+                setShowPayment(false);
                 setDbUser(prev => ({
                     ...prev,
                     membershipDuration: data.user.membershipDuration,
@@ -288,11 +289,11 @@ const UserProfile = () => {
         });
     };
 
-   const handleSaveProfile = async (e) => {
+    const handleSaveProfile = async (e) => {
         if (e) e.preventDefault();
         setLoading(true);
         const token = localStorage.getItem('token');
-        
+
         try {
             // Force strict Number formatting and INCLUDE the email
             const payload = {
@@ -302,38 +303,38 @@ const UserProfile = () => {
                 dob: formData.dob,
                 height: Number(formData.height) || null,
                 weight: Number(formData.weight) || null,
-                fitness_goals: { 
-                    weight_goal: Number(formData.weight_goal) || null, 
-                    calorie_goal: Number(formData.calorie_goal) || null, 
-                    protein_goal: Number(formData.protein_goal) || null 
+                fitness_goals: {
+                    weight_goal: Number(formData.weight_goal) || null,
+                    calorie_goal: Number(formData.calorie_goal) || null,
+                    protein_goal: Number(formData.protein_goal) || null
                 }
             };
 
             // Using the correct backend route
             const res = await fetch('/api/user/profile', {
                 method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}` 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const data = await res.json();
-            
+
             if (data.success || res.ok) {
                 alert('Profile updated successfully!');
                 // Update the UI with the fresh data from the backend
                 if (data.user) setDbUser(data.user);
                 setIsEditing(false);
-            } else { 
-                alert(data.message || data.error || 'Failed to update profile.'); 
+            } else {
+                alert(data.message || data.error || 'Failed to update profile.');
             }
-        } catch (error) { 
+        } catch (error) {
             console.error("Profile Save Error: ", error);
-            alert('Error updating profile. Make sure the backend server is running.'); 
-        } finally { 
-            setLoading(false); 
+            alert('Error updating profile. Make sure the backend server is running.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -346,9 +347,11 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="w-full text-[#f1f1f1] font-sans pb-20">
-            <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center" 
-                style={{backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')"}}>
+        <div className="min-h-screen bg-black text-[#f1f1f1] font-sans pb-20">
+            <DashboardHeader user={dbUser || user} currentPage="profile" />
+
+            <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center"
+                style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')" }}>
                 <div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">My Profile</h1>
                     <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">View and manage your personal information and statistics</p>
@@ -357,7 +360,7 @@ const UserProfile = () => {
 
             <div className="max-w-[1200px] mx-auto px-5 py-10">
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mb-8">
-                    
+
                     {/* User Info Card */}
                     <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50">
                         <div className="p-5 flex justify-between items-center border-b border-[#333]">
@@ -368,14 +371,14 @@ const UserProfile = () => {
                                 </button>
                             )}
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="text-center mb-6">
                                 <span className="inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30">
                                     {dbUser?.status || 'Active Member'}
                                 </span>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[
                                     { label: 'Name', key: 'full_name', type: 'text' },
@@ -395,14 +398,14 @@ const UserProfile = () => {
                                         <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">{field.label}:</span>
                                         {!isEditing ? (
                                             <span className="text-lg font-medium text-gray-100">
-                                                {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')} 
+                                                {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')}
                                                 {formData[field.key] && field.suffix ? ` ${field.suffix}` : ''}
                                             </span>
                                         ) : (
-                                            <input 
-                                                type={field.type} 
-                                                name={field.key} 
-                                                value={formData[field.key]} 
+                                            <input
+                                                type={field.type}
+                                                name={field.key}
+                                                value={formData[field.key]}
                                                 onChange={handleInputChange}
                                                 readOnly={field.readOnly}
                                                 className={`w-full bg-[#222] border border-[#444] rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#8A2BE2] transition-all ${field.readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -528,7 +531,7 @@ const UserProfile = () => {
 
                 {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                    <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Workout Frequency</h3>
                         <div className="h-[250px] w-full">
                             <Bar data={{
@@ -536,8 +539,8 @@ const UserProfile = () => {
                                 datasets: [{ label: 'Completion (%)', data: graphData.workoutValues, backgroundColor: '#8A2BE2', borderRadius: 4 }]
                             }} options={chartOptions} />
                         </div>
-                      </div>
-                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                    </div>
+                    <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Weight Progress</h3>
                         <div className="h-[250px] w-full">
                             <Line data={{
@@ -545,7 +548,7 @@ const UserProfile = () => {
                                 datasets: [{ label: 'Weight (kg)', data: graphData.weightValues, borderColor: '#2ecc71', backgroundColor: 'rgba(46, 204, 113, 0.2)', tension: 0.4, pointBackgroundColor: '#2ecc71' }]
                             }} options={chartOptions} />
                         </div>
-                      </div>
+                    </div>
                 </div>
 
                 {/* Purchase History Table */}
@@ -597,11 +600,11 @@ const UserProfile = () => {
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div>
                                 <label className="block text-gray-400 text-sm mb-1">Current Password</label>
-                                <input type="password" required value={passwords.currentPassword} onChange={e => setPasswords({...passwords, currentPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                                <input type="password" required value={passwords.currentPassword} onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
                             </div>
                             <div>
                                 <label className="block text-gray-400 text-sm mb-1">New Password</label>
-                                <input type="password" required value={passwords.newPassword} onChange={e => setPasswords({...passwords, newPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                                <input type="password" required value={passwords.newPassword} onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
                                 <button type="button" onClick={() => setShowPasswordModal(false)} className="px-4 py-2 text-gray-400 hover:text-white transition">Cancel</button>
@@ -614,7 +617,7 @@ const UserProfile = () => {
 
             {/* Membership Extension Modal */}
             {showMembershipModal && (
-                <div 
+                <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
                     onClick={(e) => e.target === e.currentTarget && setShowMembershipModal(false)}
                 >
@@ -623,11 +626,11 @@ const UserProfile = () => {
                             <h2 className="text-2xl font-bold text-white">Change Membership Plan</h2>
                             <button onClick={() => setShowMembershipModal(false)} className="text-[#aaa] hover:text-[#8A2BE2] text-3xl leading-none">&times;</button>
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                                 {['basic', 'gold', 'platinum'].map(plan => (
-                                    <div 
+                                    <div
                                         key={plan}
                                         onClick={() => setSelectedPlan(plan)}
                                         className={`cursor-pointer border-2 rounded-xl p-5 transition-all duration-300 hover:border-[#8A2BE2] bg-[#222] ${selectedPlan === plan ? 'border-[#8A2BE2] bg-[#8A2BE2]/10' : 'border-[#333]'}`}
@@ -641,14 +644,14 @@ const UserProfile = () => {
                                     </div>
                                 ))}
                             </div>
-                            
+
                             {selectedPlan && (
                                 <div className="mb-8 animate-in slide-in-from-bottom-2 duration-300">
                                     <h3 className="text-xl font-semibold mb-4 text-white">Select Duration</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {[1, 3, 6].map(months => (
-                                            <div 
-                                                key={months} 
+                                            <div
+                                                key={months}
                                                 onClick={() => { setSelectedDuration(months); setShowPayment(true); }}
                                                 className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all bg-[#222] hover:border-[#8A2BE2] ${selectedDuration === months ? 'border-[#8A2BE2] bg-[#8A2BE2]/10' : 'border-[#333]'}`}
                                             >
@@ -660,68 +663,68 @@ const UserProfile = () => {
                                 </div>
                             )}
 
-                          {showPayment && (
-                              <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
-                                  <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
-                                  <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200">
-                                      <p className="flex justify-between mb-1"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
-                                      <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
-                                  </div>
-                                  
-                                  <form onSubmit={handlePayment} className="space-y-4">
-                                      <div>
-                                          <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
-                                          <input 
-                                              type="text" 
-                                              name="cardNumber"
-                                              value={paymentDetails.cardNumber}
-                                              onChange={handlePaymentChange}
-                                              placeholder="1234 5678 9012 3456" 
-                                              maxLength="19" 
-                                              className={`w-full bg-[#222] border ${paymentErrors.cardNumber ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors`}
-                                          />
-                                          {paymentErrors.cardNumber && <p className="text-red-500 text-xs mt-1">{paymentErrors.cardNumber}</p>}
-                                      </div>
+                            {showPayment && (
+                                <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
+                                    <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
+                                    <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200">
+                                        <p className="flex justify-between mb-1"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
+                                        <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
+                                    </div>
 
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div>
-                                              <label className="block text-gray-400 mb-1 text-sm">Expiry</label>
-                                              <input 
-                                                  type="text" 
-                                                  name="expiryDate"
-                                                  value={paymentDetails.expiryDate}
-                                                  onChange={handlePaymentChange}
-                                                  placeholder="MM/YY" 
-                                                  maxLength="5"
-                                                  className={`w-full bg-[#222] border ${paymentErrors.expiryDate ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
-                                              />
-                                              {paymentErrors.expiryDate && <p className="text-red-500 text-xs mt-1">{paymentErrors.expiryDate}</p>}
-                                          </div>
-                                          <div>
-                                              <label className="block text-gray-400 mb-1 text-sm">CVV</label>
-                                              <input 
-                                                  type="text" 
-                                                  name="cvv"
-                                                  value={paymentDetails.cvv}
-                                                  onChange={handlePaymentChange}
-                                                  placeholder="123" 
-                                                  maxLength="3" 
-                                                  className={`w-full bg-[#222] border ${paymentErrors.cvv ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
-                                              />
-                                              {paymentErrors.cvv && <p className="text-red-500 text-xs mt-1">{paymentErrors.cvv}</p>}
-                                          </div>
-                                      </div>
+                                    <form onSubmit={handlePayment} className="space-y-4">
+                                        <div>
+                                            <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
+                                            <input
+                                                type="text"
+                                                name="cardNumber"
+                                                value={paymentDetails.cardNumber}
+                                                onChange={handlePaymentChange}
+                                                placeholder="1234 5678 9012 3456"
+                                                maxLength="19"
+                                                className={`w-full bg-[#222] border ${paymentErrors.cardNumber ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors`}
+                                            />
+                                            {paymentErrors.cardNumber && <p className="text-red-500 text-xs mt-1">{paymentErrors.cardNumber}</p>}
+                                        </div>
 
-                                      <button 
-                                          type="submit"
-                                          disabled={isProcessing}
-                                          className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-[0.99] shadow-lg shadow-purple-900/40 flex justify-center items-center gap-2"
-                                      >
-                                          {isProcessing ? <><i className="fas fa-circle-notch fa-spin"></i> Processing...</> : 'Process Payment'}
-                                      </button>
-                                  </form>
-                              </div>
-                          )}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-gray-400 mb-1 text-sm">Expiry</label>
+                                                <input
+                                                    type="text"
+                                                    name="expiryDate"
+                                                    value={paymentDetails.expiryDate}
+                                                    onChange={handlePaymentChange}
+                                                    placeholder="MM/YY"
+                                                    maxLength="5"
+                                                    className={`w-full bg-[#222] border ${paymentErrors.expiryDate ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`}
+                                                />
+                                                {paymentErrors.expiryDate && <p className="text-red-500 text-xs mt-1">{paymentErrors.expiryDate}</p>}
+                                            </div>
+                                            <div>
+                                                <label className="block text-gray-400 mb-1 text-sm">CVV</label>
+                                                <input
+                                                    type="text"
+                                                    name="cvv"
+                                                    value={paymentDetails.cvv}
+                                                    onChange={handlePaymentChange}
+                                                    placeholder="123"
+                                                    maxLength="3"
+                                                    className={`w-full bg-[#222] border ${paymentErrors.cvv ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`}
+                                                />
+                                                {paymentErrors.cvv && <p className="text-red-500 text-xs mt-1">{paymentErrors.cvv}</p>}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={isProcessing}
+                                            className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-[0.99] shadow-lg shadow-purple-900/40 flex justify-center items-center gap-2"
+                                        >
+                                            {isProcessing ? <><i className="fas fa-circle-notch fa-spin"></i> Processing...</> : 'Process Payment'}
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -743,10 +746,9 @@ const UserProfile = () => {
                                         <button
                                             key={star}
                                             type="button"
-                                            onClick={() => setRatingData({...ratingData, rating: star})}
-                                            className={`text-3xl focus:outline-none transition-colors duration-200 ${
-                                                ratingData.rating >= star ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-600 hover:text-gray-400'
-                                            }`}
+                                            onClick={() => setRatingData({ ...ratingData, rating: star })}
+                                            className={`text-3xl focus:outline-none transition-colors duration-200 ${ratingData.rating >= star ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-600 hover:text-gray-400'
+                                                }`}
                                         >
                                             ★
                                         </button>
@@ -760,7 +762,7 @@ const UserProfile = () => {
                                     rows="3"
                                     required
                                     value={ratingData.feedback}
-                                    onChange={(e) => setRatingData({...ratingData, feedback: e.target.value})}
+                                    onChange={(e) => setRatingData({ ...ratingData, feedback: e.target.value })}
                                     className="w-full bg-[#222] border border-[#444] rounded-lg p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors"
                                     placeholder="Tell us about your experience..."
                                 ></textarea>

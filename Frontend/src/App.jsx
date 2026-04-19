@@ -33,7 +33,6 @@ import UserDashboard from "./pages/User/UserDashboard";
 import UserProfile from "./pages/User/UserProfile";
 import UserExercises from "./pages/User/UserExercises";
 import UserNutrition from "./pages/User/UserNutrition";
-import UserLayout from "./pages/User/components/UserLayout";
 import TrainersPage from "./pages/Home/related/TrainersPage";
 
 import EditWorkoutPlan from "./pages/Trainer/EditWorkoutPlan.jsx";
@@ -65,12 +64,15 @@ function App() {
             {/* This wrapper ensures the user is logged in before rendering child routes */}
             {/* 1. Member Routes */}
             <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
-              <Route element={<UserLayout />}>
-                <Route path="/dashboard" element={<UserDashboard />} />
-                <Route path="/userprofile" element={<UserProfile />} />
-                <Route path="/user_exercises" element={<UserExercises />} />
-                <Route path="/user_nutrition" element={<UserNutrition />} />
-              </Route>
+              {/* <Route path="/userdashboard_b" element={<UserDashboard />} />
+          <Route path="/userdashboard_g" element={<UserDashboard />} /> */}
+              <Route path="/dashboard" element={<UserDashboard />} />
+
+              <Route path="/userprofile" element={<UserProfile />} />
+              <Route path="/user_exercises" element={<UserExercises />} />
+              <Route path="/user_nutrition" element={<UserNutrition />} />
+              {/* <Route path="/dashboard" element={<UserDashboard />} /> */}
+              {/* Add pages here like /profile, /workouts */}
             </Route>
             {/* 2. Trainer Routes */}
             {/* 2. Trainer Routes */}
@@ -112,7 +114,7 @@ function App() {
                   element={<AdminTrainerAssignment />}
                 />
                 <Route path="/admin/trainer/:id" element={<AdminTrainerDetail />} />
-                <Route path="/admin/user/:id" element={<AdminUserDetail />} />  
+                <Route path="/admin/user/:id" element={<AdminUserDetail />} />
               </Route>
             </Route>
 

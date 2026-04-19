@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
 const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
-  const [completingIds, setCompletingIds] = useState(new Set());
-
   const markExerciseAsDone = async (workoutId, exerciseId) => {
     // Debugging check
     if (!workoutId) {
@@ -24,8 +22,6 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
         return;
       }
 
-      setCompletingIds(prev => new Set(prev).add(exerciseId));
-
       const response = await fetch("/api/exercise/complete", {
         method: "POST",
         headers: {
@@ -39,15 +35,9 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        // Notify parent with the updated numbers so it can patch state surgically
-        onExerciseComplete({
-          exerciseId,
-          progress: data.progress,
-          completedExercises: data.completedExercises,
-          totalExercises: data.totalExercises,
-        });
+        onExerciseComplete();
       } else {
         // Log the error for debugging
         console.error("Server Error:", data.error);
@@ -56,12 +46,6 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
     } catch (error) {
       console.error("Network/Client Error completing exercise:", error);
       alert("Network error. Please try again.");
-    } finally {
-      setCompletingIds(prev => {
-        const next = new Set(prev);
-        next.delete(exerciseId);
-        return next;
-      });
     }
   };
 
@@ -128,11 +112,10 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
               {todayWorkout.exercises.map((exercise, index) => (
                 <div
                   key={index}
-                  className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-lg transition-all duration-300 ${
-                    exercise.completed
+                  className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-lg transition-all duration-300 ${exercise.completed
                       ? "bg-green-500/10 border-green-500/50"
                       : "bg-transparent border-gray-800 hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   <div className="flex-1 mb-3 sm:mb-0">
                     <strong className="block text-white mb-1">
@@ -147,21 +130,19 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
                     </div>
                   </div>
                   <button
-                    className={`px-4 py-2 rounded text-sm font-medium transition-colors w-full sm:w-auto whitespace-nowrap flex items-center justify-center ${
-                      exercise.completed
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors w-full sm:w-auto whitespace-nowrap ${exercise.completed
                         ? "bg-green-600 cursor-not-allowed opacity-80 text-white"
-                        : completingIds.has(exercise._id)
-                        ? "bg-gray-600 cursor-not-allowed text-white opacity-70"
                         : "bg-[#8A2BE2] hover:bg-[#7B1FA2] text-white"
-                    }`}
-                    onClick={() => markExerciseAsDone(todayWorkout.id, exercise._id)}
-                    disabled={exercise.completed || completingIds.has(exercise._id)}
+                      }`}
+                    onClick={() =>
+                      markExerciseAsDone(
+                        todayWorkout.id,
+                        exercise._id
+                      )
+                    }
+                    disabled={exercise.completed}
                   >
-                    {completingIds.has(exercise._id) ? (
-                      <>
-                        <i className="fas fa-spinner fa-spin mr-2"></i> Completing...
-                      </>
-                    ) : exercise.completed ? (
+                    {exercise.completed ? (
                       <>
                         <i className="fas fa-check-circle mr-2"></i> Completed
                       </>
@@ -180,6 +161,12 @@ const TodaysWorkout = ({ todayWorkout, onExerciseComplete }) => {
         )}
       </div>
     </div>
+  );
+};
+
+export default TodaysWorkout;
+      </div >
+    </div >
   );
 };
 

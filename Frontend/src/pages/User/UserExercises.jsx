@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
+import DashboardHeader from './components/DashboardHeader'; // Ensure this path is correct
 import Footer from '../../components/common/Footer/Footer'; // Ensure this path is correct
 
 const UserExercises = () => {
     const { user } = useAuth();
-    
+
     // --- State Management ---
     const [exercises, setExercises] = useState([]);
     const [filteredExercises, setFilteredExercises] = useState([]);
@@ -15,7 +16,7 @@ const UserExercises = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [userWorkoutType, setUserWorkoutType] = useState('All');
-    
+
     // --- Detail View State ---
     const [selectedExercise, setSelectedExercise] = useState(null);
     const [similarExercises, setSimilarExercises] = useState([]);
@@ -33,8 +34,8 @@ const UserExercises = () => {
 
         // 1. Filter by Category (Muscle Group)
         if (activeCategory !== 'all') {
-            result = result.filter(ex => 
-                ex.primaryMuscle === activeCategory || 
+            result = result.filter(ex =>
+                ex.primaryMuscle === activeCategory ||
                 (ex.targetMuscles && ex.targetMuscles.includes(activeCategory))
             );
         }
@@ -42,7 +43,7 @@ const UserExercises = () => {
         // 2. Filter by Search Query
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            result = result.filter(ex => 
+            result = result.filter(ex =>
                 ex.name.toLowerCase().includes(query) ||
                 ex.category.toLowerCase().includes(query) ||
                 (ex.targetMuscles && ex.targetMuscles.some(m => m.toLowerCase().includes(query)))
@@ -60,7 +61,7 @@ const UserExercises = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            
+
             if (data.success) {
                 setExercises(data.exercises);
                 setFilteredExercises(data.exercises);
@@ -82,7 +83,7 @@ const UserExercises = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            
+
             if (data.success) {
                 setRecommendations(data.exercises);
                 setRecommendationReason(data.reason);
@@ -96,7 +97,7 @@ const UserExercises = () => {
         setDetailLoading(true);
         // Scroll to top when opening details
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        
+
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`/api/exercises/${exerciseId}`, {
@@ -147,12 +148,11 @@ const UserExercises = () => {
     // --- Render Helpers ---
     const renderStars = (currentRating) => {
         return [1, 2, 3, 4, 5].map(star => (
-            <button 
-                key={star} 
+            <button
+                key={star}
                 onClick={() => handleRateExercise(star)}
-                className={`text-2xl focus:outline-none transition-colors duration-200 ${
-                    currentRating >= star ? 'text-yellow-400' : 'text-gray-600 hover:text-yellow-200'
-                }`}
+                className={`text-2xl focus:outline-none transition-colors duration-200 ${currentRating >= star ? 'text-yellow-400' : 'text-gray-600 hover:text-yellow-200'
+                    }`}
             >
                 ★
             </button>
@@ -163,11 +163,11 @@ const UserExercises = () => {
     if (selectedExercise) {
         return (
             <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit">
-                {/* DashboardHeader handled by UserLayout */}
-                
+                <DashboardHeader />
+
                 <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
                     {/* Back Button */}
-                    <button 
+                    <button
                         onClick={() => setSelectedExercise(null)}
                         className="flex items-center gap-2 text-[#8A2BE2] hover:text-purple-400 mb-6 font-medium transition-colors"
                     >
@@ -179,7 +179,7 @@ const UserExercises = () => {
                         <div className="flex flex-col md:flex-row gap-8">
                             {/* Image Section */}
                             <div className="w-full md:w-1/2 lg:w-2/5">
-                                <div 
+                                <div
                                     className="aspect-square w-full rounded-xl bg-[#1e1e3a] bg-cover bg-center border border-gray-800"
                                     style={{ backgroundImage: `url('${selectedExercise.image || '/default-exercise.jpg'}')` }}
                                 >
@@ -255,12 +255,12 @@ const UserExercises = () => {
                                 <h3 className="text-2xl font-bold text-white mb-6">Similar Exercises</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {similarExercises.map(ex => (
-                                        <div 
-                                            key={ex._id} 
+                                        <div
+                                            key={ex._id}
                                             onClick={() => handleExerciseClick(ex._id)}
                                             className="bg-[#1e1e3a] rounded-lg p-3 cursor-pointer hover:bg-[#2a2a50] transition-colors border border-transparent hover:border-[#8A2BE2]"
                                         >
-                                            <div 
+                                            <div
                                                 className="h-32 w-full bg-cover bg-center rounded mb-3 bg-gray-900"
                                                 style={{ backgroundImage: `url('${ex.image || ''}')` }}
                                             ></div>
@@ -281,8 +281,8 @@ const UserExercises = () => {
     // --- Main List View Component ---
     return (
         <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
-            {/* DashboardHeader handled by UserLayout */}
-            
+            <DashboardHeader />
+
             {/* Banner Section */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">
                 <div className="bg-gradient-to-r from-[#1e1e3a] to-[#111] rounded-xl p-6 md:p-8 text-center shadow-lg border border-gray-800">
@@ -304,11 +304,10 @@ const UserExercises = () => {
                         <button
                             key={cat}
                             onClick={() => { setActiveCategory(cat); setSearchQuery(''); }}
-                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                                activeCategory === cat
-                                ? 'bg-[#8A2BE2] text-white'
-                                : 'bg-white/10 text-gray-300 border border-gray-700'
-                            }`}
+                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeCategory === cat
+                                    ? 'bg-[#8A2BE2] text-white'
+                                    : 'bg-white/10 text-gray-300 border border-gray-700'
+                                }`}
                         >
                             {cat === 'all' ? 'All' : cat}
                         </button>
@@ -317,7 +316,7 @@ const UserExercises = () => {
             </div>
 
             <div className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 flex flex-col md:flex-row gap-6">
-                
+
                 {/* Desktop Sidebar: Categories */}
                 <aside className="hidden md:block w-64 flex-shrink-0">
                     <div className="bg-[#111] rounded-xl border border-[#8A2BE2]/30 p-5 sticky top-24">
@@ -327,11 +326,10 @@ const UserExercises = () => {
                                 <button
                                     key={cat}
                                     onClick={() => { setActiveCategory(cat); setSearchQuery(''); }}
-                                    className={`text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
-                                        activeCategory === cat 
-                                        ? 'bg-[#8A2BE2]/20 text-[#8A2BE2] border border-[#8A2BE2]/50' 
-                                        : 'text-gray-400 hover:bg-[#8A2BE2]/10 hover:text-white border border-transparent'
-                                    }`}
+                                    className={`text-left px-4 py-3 rounded-lg transition-all duration-200 font-medium ${activeCategory === cat
+                                            ? 'bg-[#8A2BE2]/20 text-[#8A2BE2] border border-[#8A2BE2]/50'
+                                            : 'text-gray-400 hover:bg-[#8A2BE2]/10 hover:text-white border border-transparent'
+                                        }`}
                                 >
                                     {cat === 'all' ? 'All Exercises' : cat}
                                 </button>
@@ -348,9 +346,9 @@ const UserExercises = () => {
                             {activeCategory === 'all' ? 'All Exercises' : `${activeCategory} Exercises`}
                         </h2>
                         <div className="relative w-full sm:w-64">
-                            <input 
-                                type="text" 
-                                placeholder="Search exercises..." 
+                            <input
+                                type="text"
+                                placeholder="Search exercises..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-white/10 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-white focus:outline-none focus:border-[#8A2BE2] focus:ring-1 focus:ring-[#8A2BE2] transition-all placeholder-gray-500"
@@ -407,18 +405,18 @@ const UserExercises = () => {
 
 // --- Sub-Component: Exercise Card ---
 const ExerciseCard = ({ exercise, onClick }) => (
-    <div 
+    <div
         onClick={() => onClick(exercise._id)}
         className="group bg-[#1e1e3a] rounded-xl overflow-hidden cursor-pointer border border-transparent hover:border-[#8A2BE2] hover:shadow-lg hover:shadow-purple-900/20 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
     >
-        <div 
+        <div
             className="h-40 w-full bg-cover bg-center bg-gray-900 relative"
             style={{ backgroundImage: `url('${exercise.image || '/default-exercise.jpg'}')` }}
         >
             {!exercise.image && (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">No Image</div>
             )}
-            
+
             {/* Floating Badges */}
             <div className="absolute top-2 left-2">
                 <span className="bg-[#8A2BE2]/90 text-white text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm">
@@ -439,13 +437,12 @@ const ExerciseCard = ({ exercise, onClick }) => (
             <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-1">
                 {exercise.instructions || 'Click for details...'}
             </p>
-            
+
             <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
-                    exercise.difficulty === 'Beginner' ? 'border-green-500/50 text-green-400' :
-                    exercise.difficulty === 'Intermediate' ? 'border-yellow-500/50 text-yellow-400' :
-                    'border-red-500/50 text-red-400'
-                }`}>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded border ${exercise.difficulty === 'Beginner' ? 'border-green-500/50 text-green-400' :
+                        exercise.difficulty === 'Intermediate' ? 'border-yellow-500/50 text-yellow-400' :
+                            'border-red-500/50 text-red-400'
+                    }`}>
                     {exercise.difficulty}
                 </span>
                 <span className="text-xs text-gray-500 font-medium">{exercise.type || 'Strength'}</span>

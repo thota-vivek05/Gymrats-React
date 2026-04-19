@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Components
+import DashboardHeader from "./components/DashboardHeader";
 import DashboardHero from "./components/DashboardHero";
 import OverviewCards from "./components/OverviewCards";
 import TodaysWorkout from "./components/TodaysWorkout";
@@ -14,7 +15,7 @@ const UserDashboard = () => {
   const { type } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  
+
   const [dashboardData, setDashboardData] = useState({
     todayNutrition: {
       calories_consumed: 0,
@@ -37,16 +38,16 @@ const UserDashboard = () => {
     todaysConsumedFoods: [],
     nutritionChartData: { labels: [], calories: [], protein: [] },
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
 
   useEffect(() => {
-    fetchDashboardData(true);
+    fetchDashboardData();
   }, [type]);
 
-  const fetchDashboardData = async (showLoading = true) => {
+  const fetchDashboardData = async () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -55,7 +56,7 @@ const UserDashboard = () => {
     }
 
     try {
-      if (showLoading) setLoading(true);
+      setLoading(true);
       setError(null);
 
       const headers = {
@@ -107,7 +108,7 @@ const UserDashboard = () => {
         const futureApproved = appointmentsData.appointments
           .filter((apt) => apt.status === 'approved' && new Date(apt.date) >= new Date(now.toDateString()))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
+
         if (futureApproved.length > 0) {
           const apt = futureApproved[0];
           approvedSession = {
@@ -144,42 +145,16 @@ const UserDashboard = () => {
       console.error("Error fetching dashboard data:", error);
       setError("Failed to load dashboard data");
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   };
 
-  // Called by TodaysWorkout after a successful /api/exercise/complete response.
-  // Only patches the todayWorkout slice — no full re-fetch, no blink.
-  const handleExerciseComplete = ({ progress, completedExercises, totalExercises, exerciseId }) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      todayWorkout: {
-        ...prev.todayWorkout,
-        progress,
-        completedExercises,
-        totalExercises,
-        exercises: prev.todayWorkout.exercises.map((ex) =>
-          ex._id === exerciseId ? { ...ex, completed: true } : ex
-        ),
-      },
-    }));
+  const handleExerciseComplete = () => {
+    fetchDashboardData(); // Refresh to update progress bar
   };
 
-  // Called by NutritionTracking after a successful /api/nutrition/mark-consumed response.
-  // Only patches the todayNutrition slice — no full re-fetch, no blink.
-  const handleFoodComplete = ({ calories, protein, foodName }) => {
-    setDashboardData((prev) => ({
-      ...prev,
-      todayNutrition: {
-        ...prev.todayNutrition,
-        calories_consumed: (prev.todayNutrition.calories_consumed || 0) + calories,
-        protein_consumed: (prev.todayNutrition.protein_consumed || 0) + protein,
-      },
-      // Also flip the food's consumed flag so the button turns green instantly
-      todaysConsumedFoods: prev.todaysConsumedFoods.map((f) =>
-        f.name === foodName ? { ...f, consumed: true, consumedAt: new Date() } : f
-      ),
-    }));
+  const handleFoodComplete = () => {
+    fetchDashboardData(); // Refresh to update nutrition stats
   };
 
 
@@ -220,7 +195,8 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="w-full text-gray-100 font-sans">
+    <div className="min-h-screen bg-black text-gray-100 font-sans overflow-x-hidden">
+      <DashboardHeader user={user} currentPage="dashboard" />
       <DashboardHero user={user} />
 
       <div className="max-w-7xl mx-auto px-5 pb-10 overflow-x-hidden">
@@ -241,17 +217,17 @@ const UserDashboard = () => {
 
           {/* 3. Platinum Section (Classes & Trainer) */}
           <div className="flex flex-col gap-6">
-              {hasAccess("Platinum") ? (
-                <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
-              ) : (
-                <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[150px]">
-                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-500 text-xl">
-                    <i className="fas fa-lock"></i>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-300 mb-1">Live Classes Locked</h3>
-                  <p className="text-xs text-gray-500">Upgrade to Platinum to access live classes.</p>
+            {hasAccess("Platinum") ? (
+              <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[150px]">
+                <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-500 text-xl">
+                  <i className="fas fa-lock"></i>
                 </div>
-              )}
+                <h3 className="text-lg font-bold text-gray-300 mb-1">Live Classes Locked</h3>
+                <p className="text-xs text-gray-500">Upgrade to Platinum to access live classes.</p>
+              </div>
+            )}
 
 
           </div>

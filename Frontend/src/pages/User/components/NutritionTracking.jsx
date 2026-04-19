@@ -6,8 +6,9 @@ const NutritionTracking = ({
   user,
   onFoodComplete,
 }) => {
-  // Track which food names are currently being submitted
-  const [consumingNames, setConsumingNames] = useState(new Set());
+  const [consumedFoods, setConsumedFoods] = useState(
+    todaysConsumedFoods.filter((food) => food.consumed)
+  );
 
   const markFoodAsConsumed = async (
     foodName,
@@ -22,10 +23,6 @@ const NutritionTracking = ({
         alert("Please log in to mark food as consumed");
         return;
       }
-
-      // Prevent double-submit
-      if (consumingNames.has(foodName)) return;
-      setConsumingNames(prev => new Set(prev).add(foodName));
 
       const days = [
         "Sunday",
@@ -57,27 +54,27 @@ const NutritionTracking = ({
 
       const data = await response.json();
       if (data.success) {
-        // Tell parent to patch only the nutrition numbers - no re-fetch
-        onFoodComplete({ calories, protein, foodName });
+        const newFood = {
+          name: foodName,
+          calories,
+          protein,
+          carbs,
+          fats,
+          consumedAt: new Date(),
+        };
+        setConsumedFoods((prev) => [newFood, ...prev]);
+        onFoodComplete();
       } else {
         alert("Error: " + data.message);
       }
     } catch (error) {
       console.error("Error marking food as consumed:", error);
       alert("Network error. Please try again.");
-    } finally {
-      setConsumingNames(prev => {
-        const next = new Set(prev);
-        next.delete(foodName);
-        return next;
-      });
     }
   };
 
-  // Derive consumed log from the foods list (driven by parent state)
-  const consumedFoods = todaysConsumedFoods.filter((f) => f.consumed);
-
-  // Column visibility flags
+  // --- NEW LOGIC: Check which columns have data ---
+  // If no food in the list has a value > 0 for a nutrient, we hide that column completely.
   const showCalories = consumedFoods.some((f) => f.calories > 0);
   const showProtein = consumedFoods.some((f) => f.protein > 0);
   const showCarbs = consumedFoods.some((f) => f.carbs > 0);
@@ -128,13 +125,10 @@ const NutritionTracking = ({
                   </div>
                 </div>
                 <button
-                  className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                    food.consumed
+                  className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${food.consumed
                       ? "bg-green-600 cursor-not-allowed opacity-80 text-white"
-                      : consumingNames.has(food.name)
-                      ? "bg-gray-600 cursor-not-allowed opacity-70 text-white"
                       : "bg-[#8A2BE2] hover:bg-[#7B1FA2] text-white"
-                  }`}
+                    }`}
                   onClick={() =>
                     markFoodAsConsumed(
                       food.name,
@@ -144,13 +138,9 @@ const NutritionTracking = ({
                       food.fats || 0
                     )
                   }
-                  disabled={food.consumed || consumingNames.has(food.name)}
+                  disabled={food.consumed}
                 >
-                  {consumingNames.has(food.name) ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin"></i> Saving...
-                    </>
-                  ) : food.consumed ? (
+                  {food.consumed ? (
                     <>
                       <i className="fas fa-check-circle"></i> Completed
                     </>
@@ -241,7 +231,7 @@ const NutritionTracking = ({
                     className="hover:bg-white/5 transition-colors border-b border-white/10 last:border-0"
                   >
                     <td className="p-3">{food.name}</td>
-                    
+
                     {/* CHANGED: Conditionally Render Data Cells */}
                     {showCalories && <td className="p-3">{food.calories} kcal</td>}
                     {showProtein && <td className="p-3">{food.protein}g</td>}
@@ -251,9 +241,9 @@ const NutritionTracking = ({
                     <td className="p-3">
                       {food.consumedAt
                         ? new Date(food.consumedAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "Today"}
                     </td>
                     <td className="p-3">
