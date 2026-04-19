@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Components
-import DashboardHeader from "./components/DashboardHeader";
 import DashboardHero from "./components/DashboardHero";
 import OverviewCards from "./components/OverviewCards";
 import TodaysWorkout from "./components/TodaysWorkout";
@@ -44,10 +43,10 @@ const UserDashboard = () => {
 
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(true);
   }, [type]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showLoading = true) => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -56,7 +55,7 @@ const UserDashboard = () => {
     }
 
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError(null);
 
       const headers = {
@@ -145,16 +144,42 @@ const UserDashboard = () => {
       console.error("Error fetching dashboard data:", error);
       setError("Failed to load dashboard data");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
-  const handleExerciseComplete = () => {
-    fetchDashboardData(); // Refresh to update progress bar
+  // Called by TodaysWorkout after a successful /api/exercise/complete response.
+  // Only patches the todayWorkout slice — no full re-fetch, no blink.
+  const handleExerciseComplete = ({ progress, completedExercises, totalExercises, exerciseId }) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      todayWorkout: {
+        ...prev.todayWorkout,
+        progress,
+        completedExercises,
+        totalExercises,
+        exercises: prev.todayWorkout.exercises.map((ex) =>
+          ex._id === exerciseId ? { ...ex, completed: true } : ex
+        ),
+      },
+    }));
   };
 
-  const handleFoodComplete = () => {
-    fetchDashboardData(); // Refresh to update nutrition stats
+  // Called by NutritionTracking after a successful /api/nutrition/mark-consumed response.
+  // Only patches the todayNutrition slice — no full re-fetch, no blink.
+  const handleFoodComplete = ({ calories, protein, foodName }) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      todayNutrition: {
+        ...prev.todayNutrition,
+        calories_consumed: (prev.todayNutrition.calories_consumed || 0) + calories,
+        protein_consumed: (prev.todayNutrition.protein_consumed || 0) + protein,
+      },
+      // Also flip the food's consumed flag so the button turns green instantly
+      todaysConsumedFoods: prev.todaysConsumedFoods.map((f) =>
+        f.name === foodName ? { ...f, consumed: true, consumedAt: new Date() } : f
+      ),
+    }));
   };
 
 
@@ -195,8 +220,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans overflow-x-hidden">
-      <DashboardHeader user={user} currentPage="dashboard" />
+    <div className="w-full text-gray-100 font-sans">
       <DashboardHero user={user} />
 
       <div className="max-w-7xl mx-auto px-5 pb-10 overflow-x-hidden">

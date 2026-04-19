@@ -8,7 +8,7 @@ const User = require("../model/User");
 const { protect } = require("../middleware/authMiddleware");
 const { cacheMiddleware } = require('../middleware/redisCache');
 
-router.get('/api/exercise/progress', protect, userController.getUserProgressGraph);
+router.get('/api/exercise/progress-graph', protect, userController.getUserProgressGraph);
 
 // Existing EJS routes (keep these for now)
 router.get("/login_signup", (req, res) => {

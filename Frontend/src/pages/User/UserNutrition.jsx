@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import DashboardHeader from './components/DashboardHeader';
 import Footer from '../../components/common/Footer/Footer';
 
 const UserNutrition = () => {
@@ -22,7 +21,6 @@ const UserNutrition = () => {
 
     return (
         <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
-            <DashboardHeader />
 
             {/* Welcome Banner */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">

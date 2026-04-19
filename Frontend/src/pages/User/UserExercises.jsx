@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext'; 
-import DashboardHeader from './components/DashboardHeader'; // Ensure this path is correct
 import Footer from '../../components/common/Footer/Footer'; // Ensure this path is correct
 
 const UserExercises = () => {
@@ -164,7 +163,7 @@ const UserExercises = () => {
     if (selectedExercise) {
         return (
             <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit">
-                <DashboardHeader />
+                {/* DashboardHeader handled by UserLayout */}
                 
                 <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
                     {/* Back Button */}
@@ -282,7 +281,7 @@ const UserExercises = () => {
     // --- Main List View Component ---
     return (
         <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
-            <DashboardHeader />
+            {/* DashboardHeader handled by UserLayout */}
             
             {/* Banner Section */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">
