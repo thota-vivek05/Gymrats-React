@@ -90,7 +90,6 @@ useEffect(() => {
     }
   } catch (error) {
     console.error("Error fetching trainers:", error);
-  } finally {
   }
 };
 

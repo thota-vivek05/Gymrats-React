@@ -157,9 +157,9 @@ const TrainerProfile = () => {
                     {expiringClients.map((client) => (
                       <tr key={client._id} className="border-b border-[#222] hover:bg-[#1a1a1a] transition-colors">
                         <td className="py-[12px] px-[10px] text-white font-medium">
-    {client.userId?.full_name || client.userId?.email || 'Client'}
+    {client.user_id?.full_name || client.user_id?.email || 'Client'}
 </td>
-                        <td className="py-[12px] px-[10px] text-[#cccccc]">{client.userId?.email}</td>
+<td className="py-[12px] px-[10px] text-[#cccccc]">{client.user_id?.email}</td>
                         <td className="py-[12px] px-[10px] text-[#ff6347] font-semibold">
                             {new Date(client.endDate).toLocaleDateString()}
                         </td>
