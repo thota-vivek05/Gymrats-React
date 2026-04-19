@@ -1577,12 +1577,11 @@ const getExpiringClients = async (req, res) => {
     const fourteenDaysFromNow = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
 
     // Find memberships linked to this trainer that expire in the next 14 days
-    // Adjust fields based on your actual Membership schema
     const expiringMemberships = await Membership.find({
-      trainerId: trainerId,
-      endDate: { $gte: now, $lte: fourteenDaysFromNow },
-      status: 'active'
-    }).populate('userId', 'full_name email profilePicture')
+      trainer_id: trainerId, // Changed to trainer_id
+      end_date: { $gte: now, $lte: fourteenDaysFromNow }, // Changed to end_date
+      status: 'Active' // Changed to capital 'Active' to match your enum
+    }).populate('user_id', 'full_name email profilePicture'); // Changed to user_id
 
     res.status(200).json({ expiringClients: expiringMemberships });
 
