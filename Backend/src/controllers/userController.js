@@ -806,6 +806,7 @@ const changeMembership = async (req, res) => {
 
         const userId = req.user.id || req.user._id;
         const { newMembershipType, duration, cardLastFour } = req.body;
+        const durationInt = Number(duration);
 
         // Validate input
         if (!newMembershipType || !duration) {
@@ -819,8 +820,8 @@ const changeMembership = async (req, res) => {
         }
 
         // Validate duration
-        const validDurations = [1, 3, 6];
-        if (!validDurations.includes(duration)) {
+        const validDurations = [1, 3, 6, 12];
+        if (!validDurations.includes(durationInt)) {
             return res.status(400).json({ success: false, message: 'Invalid duration' });
         }
 
@@ -835,13 +836,15 @@ const changeMembership = async (req, res) => {
         };
 
         const ratePerMonth = monthlyRates[planKey] || 299;
-        let finalAmount = ratePerMonth * duration;
+        let finalAmount = ratePerMonth * durationInt;
 
         // Apply Discounts
-        if (duration === 3) {
+        if (durationInt === 3) {
             finalAmount = finalAmount * 0.85; // 15% Discount
-        } else if (duration === 6) {
+        } else if (durationInt === 6) {
             finalAmount = finalAmount * 0.75; // 25% Discount
+        } else if (durationInt === 12) {
+            finalAmount = finalAmount * 0.67; // 33% Discount
         }
         
         finalAmount = Math.round(finalAmount); // Round to whole rupee
@@ -854,7 +857,7 @@ const changeMembership = async (req, res) => {
 
 
         // Calculate new membership duration
-        const newMonthsRemaining = duration;
+        const newMonthsRemaining = durationInt;
 
         // Update user membership - PRESERVE EXISTING FITNESS GOALS
         user.membershipType = newMembershipType;
@@ -885,10 +888,10 @@ const changeMembership = async (req, res) => {
         const membershipRecord = new Membership({
             user_id: userId,
             plan: newMembershipType.toLowerCase(),
-            duration: duration,
+            duration: durationInt,
             start_date: new Date(),
             end_date: newEndDate,
-            price: amount,
+            price: finalAmount,
             payment_method: 'credit_card',
             card_last_four: cardLastFour,
             status: 'Active'
@@ -898,7 +901,7 @@ const changeMembership = async (req, res) => {
         const paymentRecord = new Payment({
             userId: userId,
             membershipId: membershipRecord._id, // Link it to the membership
-            amount: amount,
+            amount: finalAmount,
             paymentFor: 'Membership',
             paymentMethod: 'Card', // Assuming Card from frontend
             status: 'Success',
