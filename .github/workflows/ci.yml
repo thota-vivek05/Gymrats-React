@@ -25,3 +25,15 @@ jobs:
       - name: Run Tests
         working-directory: ./Backend/src
         run: npm run test
+
+      - name: Install Frontend Dependencies
+        working-directory: ./Frontend
+        run: npm install
+
+      - name: Lint Frontend
+        working-directory: ./Frontend
+        run: npm run lint
+
+      - name: Build Frontend (Verify JSX)
+        working-directory: ./Frontend
+        run: npm run build
