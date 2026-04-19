@@ -111,7 +111,11 @@ const login = async (req, res) => {
 // ==========================================
 const googleLogin = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token, role } = req.body;
+
+    if (!role || (role !== 'user' && role !== 'trainer')) {
+        return res.status(400).json({ success: false, message: 'Invalid or missing role.' });
+    }
 
     // 1. Verify the Google Token
     const ticket = await googleClient.verifyIdToken({
@@ -122,14 +126,19 @@ const googleLogin = async (req, res) => {
     // 2. Extract the user's Google details
     const { email } = ticket.getPayload();
 
-    // 3. Check if the user already exists in GymRats
-    let user = await User.findOne({ email });
+    // 3. Check if the user already exists in GymRats based on role
+    let user;
+    if (role === 'user') {
+        user = await User.findOne({ email });
+    } else {
+        user = await Trainer.findOne({ email });
+    }
 
     // 4. Reject if account does not exist (Enforces standard signup)
     if (!user) {
         return res.status(404).json({ 
             success: false, 
-            message: 'Account not found. Please complete the standard signup process first.' 
+            message: `Account not found as a ${role}. Please complete the standard signup process first.` 
         });
     }
 
@@ -137,7 +146,7 @@ const googleLogin = async (req, res) => {
     if (user.status !== 'Active') {
         return res.status(403).json({ 
             success: false, 
-            message: `Your account is ${user.status.toLowerCase()}. Please contact support.` 
+            message: `Your account is ${user.status ? user.status.toLowerCase() : 'inactive'}. Please contact support.` 
         });
     }
 
@@ -146,7 +155,7 @@ const googleLogin = async (req, res) => {
         { 
             id: user._id, 
             email: user.email, 
-            role: 'user',
+            role: role,
             name: user.full_name || user.name 
         },
         JWT_SECRET,
@@ -154,17 +163,22 @@ const googleLogin = async (req, res) => {
     );
 
     // 7. EXACT MATCH: Send the exact same user object back to React
+    const userData = {
+        id: user._id,
+        email: user.email,
+        name: user.full_name || user.name,
+        role: role
+    };
+
+    if (role === 'user') {
+        userData.membershipType = user.membershipType; // Critical for routing and dashboard rendering
+    }
+
     res.status(200).json({
         success: true,
         message: 'Google Login Successful',
         token: jwtToken,
-        user: {
-            id: user._id,
-            email: user.email,
-            name: user.full_name || user.name,
-            role: 'user',
-            membershipType: user.membershipType // Critical for routing and dashboard rendering
-        }
+        user: userData
     });
 
   } catch (error) {
