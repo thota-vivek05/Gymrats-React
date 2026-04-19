@@ -64,6 +64,42 @@ const paymentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Payment',
         default: null
+    },
+    provider: {
+        type: String,
+        enum: ["Razorpay", null],
+        default: null
+    },
+    providerOrderId: {
+        type: String,
+        default: null,
+        index: true
+    },
+    providerPaymentId: {
+        type: String,
+        default: undefined,
+        unique: true,
+        sparse: true
+    },
+    providerSignature: {
+        type: String,
+        default: null
+    },
+    receipt: {
+        type: String,
+        default: null
+    },
+    gatewayStatus: {
+        type: String,
+        default: null
+    },
+    verifiedAt: {
+        type: Date,
+        default: null
+    },
+    gatewayPayload: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
     }
 }, { timestamps: true });
 

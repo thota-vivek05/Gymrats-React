@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const membershipController = require("../controllers/membershipController");
+const paymentController = require("../controllers/paymentController");
 const NutritionHistory = require("../model/NutritionHistory");
 const WorkoutHistory = require("../model/WorkoutHistory");
 const User = require("../model/User");
@@ -403,6 +404,8 @@ router.get(
 );
 
 // Membership routes
+router.post("/api/payments/razorpay/order", protect, paymentController.createRazorpayOrder);
+router.post("/api/payments/razorpay/verify", protect, paymentController.verifyRazorpayPayment);
 router.post('/api/membership/extend', protect, membershipController.extendMembership);
 router.get("/membership/status", membershipController.getMembershipStatus);
 router.post("/membership/auto-renew", membershipController.toggleAutoRenew);
