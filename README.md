@@ -118,3 +118,17 @@ We implemented Redis caching via custom middleware (`redisCache.js`) to signific
 ### 2. Search Optimization
 We optimized the user search experience by employing native **MongoDB Text Indexes**. 
 Indexes (`{ name: "text", email: "text" }`) have been implemented on major entities (Users, Trainers) to act as a fast localized search engine, fulfilling the requirement for tool-based query optimization. This ensures high-speed, relevant matching when an admin or user is querying the network.
+
+## Razorpay Setup (Membership Checkout)
+
+To enable Razorpay checkout for membership renewal/change, add the following environment variables in `Backend/src/.env`:
+
+```env
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=xxxxxxxxxxxx
+```
+
+Notes:
+- Use Razorpay **test keys** in development.
+- Membership pricing is validated server-side before order creation and again during payment verification.
+- Frontend user membership checkout now opens Razorpay Checkout and verifies signature on the backend before updating membership.

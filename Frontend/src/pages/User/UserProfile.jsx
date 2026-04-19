@@ -43,8 +43,6 @@ const UserProfile = () => {
     const [showPayment, setShowPayment] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
-    const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '', expiryDate: '', cvv: '' });
-    const [paymentErrors, setPaymentErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
 
     // --- DATA FETCHING ---
@@ -202,19 +200,6 @@ const UserProfile = () => {
     };
 
     // --- EXISTING HELPERS & HANDLERS ---
-    const formatCardNumber = (value) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        const parts = [];
-        for (let i = 0; i < v.length; i += 4) parts.push(v.substring(i, i + 4));
-        return parts.length > 1 ? parts.join(' ') : value;
-    };
-
-    const formatExpiryDate = (value) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        if (v.length >= 2) return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
-        return v;
-    };
-
     const calculateAge = (dob) => {
         if (!dob) return 'Not provided';
         try {
@@ -227,53 +212,162 @@ const UserProfile = () => {
         } catch { return 'Invalid Date'; }
     };
 
-    const handlePaymentChange = (e) => {
-        const { name, value } = e.target;
-        let formattedValue = value;
-        if (name === 'cardNumber') formattedValue = formatCardNumber(value);
-        if (name === 'expiryDate') formattedValue = formatExpiryDate(value);
-        setPaymentDetails(prev => ({ ...prev, [name]: formattedValue }));
+    const getPlanPrice = (plan, duration) => {
+        const monthlyRates = {
+            basic: 299,
+            gold: 599,
+            platinum: 999
+        };
+        const discounts = {
+            1: 0,
+            3: 0.15,
+            6: 0.25,
+            12: 0.33
+        };
+        const rate = monthlyRates[plan];
+        const discount = discounts[duration];
+        if (!rate || discount === undefined) return 0;
+        return Math.round(rate * duration * (1 - discount));
     };
 
-    const validatePayment = () => {
-        const errors = {};
-        const { cardNumber, expiryDate, cvv } = paymentDetails;
-        if (cardNumber.replace(/\s/g, '').length !== 16) errors.cardNumber = 'Card number must be 16 digits';
-        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) errors.expiryDate = 'Format must be MM/YY';
-        if (cvv.length < 3) errors.cvv = 'Invalid CVV';
-        setPaymentErrors(errors);
-        return Object.keys(errors).length === 0;
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            if (window.Razorpay) {
+                resolve(true);
+                return;
+            }
+
+            const existingScript = document.querySelector('script[data-razorpay-checkout="true"]');
+            if (existingScript) {
+                existingScript.addEventListener('load', () => resolve(true));
+                existingScript.addEventListener('error', () => resolve(false));
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            script.dataset.razorpayCheckout = 'true';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
     };
 
     const handlePayment = async (e) => {
         e.preventDefault();
-        if (!selectedPlan) { alert("Please select a duration plan."); return; }
-        setIsProcessing(true);
-        setPaymentErrors({});
+        if (!selectedPlan || !selectedDuration) {
+            alert("Please select a membership plan and duration.");
+            return;
+        }
 
-        if (!validatePayment()) { setIsProcessing(false); return; }
+        setIsProcessing(true);
 
         try {
+            const razorpayReady = await loadRazorpayScript();
+            if (!razorpayReady) {
+                throw new Error('Unable to load Razorpay checkout script.');
+            }
+
+            const planForPayment = selectedPlan;
+            const durationForPayment = selectedDuration;
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/membership/extend', {
+            const orderResponse = await fetch('/api/payments/razorpay/order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ additionalMonths: selectedDuration, autoRenew: false })
+                body: JSON.stringify({
+                    plan: planForPayment,
+                    duration: durationForPayment,
+                    autoRenew: false
+                })
             });
 
-            const data = await response.json();
+            const orderData = await orderResponse.json();
+            if (!orderResponse.ok || !orderData.success) {
+                throw new Error(orderData.message || 'Failed to initiate payment.');
+            }
 
-            if (data.success) {
-                setShowMembershipModal(false); 
-                setShowPayment(false); 
-                setDbUser(prev => ({
-                    ...prev,
-                    membershipDuration: data.user.membershipDuration,
-                    status: data.user.status
-                }));
-                alert(`Membership extended successfully! New end date: ${new Date(data.user.membershipDuration.end_date).toLocaleDateString()}`);
-            } else { alert(data.message || 'Payment failed'); }
-        } catch (error) { alert('Something went wrong. Please try again.'); } finally { setIsProcessing(false); }
+            const options = {
+                key: orderData.keyId,
+                amount: orderData.order.amount,
+                currency: orderData.order.currency || 'INR',
+                name: 'GymRats',
+                description: `${planForPayment} plan - ${durationForPayment} month(s)`,
+                order_id: orderData.order.id,
+                prefill: {
+                    name: dbUser?.full_name || user?.full_name || '',
+                    email: dbUser?.email || user?.email || '',
+                    contact: dbUser?.phone || user?.phone || ''
+                },
+                notes: {
+                    plan: planForPayment,
+                    duration: String(durationForPayment)
+                },
+                theme: {
+                    color: '#8A2BE2'
+                },
+                handler: async (response) => {
+                    try {
+                        const verifyResponse = await fetch('/api/payments/razorpay/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                orderId: response.razorpay_order_id,
+                                paymentId: response.razorpay_payment_id,
+                                signature: response.razorpay_signature,
+                                plan: planForPayment,
+                                duration: durationForPayment,
+                                autoRenew: false
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+                        if (!verifyResponse.ok || !verifyData.success) {
+                            throw new Error(verifyData.message || 'Payment verification failed.');
+                        }
+
+                        setDbUser((prev) => ({
+                            ...prev,
+                            membershipType: verifyData.user.membershipType || prev?.membershipType,
+                            membershipDuration: verifyData.user.membershipDuration,
+                            status: verifyData.user.status
+                        }));
+
+                        setShowMembershipModal(false);
+                        setShowPayment(false);
+                        setSelectedDuration(null);
+                        alert(
+                            `Payment successful! Membership is active till ${new Date(
+                                verifyData.user.membershipDuration.end_date
+                            ).toLocaleDateString()}`
+                        );
+                    } catch (verifyError) {
+                        alert(verifyError.message || 'Payment completed but verification failed.');
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                },
+                modal: {
+                    ondismiss: () => {
+                        setIsProcessing(false);
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.on('payment.failed', (event) => {
+                const reason = event?.error?.description || 'Payment failed.';
+                alert(reason);
+                setIsProcessing(false);
+            });
+            razorpay.open();
+        } catch (error) {
+            alert(error.message || 'Something went wrong. Please try again.');
+            setIsProcessing(false);
+        }
     };
 
     const handleInputChange = (e) => {
@@ -632,7 +726,11 @@ const UserProfile = () => {
                                 {['basic', 'gold', 'platinum'].map(plan => (
                                     <div 
                                         key={plan}
-                                        onClick={() => setSelectedPlan(plan)}
+                                        onClick={() => {
+                                            setSelectedPlan(plan);
+                                            setSelectedDuration(null);
+                                            setShowPayment(false);
+                                        }}
                                         className={`cursor-pointer border-2 rounded-xl p-5 transition-all duration-300 hover:border-[#8A2BE2] bg-[#222] ${selectedPlan === plan ? 'border-[#8A2BE2] bg-[#8A2BE2]/10' : 'border-[#333]'}`}
                                     >
                                         <h4 className="text-[#daa520] text-xl font-bold capitalize mb-4">{plan} Plan</h4>
@@ -665,62 +763,20 @@ const UserProfile = () => {
 
                           {showPayment && (
                               <div className="border-t border-[#333] pt-6 animate-in slide-in-from-bottom-4 duration-500">
-                                  <h3 className="text-xl font-semibold mb-4 text-white">Payment Details</h3>
-                                  <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200">
-                                      <p className="flex justify-between mb-1"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
+                                  <h3 className="text-xl font-semibold mb-4 text-white">Secure Checkout</h3>
+                                  <div className="bg-[#333] p-4 rounded-lg mb-6 text-gray-200 space-y-1">
+                                      <p className="flex justify-between"><span>Plan:</span> <span className="capitalize font-bold">{selectedPlan}</span></p>
                                       <p className="flex justify-between"><span>Duration:</span> <span className="font-bold">{selectedDuration} Months</span></p>
+                                      <p className="flex justify-between"><span>Amount:</span> <span className="font-bold">Rs. {getPlanPrice(selectedPlan, selectedDuration)}</span></p>
                                   </div>
                                   
-                                  <form onSubmit={handlePayment} className="space-y-4">
-                                      <div>
-                                          <label className="block text-gray-400 mb-1 text-sm">Card Number</label>
-                                          <input 
-                                              type="text" 
-                                              name="cardNumber"
-                                              value={paymentDetails.cardNumber}
-                                              onChange={handlePaymentChange}
-                                              placeholder="1234 5678 9012 3456" 
-                                              maxLength="19" 
-                                              className={`w-full bg-[#222] border ${paymentErrors.cardNumber ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors`}
-                                          />
-                                          {paymentErrors.cardNumber && <p className="text-red-500 text-xs mt-1">{paymentErrors.cardNumber}</p>}
-                                      </div>
-
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div>
-                                              <label className="block text-gray-400 mb-1 text-sm">Expiry</label>
-                                              <input 
-                                                  type="text" 
-                                                  name="expiryDate"
-                                                  value={paymentDetails.expiryDate}
-                                                  onChange={handlePaymentChange}
-                                                  placeholder="MM/YY" 
-                                                  maxLength="5"
-                                                  className={`w-full bg-[#222] border ${paymentErrors.expiryDate ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
-                                              />
-                                              {paymentErrors.expiryDate && <p className="text-red-500 text-xs mt-1">{paymentErrors.expiryDate}</p>}
-                                          </div>
-                                          <div>
-                                              <label className="block text-gray-400 mb-1 text-sm">CVV</label>
-                                              <input 
-                                                  type="text" 
-                                                  name="cvv"
-                                                  value={paymentDetails.cvv}
-                                                  onChange={handlePaymentChange}
-                                                  placeholder="123" 
-                                                  maxLength="3" 
-                                                  className={`w-full bg-[#222] border ${paymentErrors.cvv ? 'border-red-500' : 'border-[#444]'} rounded p-3 text-white focus:outline-none focus:border-[#8A2BE2]`} 
-                                              />
-                                              {paymentErrors.cvv && <p className="text-red-500 text-xs mt-1">{paymentErrors.cvv}</p>}
-                                          </div>
-                                      </div>
-
+                                  <form onSubmit={handlePayment}>
                                       <button 
                                           type="submit"
                                           disabled={isProcessing}
                                           className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg mt-4 transition-all transform active:scale-[0.99] shadow-lg shadow-purple-900/40 flex justify-center items-center gap-2"
                                       >
-                                          {isProcessing ? <><i className="fas fa-circle-notch fa-spin"></i> Processing...</> : 'Process Payment'}
+                                          {isProcessing ? <><i className="fas fa-circle-notch fa-spin"></i> Processing...</> : 'Pay Securely with Razorpay'}
                                       </button>
                                   </form>
                               </div>
