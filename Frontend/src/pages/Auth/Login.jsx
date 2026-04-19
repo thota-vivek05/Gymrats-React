@@ -55,7 +55,7 @@ const Login = () => {
   // ==========================================
 const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/google', {
+      const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential, role: formData.role }),
