@@ -281,27 +281,46 @@ const UserExercises = () => {
 
     // --- Main List View Component ---
     return (
-        <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit">
+        <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
             <DashboardHeader />
             
             {/* Banner Section */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">
-                <div className="bg-gradient-to-r from-[#1e1e3a] to-[#111] rounded-xl p-8 text-center shadow-lg border border-gray-800">
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Complete Exercise Guide</h1>
-                    <p className="text-gray-400 max-w-2xl mx-auto">Discover detailed instructions, illustrations, and guides for exercises targeting every muscle group.</p>
-                {userWorkoutType && userWorkoutType !== 'All' && (
+                <div className="bg-gradient-to-r from-[#1e1e3a] to-[#111] rounded-xl p-6 md:p-8 text-center shadow-lg border border-gray-800">
+                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">Complete Exercise Guide</h1>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-sm md:text-base">Discover detailed instructions, illustrations, and guides for exercises targeting every muscle group.</p>
+                    {userWorkoutType && userWorkoutType !== 'All' && (
                         <div className="mt-4 inline-flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10">
-                            <span className="text-[#8A2BE2] font-bold">Your Workout Type:</span>
-                            <span className="text-white font-medium">{userWorkoutType}</span>
+                            <span className="text-[#8A2BE2] font-bold text-sm">Your Workout Type:</span>
+                            <span className="text-white font-medium text-sm">{userWorkoutType}</span>
                         </div>
                     )}
                 </div>
             </div>
 
+            {/* Mobile: Horizontal Scrollable Category Chips */}
+            <div className="md:hidden max-w-7xl mx-auto w-full px-4 mt-4">
+                <div className="flex gap-2 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {['all', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body', 'Cardio'].map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => { setActiveCategory(cat); setSearchQuery(''); }}
+                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                                activeCategory === cat
+                                ? 'bg-[#8A2BE2] text-white'
+                                : 'bg-white/10 text-gray-300 border border-gray-700'
+                            }`}
+                        >
+                            {cat === 'all' ? 'All' : cat}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <div className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 flex flex-col md:flex-row gap-6">
                 
-                {/* Sidebar: Categories */}
-                <aside className="w-full md:w-64 flex-shrink-0">
+                {/* Desktop Sidebar: Categories */}
+                <aside className="hidden md:block w-64 flex-shrink-0">
                     <div className="bg-[#111] rounded-xl border border-[#8A2BE2]/30 p-5 sticky top-24">
                         <h2 className="text-xl font-bold text-white mb-4 pb-2 border-b border-gray-800">Muscle Groups</h2>
                         <div className="flex flex-col gap-2">
@@ -323,10 +342,10 @@ const UserExercises = () => {
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     {/* Controls: Title & Search */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                        <h2 className="text-2xl font-bold text-white">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h2 className="text-xl md:text-2xl font-bold text-white">
                             {activeCategory === 'all' ? 'All Exercises' : `${activeCategory} Exercises`}
                         </h2>
                         <div className="relative w-full sm:w-64">
@@ -345,9 +364,9 @@ const UserExercises = () => {
 
                     {/* Recommendations (Only on 'All' tab with no search) */}
                     {activeCategory === 'all' && !searchQuery && recommendations.length > 0 && (
-                        <div className="mb-8 bg-white/5 rounded-xl p-6 border border-white/5">
+                        <div className="mb-8 bg-white/5 rounded-xl p-4 md:p-6 border border-white/5">
                             <div className="mb-4">
-                                <h3 className="text-xl font-bold text-white">Recommended For You</h3>
+                                <h3 className="text-lg md:text-xl font-bold text-white">Recommended For You</h3>
                                 <p className="text-sm text-[#8A2BE2] italic">
                                     {recommendationReason === 'popular' ? 'Popular among all users' : 'Based on your preferences'}
                                 </p>
@@ -366,7 +385,7 @@ const UserExercises = () => {
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8A2BE2]"></div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                             {filteredExercises.length > 0 ? (
                                 filteredExercises.map(ex => (
                                     <ExerciseCard key={ex._id} exercise={ex} onClick={handleExerciseClick} />

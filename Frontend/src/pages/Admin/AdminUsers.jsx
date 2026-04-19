@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "./components/AdminSidebar";
 import UserDetailsModal from "./components/UserDetailsModal";
 
 
@@ -197,8 +196,7 @@ const handleUpdateUser = async (e) => {
 
   if (loading)
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex flex-col items-center justify-center flex-1 p-8 text-[#cccccc]">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
           <p>Loading Users...</p>
@@ -207,10 +205,7 @@ const handleUpdateUser = async (e) => {
     );
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         {/* Page Header */}
         <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
           <h1 className="m-0 text-2xl font-bold md:text-3xl text-[#f1f1f1]">
@@ -378,127 +373,77 @@ const handleUpdateUser = async (e) => {
             </table>
           </div>
         </div>
-      </main>
+
       {/* Edit User Modal */}
-{isEditModalOpen && editingUser && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit User</h2>
-      <form onSubmit={handleUpdateUser}>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Full Name</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.fullName}
-            onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
-          <input
-            type="email"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.email}
-            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.phone}
-            onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Date of Birth</label>
-          <input
-            type="date"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.dob}
-            onChange={(e) => setEditFormData({...editFormData, dob: e.target.value})}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Gender</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.gender}
-            onChange={(e) => setEditFormData({...editFormData, gender: e.target.value})}
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Weight (kg)</label>
-            <input
-              type="number"
-              step="0.1"
-              className="w-full bg-black border border-[#333] rounded p-3 text-white"
-              value={editFormData.weight}
-              onChange={(e) => setEditFormData({...editFormData, weight: e.target.value})}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-[#cccccc] mb-2">Height (cm)</label>
-            <input
-              type="number"
-              step="0.1"
-              className="w-full bg-black border border-[#333] rounded p-3 text-white"
-              value={editFormData.height}
-              onChange={(e) => setEditFormData({...editFormData, height: e.target.value})}
-            />
+      {isEditModalOpen && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit User</h2>
+            <form onSubmit={handleUpdateUser}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Full Name</label>
+                <input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.fullName} onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
+                <input type="email" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.email} onChange={(e) => setEditFormData({...editFormData, email: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
+                <input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.phone} onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Date of Birth</label>
+                <input type="date" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.dob} onChange={(e) => setEditFormData({...editFormData, dob: e.target.value})} />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Gender</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.gender} onChange={(e) => setEditFormData({...editFormData, gender: e.target.value})}>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">Weight (kg)</label>
+                  <input type="number" step="0.1" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.weight} onChange={(e) => setEditFormData({...editFormData, weight: e.target.value})} />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-[#cccccc] mb-2">Height (cm)</label>
+                  <input type="number" step="0.1" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.height} onChange={(e) => setEditFormData({...editFormData, height: e.target.value})} />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.status} onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Membership Type</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.membershipType} onChange={(e) => setEditFormData({...editFormData, membershipType: e.target.value})}>
+                  <option value="Basic">Basic</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Platinum">Platinum</option>
+                </select>
+              </div>
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">Update User</button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.status}
-            onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Membership Type</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.membershipType}
-            onChange={(e) => setEditFormData({...editFormData, membershipType: e.target.value})}
-          >
-            <option value="Basic">Basic</option>
-            <option value="Gold">Gold</option>
-            <option value="Platinum">Platinum</option>
-          </select>
-        </div>
-        <div className="flex gap-4">
-          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
-            Update User
-          </button>
-          <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
+
       {isModalOpen && userDetails && (
-        <UserDetailsModal 
-          user={selectedUser} 
-          details={userDetails} 
-          onClose={() => setIsModalOpen(false)} 
+        <UserDetailsModal
+          user={selectedUser}
+          details={userDetails}
+          onClose={() => setIsModalOpen(false)}
         />
       )}
     </div>
