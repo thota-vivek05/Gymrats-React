@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "./components/AdminSidebar";
 
 // Reusable StatCard Component
 const StatCard = ({ label, value }) => {
@@ -192,8 +191,7 @@ const AdminMemberships = () => {
 
   if (loading)
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex flex-col items-center justify-center flex-1 p-8 text-[#cccccc]">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
           <p>Loading Memberships...</p>
@@ -202,10 +200,7 @@ const AdminMemberships = () => {
     );
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         {/* Page Header */}
         <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
           <h1 className="m-0 text-2xl font-bold md:text-3xl text-[#f1f1f1]">
@@ -346,8 +341,7 @@ const AdminMemberships = () => {
               </tbody>
             </table>
           </div>
-        </div>
-      </main>
+      </div>
 
       {/* Add Plan Modal */}
       {isAddModalOpen && (

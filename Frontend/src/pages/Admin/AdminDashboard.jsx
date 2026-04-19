@@ -1,7 +1,6 @@
 // pages/Admin/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminSidebar from "./components/AdminSidebar";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -330,8 +329,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex flex-col items-center justify-center flex-1 p-16">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
           <p>Loading Dashboard...</p>
@@ -342,8 +340,7 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="p-5 text-center bg-[rgba(255,107,107,0.1)] border border-[#ff6b6b] rounded-lg text-[#ff6b6b] max-w-lg">
             <h2 className="mb-2 text-xl font-bold">Error</h2>
@@ -361,10 +358,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         {/* Page Header */}
         <div className="p-8 mb-8 rounded-lg bg-gradient-to-br from-[#1e1e3a] to-[#111] border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)]">
           <h1 className="mb-2 text-2xl md:text-3xl font-bold text-[#f1f1f1]">
@@ -649,7 +643,6 @@ const AdminDashboard = () => {
               dashboardData.monthlyRevenue.reduce((sum, m) => sum + (m.transactions || 0), 1))}
           </div>
         </div>
-      </main>
     </div>
   );
 };

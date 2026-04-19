@@ -21,14 +21,14 @@ const UserNutrition = () => {
     const borderColor = tierClass.split(' ')[0].replace('border-', '');
 
     return (
-        <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit">
+        <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
             <DashboardHeader />
 
             {/* Welcome Banner */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">
-                <div className="bg-gradient-to-br from-[#1e1e3a] to-[#0c0c1d] rounded-xl p-10 text-center shadow-lg border border-[#8A2BE2]/30">
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 text-shadow">Evidence-Based Nutrition Guide</h1>
-                    <p className="text-gray-400 max-w-2xl mx-auto text-lg">Science-backed nutrition strategies tailored to your fitness goals.</p>
+                <div className="bg-gradient-to-br from-[#1e1e3a] to-[#0c0c1d] rounded-xl p-6 md:p-10 text-center shadow-lg border border-[#8A2BE2]/30">
+                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-3 text-shadow">Evidence-Based Nutrition Guide</h1>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-sm md:text-lg">Science-backed nutrition strategies tailored to your fitness goals.</p>
                 </div>
             </div>
 

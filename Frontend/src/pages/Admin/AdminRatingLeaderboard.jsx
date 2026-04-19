@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "./components/AdminSidebar";
 import { useNavigate } from "react-router-dom";
 
 const StatCard = ({ label, value, subtext }) => {
@@ -110,21 +109,15 @@ const AdminRatingsLeaderboard = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
-        <div className="flex flex-col items-center justify-center flex-1 p-8">
-          <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
-          <p>Loading Ratings Intelligence...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
+        <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
+        <p>Loading Ratings Intelligence...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-      
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">Ratings Intelligence</h1>
           <button
@@ -277,8 +270,7 @@ const AdminRatingsLeaderboard = () => {
               </table>
             </div>
           </div>
-        )}
-      </main>
+      </div>
 
       {/* Trainer Reviews Modal */}
       {showReviewsModal && selectedTrainer && (

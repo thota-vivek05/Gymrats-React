@@ -18,12 +18,22 @@
 /* 4. Base Styles */
 /* Using @layer base ensures these don't override utility classes later */
 @layer base {
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: #000;
     color: #f1f1f1;
     font-family: var(--font-sans); /* Applies Outfit globally */
     font-size: 14px;
     -webkit-font-smoothing: antialiased; /* Makes text look crisp on dark backgrounds */
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 }
 

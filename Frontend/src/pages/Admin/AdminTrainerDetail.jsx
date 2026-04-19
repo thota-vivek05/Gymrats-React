@@ -1,7 +1,6 @@
 // pages/Admin/AdminTrainerDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import AdminSidebar from "./components/AdminSidebar";
 import { Line } from "react-chartjs-2";
 
 const formatCurrency = (amount) => {
@@ -94,8 +93,7 @@ const AdminTrainerDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex flex-col items-center justify-center flex-1 p-16">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
           <p>Loading Trainer Details...</p>
@@ -106,8 +104,7 @@ const AdminTrainerDetail = () => {
 
   if (error || !trainerData.info) {
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="p-5 text-center bg-[rgba(255,107,107,0.1)] border border-[#ff6b6b] rounded-lg text-[#ff6b6b]">
             <h2 className="mb-2 text-xl font-bold">Error</h2>
@@ -127,10 +124,7 @@ const AdminTrainerDetail = () => {
   const { info } = trainerData;
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
@@ -239,7 +233,6 @@ const AdminTrainerDetail = () => {
             </table>
           </div>
         </div>
-      </main>
     </div>
   );
 };

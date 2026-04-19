@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "./components/AdminSidebar";
 import { useNavigate } from "react-router-dom";
 
 
@@ -117,8 +116,7 @@ useEffect(() => {
 
   if (loading)
     return (
-      <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-        <AdminSidebar />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#f1f1f1]">
         <div className="flex flex-col items-center justify-center flex-1 p-8 text-[#cccccc]">
           <div className="w-10 h-10 mb-5 border-4 border-[#333] border-t-[#8A2BE2] rounded-full animate-spin"></div>
           <p>Loading Trainers...</p>
@@ -220,10 +218,7 @@ const handleAddTrainer = async (e) => {
 };
 
   return (
-    <div className="flex min-h-screen bg-black text-[#f1f1f1] font-sans">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+    <div className="p-4 md:p-8 min-h-screen">
         {/* Page Header */}
         <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
           <h1 className="m-0 text-2xl font-bold md:text-3xl text-[#f1f1f1]">
@@ -389,197 +384,98 @@ const handleAddTrainer = async (e) => {
             </table>
           </div>
         </div>
-      </main>
-{editingTrainer && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
-      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit {editingTrainer.name}</h2>
-      <form onSubmit={handleUpdate}>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.name}
-            onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-            required
-          />
+
+      {editingTrainer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Edit {editingTrainer.name}</h2>
+            <form onSubmit={handleUpdate}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name</label>
+                <input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.name} onChange={(e) => setEditFormData({...editFormData, name: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
+                <input type="email" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.email} onChange={(e) => setEditFormData({...editFormData, email: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
+                <input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.phone} onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})} required />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.experience} onChange={(e) => setEditFormData({...editFormData, experience: e.target.value})} required>
+                  <option value="">Select Experience</option>
+                  <option value="1-2">1-2 years</option>
+                  <option value="3-5">3-5 years</option>
+                  <option value="5-10">5-10 years</option>
+                  <option value="10+">10+ years</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label>
+                <input type="text" placeholder="e.g., Calisthenics, Strength Training" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={Array.isArray(editFormData.specializations) ? editFormData.specializations.join(', ') : editFormData.specializations} onChange={(e) => setEditFormData({...editFormData, specializations: e.target.value})} />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.status} onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Suspended">Suspended</option>
+                </select>
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Meeting Link</label>
+                <input type="url" placeholder="https://meet.google.com/..." className="w-full bg-black border border-[#333] rounded p-3 text-white" value={editFormData.meetingLink} onChange={(e) => setEditFormData({...editFormData, meetingLink: e.target.value})} />
+              </div>
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">Save Changes</button>
+                <button type="button" onClick={() => setEditingTrainer(null)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">Cancel</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email</label>
-          <input
-            type="email"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.email}
-            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-            required
-          />
+      )}
+
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
+            <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Add New Trainer</h2>
+            <form onSubmit={handleAddTrainer}>
+              <div className="mb-4"><label className="block text-sm font-semibold text-[#cccccc] mb-2">Name*</label><input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.name} onChange={(e) => setAddFormData({...addFormData, name: e.target.value})} required /></div>
+              <div className="mb-4"><label className="block text-sm font-semibold text-[#cccccc] mb-2">Email*</label><input type="email" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.email} onChange={(e) => setAddFormData({...addFormData, email: e.target.value})} required /></div>
+              <div className="mb-4"><label className="block text-sm font-semibold text-[#cccccc] mb-2">Password*</label><input type="password" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.password} onChange={(e) => setAddFormData({...addFormData, password: e.target.value})} required /></div>
+              <div className="mb-4"><label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone*</label><input type="text" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.phone} onChange={(e) => setAddFormData({...addFormData, phone: e.target.value})} required /></div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience*</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.experience} onChange={(e) => setAddFormData({...addFormData, experience: e.target.value})} required>
+                  <option value="">Select Experience</option>
+                  <option value="1-2">1-2 years</option>
+                  <option value="3-5">3-5 years</option>
+                  <option value="5-10">5-10 years</option>
+                  <option value="10+">10+ years</option>
+                </select>
+              </div>
+              <div className="mb-4"><label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label><input type="text" placeholder="e.g., Calisthenics, Strength Training" className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.specializations} onChange={(e) => setAddFormData({...addFormData, specializations: e.target.value})} /></div>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
+                <select className="w-full bg-black border border-[#333] rounded p-3 text-white" value={addFormData.status} onChange={(e) => setAddFormData({...addFormData, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Suspended">Suspended</option>
+                </select>
+              </div>
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">Add Trainer</button>
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">Cancel</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.phone}
-            onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.experience}
-            onChange={(e) => setEditFormData({...editFormData, experience: e.target.value})}
-            required
-          >
-            <option value="">Select Experience</option>
-            <option value="1-2">1-2 years</option>
-            <option value="3-5">3-5 years</option>
-            <option value="5-10">5-10 years</option>
-            <option value="10+">10+ years</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label>
-          <input
-            type="text"
-            placeholder="e.g., Calisthenics, Strength Training"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={Array.isArray(editFormData.specializations) ? editFormData.specializations.join(', ') : editFormData.specializations}
-            onChange={(e) => setEditFormData({...editFormData, specializations: e.target.value})}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.status}
-            onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Suspended">Suspended</option>
-          </select>
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Meeting Link</label>
-          <input
-            type="url"
-            placeholder="https://meet.google.com/..."
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={editFormData.meetingLink}
-            onChange={(e) => setEditFormData({...editFormData, meetingLink: e.target.value})}
-          />
-        </div>
-        <div className="flex gap-4">
-          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
-            Save Changes
-          </button>
-          <button type="button" onClick={() => setEditingTrainer(null)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-{isAddModalOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-    <div className="bg-[#111] border border-[#8A2BE2] p-8 rounded-lg w-full max-w-md shadow-2xl">
-      <h2 className="text-xl font-bold text-[#f1f1f1] mb-4">Add New Trainer</h2>
-      <form onSubmit={handleAddTrainer}>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Name*</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.name}
-            onChange={(e) => setAddFormData({...addFormData, name: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Email*</label>
-          <input
-            type="email"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.email}
-            onChange={(e) => setAddFormData({...addFormData, email: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Password*</label>
-          <input
-            type="password"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.password}
-            onChange={(e) => setAddFormData({...addFormData, password: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Phone*</label>
-          <input
-            type="text"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.phone}
-            onChange={(e) => setAddFormData({...addFormData, phone: e.target.value})}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Experience*</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.experience}
-            onChange={(e) => setAddFormData({...addFormData, experience: e.target.value})}
-            required
-          >
-            <option value="">Select Experience</option>
-            <option value="1-2">1-2 years</option>
-            <option value="3-5">3-5 years</option>
-            <option value="5-10">5-10 years</option>
-            <option value="10+">10+ years</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Specializations (comma separated)</label>
-          <input
-            type="text"
-            placeholder="e.g., Calisthenics, Strength Training"
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.specializations}
-            onChange={(e) => setAddFormData({...addFormData, specializations: e.target.value})}
-          />
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-[#cccccc] mb-2">Status</label>
-          <select
-            className="w-full bg-black border border-[#333] rounded p-3 text-white"
-            value={addFormData.status}
-            onChange={(e) => setAddFormData({...addFormData, status: e.target.value})}
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Suspended">Suspended</option>
-          </select>
-        </div>
-        <div className="flex gap-4">
-          <button type="submit" className="flex-1 bg-[#8A2BE2] text-white py-2 rounded font-bold hover:bg-[#7020a0]">
-            Add Trainer
-          </button>
-          <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-[#333] text-white py-2 rounded font-bold hover:bg-[#444]">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };
 
 export default AdminTrainers;
+

@@ -219,11 +219,11 @@ const TrainerSignup = () => {
     const fileInputClasses = "w-full p-[12px] bg-white/10 border border-[#333] rounded text-white text-[1rem] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#8A2BE2] file:text-white hover:file:bg-[#7B25C9]";
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen overflow-x-hidden">
             <Header />
             
             {/* Background Wrapper */}
-            <div className="flex-1 flex justify-center items-center py-[40px] px-[20px] bg-[linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1740&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat">
+            <div className="flex-1 flex justify-center items-start sm:items-center py-8 px-4 sm:py-[40px] sm:px-[20px] bg-[linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1740&auto=format&fit=crop')] bg-cover bg-center bg-fixed bg-no-repeat">
                 
                 <Modal 
                     type={modal.type}
@@ -233,10 +233,10 @@ const TrainerSignup = () => {
                 />
 
                 {/* Form Container */}
-                <div className="w-[600px] max-w-full bg-[#111]/95 rounded-[10px] p-[40px] shadow-[0_0_20px_rgba(138,43,226,0.3)] border border-[#8A2BE2] max-[768px]:p-[30px]">
+                <div className="w-full max-w-[600px] bg-[#111]/95 rounded-[10px] p-5 sm:p-8 md:p-[40px] shadow-[0_0_20px_rgba(138,43,226,0.3)] border border-[#8A2BE2]">
                     
                     <div className="text-center mb-[30px]">
-                        <h2 className="text-[2rem] mb-[10px] text-[#f1f1f1] font-bold">Become a Trainer</h2>
+                        <h2 className="text-[1.5rem] sm:text-[2rem] mb-[10px] text-[#f1f1f1] font-bold">Become a Trainer</h2>
                         <p className="text-[#cccccc]">Join our team of fitness professionals</p>
                     </div>
 
