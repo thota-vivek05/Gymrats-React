@@ -283,6 +283,7 @@ const UserSignup = () => {
           </div>
 
           <form onSubmit={handleSubmit}>
+
             <h3 className={sectionTitleClasses}>Personal Details</h3>
             <div className="mb-[20px]">
               <label htmlFor="userFullName" className={labelClasses}>
