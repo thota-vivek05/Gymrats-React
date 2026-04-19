@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useAuth } from '../../../context/AuthContext';
 
-const DashboardHeader = ({ user, currentPage }) => {
+const DashboardHeader = ({ currentPage }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  // User comes from Redux (login dispatches to Redux store, not AuthContext)
+  // Backend stores name as 'name' field: { id, email, name, role, membershipType }
+  const reduxUser = useSelector((state) => state.auth.user);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -55,7 +60,7 @@ const DashboardHeader = ({ user, currentPage }) => {
             to="/userprofile"
             className="text-gray-300 hover:text-[#8A2BE2] font-semibold transition-colors text-base"
           >
-            {user?.full_name || 'User'}
+            {reduxUser?.name || 'Account'}
           </Link>
           <button
             onClick={handleLogout}
@@ -138,7 +143,7 @@ const DashboardHeader = ({ user, currentPage }) => {
               className="text-gray-300 hover:text-[#8A2BE2] transition-colors text-base font-semibold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              👤 {user?.full_name || "My Profile"}
+              👤 {reduxUser?.name || "My Profile"}
             </Link>
             <button
               onClick={() => { setMobileMenuOpen(false); handleLogout(); }}

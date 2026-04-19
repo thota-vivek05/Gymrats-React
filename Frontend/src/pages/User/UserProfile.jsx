@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import DashboardHeader from './components/DashboardHeader';
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
@@ -347,9 +346,7 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black text-[#f1f1f1] font-sans pb-20">
-            <DashboardHeader user={dbUser || user} currentPage="profile" />
-
+        <div className="w-full text-[#f1f1f1] font-sans pb-20">
             <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center"
                 style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')" }}>
                 <div>

@@ -63,7 +63,7 @@ const NutritionTracking = ({
           consumedAt: new Date(),
         };
         setConsumedFoods((prev) => [newFood, ...prev]);
-        onFoodComplete();
+        onFoodComplete({ calories, protein, foodName });
       } else {
         alert("Error: " + data.message);
       }

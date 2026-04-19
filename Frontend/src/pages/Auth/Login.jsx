@@ -155,7 +155,7 @@ const labelClasses = "block mb-[8px] text-[#f1f1f1]";
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="user" className="text-black">Member</option>
+                                <option value="user" className="text-black">User</option>
                                 <option value="trainer" className="text-black">Trainer</option>
                             </select>
                         </div>
