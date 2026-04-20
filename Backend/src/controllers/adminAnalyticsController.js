@@ -454,6 +454,89 @@ exports.getRevenueForUser = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Get total revenue and transaction logs locked within a specific time window
+ * @route   GET /api/admin/analytics/timeline-revenue
+ * @access  Private/Admin
+ */
+exports.getTimelineRevenue = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: "A startDate and endDate must be provided."
+            });
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        // Core Query Block resolving BSON Date vs BSON String fragmentation
+        const matchQuery = {
+            ...SUCCESSFUL_PAYMENT_QUERY,
+            $expr: {
+                $and: [
+                    { $gte: [ { $toDate: "$paymentDate" }, start ] },
+                    { $lte: [ { $toDate: "$paymentDate" }, end ] }
+                ]
+            }
+        };
+
+        const result = await Payment.aggregate([
+            { $match: matchQuery },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$userDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    amount: 1,
+                    currency: 1,
+                    paymentFor: 1,
+                    membershipPlan: 1,
+                    paymentMethod: 1,
+                    paymentDate: 1,
+                    userId: 1,
+                    userName: { $ifNull: ["$userDetails.full_name", "Unknown User"] },
+                    userEmail: { $ifNull: ["$userDetails.email", "N/A"] }
+                }
+            },
+            { $sort: { paymentDate: -1 } }
+        ]);
+
+        const totalRevenue = result.reduce((sum, doc) => sum + (doc.amount || 0), 0);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalRevenue,
+                transactions: result
+            }
+        });
+
+    } catch (error) {
+        console.error("Timeline Query Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to construct Timeline Analytics Data Log",
+            error: error.message
+        });
+    }
+};
 // ==================== PHASE 3: TRAINER ANALYTICS APIS ====================
 
 /**

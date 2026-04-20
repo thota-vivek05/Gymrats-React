@@ -135,6 +135,42 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [timelineQuery, setTimelineQuery] = useState({ start: "", end: "" });
+  const [timelineData, setTimelineData] = useState({
+    totalRevenue: null,
+    transactions: [],
+    loading: false,
+    error: null,
+    queried: false
+  });
+
+  const handleTimelineSearch = async (e) => {
+    e.preventDefault();
+    if (!timelineQuery.start || !timelineQuery.end) return;
+
+    setTimelineData(prev => ({ ...prev, loading: true, error: null, queried: true }));
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/admin/analytics/timeline-revenue?startDate=${timelineQuery.start}&endDate=${timelineQuery.end}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (result.success) {
+        setTimelineData({
+          totalRevenue: result.data.totalRevenue,
+          transactions: result.data.transactions || [],
+          loading: false,
+          error: null,
+          queried: true
+        });
+      } else {
+        setTimelineData(prev => ({ ...prev, loading: false, error: result.message }));
+      }
+    } catch (err) {
+      setTimelineData(prev => ({ ...prev, loading: false, error: "Network search failed" }));
+    }
+  };
+
   const [dashboardData, setDashboardData] = useState({
     totalRevenue: 0,
     monthlyGrowth: 0,
@@ -445,6 +481,94 @@ const AdminDashboard = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Revenue Timeline Search Section */}
+        <div className="bg-[#111] rounded-lg border border-[#8A2BE2] p-5 shadow-[0_4px_8px_rgba(138,43,226,0.3)] mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-[#333] pb-4 gap-4">
+            <div>
+                <h2 className="text-xl font-semibold text-[#f1f1f1]">
+                Custom Revenue Timeline
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">Select a bounded date range to calculate strict revenue metrics and view all associated transactions.</p>
+            </div>
+            
+            <form onSubmit={handleTimelineSearch} className="flex gap-3 w-full md:w-auto items-end">
+                <div>
+                    <label className="block text-xs text-gray-400 mb-1">Start Date</label>
+                    <input type="date" className="bg-[#1e1e3a] border border-[#444] text-[#f1f1f1] px-3 py-2 rounded text-sm focus:outline-none focus:border-[#8A2BE2]" required value={timelineQuery.start} onChange={e => setTimelineQuery({...timelineQuery, start: e.target.value})} />
+                </div>
+                <div>
+                    <label className="block text-xs text-gray-400 mb-1">End Date</label>
+                    <input type="date" className="bg-[#1e1e3a] border border-[#444] text-[#f1f1f1] px-3 py-2 rounded text-sm focus:outline-none focus:border-[#8A2BE2]" required value={timelineQuery.end} onChange={e => setTimelineQuery({...timelineQuery, end: e.target.value})} />
+                </div>
+                <button type="submit" className="bg-[#8A2BE2] hover:bg-[#7020a0] text-white px-4 py-2 rounded font-bold transition-all h-[38px] flex items-center justify-center min-w-[80px]">
+                    {timelineData.loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Query"}
+                </button>
+            </form>
+          </div>
+
+          {timelineData.error && (
+              <div className="mb-4 text-red-500 bg-red-900/20 border border-red-500/50 p-3 rounded text-sm">
+                  {timelineData.error}
+              </div>
+          )}
+
+          {timelineData.queried && !timelineData.loading && !timelineData.error && (
+              <div className="grid grid-cols-1 gap-6">
+                <div className="flex flex-col sm:flex-row gap-4 items-center bg-[#1e1e3a] border border-[#8A2BE2]/40 rounded-lg p-5">
+                    <div className="flex-1">
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-1">Target Aggregate Revenue</p>
+                        <p className="text-3xl font-bold text-[#f1f1f1]">{formatCurrency(timelineData.totalRevenue)} <span className="text-sm font-medium text-gray-500 ml-2">({timelineData.transactions.length} Transactions)</span></p>
+                    </div>
+                </div>
+
+                {timelineData.transactions.length > 0 ? (
+                    <div className="overflow-x-auto border border-[#333] rounded-lg">
+                        <table className="w-full text-sm text-[#cccccc]">
+                            <thead>
+                                <tr className="bg-[#1e1e3a] border-b border-[#333]">
+                                    <th className="p-3 text-left font-semibold text-gray-300">Date Logged</th>
+                                    <th className="p-3 text-left font-semibold text-gray-300">Customer Identity</th>
+                                    <th className="p-3 text-left font-semibold text-gray-300">Transaction Core</th>
+                                    <th className="p-3 text-right font-semibold text-gray-300">Settled Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {timelineData.transactions.map((t, idx) => (
+                                    <tr key={idx} className="border-b border-[#333] hover:bg-[#1a1a2e]">
+                                        <td className="p-3 align-top whitespace-nowrap text-gray-400">
+                                            {formatDate(t.paymentDate)}<br/>
+                                            <span className="text-xs text-gray-600">{new Date(t.paymentDate).toLocaleTimeString()}</span>
+                                        </td>
+                                        <td className="p-3 align-top">
+                                            <div className="font-semibold text-[#f1f1f1]">{t.userName}</div>
+                                            <div className="text-xs text-gray-500">{t.userEmail}</div>
+                                        </td>
+                                        <td className="p-3 align-top">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-[0.65rem] font-bold uppercase tracking-widest border ${
+                                                t.paymentFor === 'Membership' ? 'bg-[#2e8b57]/20 text-[#90ee90] border-[#2e8b57]/50' : 'bg-purple-900/30 text-purple-300 border-purple-800'
+                                            }`}>
+                                                {t.paymentFor}
+                                            </span>
+                                            {t.membershipPlan && <div className="text-xs font-medium text-gray-400 mt-1">Tier: {t.membershipPlan}</div>}
+                                            {t.paymentMethod && <div className="text-xs font-mono text-gray-500 mt-1">Via: {t.paymentMethod}</div>}
+                                        </td>
+                                        <td className="p-3 align-top text-right font-bold text-[#8A2BE2]">
+                                            {formatCurrency(t.amount)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="p-8 text-center text-gray-500 bg-[#1e1e3a] rounded border border-[#333]">
+                        No transactional data was logged within this target timeline.
+                    </div>
+                )}
+              </div>
+          )}
         </div>
 
         {/* Top Performers Section */}
