@@ -46,70 +46,85 @@ const UserProfile = () => {
     const [paymentErrors, setPaymentErrors] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // --- DATA FETCHING ---
+    // --- DATA FETCHING (Progressive Loading) ---
     useEffect(() => {
-        const fetchAllData = async () => {
+        const fetchAllData = () => {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            try {
-                const headers = { 'Authorization': `Bearer ${token}` };
+            const headers = { 'Authorization': `Bearer ${token}` };
 
-                // Fetch User Profile, Stats, and Purchase History
-                const [userRes, progressRes, statsRes, purchasesRes] = await Promise.all([
-                    fetch('/api/user/profile', { headers }),
-                    fetch('/api/exercise/progress', { headers }),
-                    fetch('/api/workout/weekly-stats', { headers }),
-                    fetch('/api/user/purchases', { headers })
-                ]);
+            // 1. Fetch User Profile (Main core structure)
+            fetch('/api/user/profile', { headers })
+                .then(r => r.json())
+                .then(userData => {
+                    if (userData.success) {
+                        setDbUser(userData.user);
+                        setFormData({
+                            full_name: userData.user.full_name || '',
+                            email: userData.user.email || '',
+                            phone: userData.user.phone || '',
+                            dob: userData.user.dob ? new Date(userData.user.dob).toISOString().split('T')[0] : '',
+                            height: userData.user.height || '',
+                            weight: userData.user.weight || '',
+                            BMI: userData.user.BMI || '',
+                            weight_goal: userData.user.fitness_goals?.weight_goal || '',
+                            calorie_goal: userData.user.fitness_goals?.calorie_goal || '',
+                            protein_goal: userData.user.fitness_goals?.protein_goal || '',
+                        });
 
-                const userData = await userRes.json();
-                const statsData = await statsRes.json();
-                const purchasesData = purchasesRes.ok ? await purchasesRes.json() : { history: [] };
+                        // Set default single-point weight graph if stats fails or is delayed
+                        setGraphData(prev => ({
+                            ...prev,
+                            weightLabels: prev.weightLabels.length ? prev.weightLabels : ['Current'],
+                            weightValues: prev.weightValues.length ? prev.weightValues : [userData.user?.weight || 0]
+                        }));
+                    }
+                }).catch(err => console.error("Error fetching profile:", err));
 
-                // 1. Set User Data
-                if (userData.success) {
-                    setDbUser(userData.user);
-                    setFormData({
-                        full_name: userData.user.full_name || '',
-                        email: userData.user.email || '',
-                        phone: userData.user.phone || '',
-                        dob: userData.user.dob ? new Date(userData.user.dob).toISOString().split('T')[0] : '',
-                        height: userData.user.height || '',
-                        weight: userData.user.weight || '',
-                        BMI: userData.user.BMI || '',
-                        weight_goal: userData.user.fitness_goals?.weight_goal || '',
-                        calorie_goal: userData.user.fitness_goals?.calorie_goal || '',
-                        protein_goal: userData.user.fitness_goals?.protein_goal || '',
-                    });
-                }
+            // 2. Fetch Purchases (Independent table)
+            fetch('/api/user/purchases', { headers })
+                .then(r => r.ok ? r.json() : { history: [] })
+                .then(purchasesData => {
+                    if (purchasesData.success) {
+                        setPurchaseHistory(purchasesData.history);
+                    }
+                }).catch(err => console.error("Error fetching purchases:", err));
 
-                // 2. Set Purchase History
-                if (purchasesData.success) {
-                    setPurchaseHistory(purchasesData.history);
-                }
-
-                // 3. Process Graph Data
+            // 3. Fetch Workout Stats & Exercise Progress (Independent Graphs)
+            Promise.all([
+                fetch('/api/workout/weekly-stats', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch('/api/exercise/progress', { headers }).then(r => r.ok ? r.json() : null).catch(() => null)
+            ]).then(([statsData, progressData]) => {
                 const newGraphData = { workoutLabels: [], workoutValues: [], weightLabels: [], weightValues: [] };
 
-                if (statsData.success && statsData.weeklyStats) {
+                if (statsData && statsData.success && statsData.weeklyStats) {
                     newGraphData.workoutLabels = statsData.weeklyStats.map(d => d.day);
                     newGraphData.workoutValues = statsData.weeklyStats.map(d => d.percentage);
                 }
 
-                if (statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
+                if (statsData && statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
                     newGraphData.weightLabels = statsData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
                     newGraphData.weightValues = statsData.weightHistory.map(w => w.weight);
                 } else {
-                    newGraphData.weightLabels = ['Current'];
-                    newGraphData.weightValues = [userData.user?.weight || 0];
+                    setDbUser(currentDbUser => {
+                        if (currentDbUser) {
+                            newGraphData.weightLabels = ['Current'];
+                            newGraphData.weightValues = [currentDbUser.weight || 0];
+                        }
+                        return currentDbUser;
+                    });
                 }
 
-                setGraphData(newGraphData);
-
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-            }
+                // Preserve existing fallback graph data if dbUser was already populated
+                setGraphData(prev => ({
+                    ...prev,
+                    workoutLabels: newGraphData.workoutLabels.length ? newGraphData.workoutLabels : prev.workoutLabels,
+                    workoutValues: newGraphData.workoutValues.length ? newGraphData.workoutValues : prev.workoutValues,
+                    weightLabels: newGraphData.weightLabels.length ? newGraphData.weightLabels : prev.weightLabels,
+                    weightValues: newGraphData.weightValues.length ? newGraphData.weightValues : prev.weightValues
+                }));
+            });
         };
 
         fetchAllData();
@@ -371,8 +386,12 @@ const UserProfile = () => {
 
                         <div className="p-6">
                             <div className="text-center mb-6">
-                                <span className="inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30">
-                                    {dbUser?.status || 'Active Member'}
+                                <span className={`inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30 ${!dbUser ? 'min-w-[120px]' : ''}`}>
+                                    {!dbUser ? (
+                                        <div className="h-4 w-24 bg-white/30 rounded-full animate-pulse inline-block align-middle"></div>
+                                    ) : (
+                                        dbUser.status || 'Active Member'
+                                    )}
                                 </span>
                             </div>
 
@@ -394,10 +413,14 @@ const UserProfile = () => {
                                     <div key={field.key} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors duration-300">
                                         <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">{field.label}:</span>
                                         {!isEditing ? (
-                                            <span className="text-lg font-medium text-gray-100">
-                                                {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')}
-                                                {formData[field.key] && field.suffix ? ` ${field.suffix}` : ''}
-                                            </span>
+                                            !dbUser ? (
+                                                <div className="h-5 w-2/3 bg-gray-600 rounded animate-pulse mt-1"></div>
+                                            ) : (
+                                                <span className="text-lg font-medium text-gray-100">
+                                                    {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')}
+                                                    {formData[field.key] && field.suffix ? ` ${field.suffix}` : ''}
+                                                </span>
+                                            )
                                         ) : (
                                             <input
                                                 type={field.type}
@@ -434,11 +457,15 @@ const UserProfile = () => {
                             </div>
                             <div className="p-6">
                                 <div className="text-center mb-6">
-                                    <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize">
-                                        {dbUser?.membershipType || 'Basic'} Member
+                                    <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize min-w-[200px]">
+                                        {!dbUser ? (
+                                            <div className="h-6 w-32 bg-black/25 rounded animate-pulse mx-auto"></div>
+                                        ) : (
+                                            `${dbUser.membershipType || 'Basic'} Member`
+                                        )}
                                     </div>
-                                    <p className="text-sm text-[#aaa]">
-                                        Expires: {dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}
+                                    <p className="text-sm text-[#aaa] flex items-center justify-center">
+                                        Expires: {!dbUser ? <span className="inline-block h-4 w-24 bg-gray-600 rounded animate-pulse ml-2"></span> : <span className="ml-1">{dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}</span>}
                                     </p>
                                 </div>
                                 <button onClick={() => setShowMembershipModal(true)} className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] text-white py-2 rounded mt-2 transition">Extend Membership</button>

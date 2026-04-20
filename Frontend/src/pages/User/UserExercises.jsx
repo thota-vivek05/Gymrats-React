@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../../components/common/Footer/Footer'; // Ensure this path is correct
-
 const UserExercises = () => {
     const { user } = useAuth();
 
@@ -278,7 +277,6 @@ const UserExercises = () => {
     // --- Main List View Component ---
     return (
         <div className="min-h-screen bg-black text-gray-100 flex flex-col font-outfit overflow-x-hidden">
-            <DashboardHeader />
 
             {/* Banner Section */}
             <div className="max-w-7xl mx-auto w-full px-4 md:px-8 mt-6">

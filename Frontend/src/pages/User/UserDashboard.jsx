@@ -54,53 +54,74 @@ const UserDashboard = () => {
       return;
     }
 
-    try {
-      if (showLoading) setLoading(true);
-      setError(null);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
+    if (showLoading) setLoading(true);
+    setError(null);
 
-      const [
-        userResponse,
-        workoutResponse,
-        nutritionResponse,
-        statsResponse,
-        progressResponse,
-        classResponse,
-        appointmentsResponse,
-      ] = await Promise.all([
-        fetch("/api/user/profile", { headers }),
-        fetch("/api/workout/today", { headers }),
-        fetch("/api/nutrition/today", { headers }),
-        fetch("/api/workout/weekly-stats", { headers }),
-        fetch("/api/exercise/progress", { headers }),
-        fetch("/api/class/upcoming", { headers }),
-        fetch("/api/user/appointments", { headers }),
-      ]);
+    // 1. Fetch User Profile (required for rendering structure)
+    fetch("/api/user/profile", { headers })
+      .then((res) => {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+          throw new Error("Unauthorized");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.success) setUser(data.user);
+        // Turn off global loader immediately once the user is fetched
+        setLoading(false); 
+      })
+      .catch((err) => {
+        if (err.message !== "Unauthorized") {
+          console.error("Error fetching user:", err);
+          setError("Failed to load user profile");
+          setLoading(false);
+        }
+      });
 
-      if (userResponse.status === 401 || userResponse.status === 403) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-        return;
-      }
+    // 2. Fire and Forget the rest! They update local state progressively as they finish.
+    fetch("/api/workout/today", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, todayWorkout: data }));
+      }).catch(console.error);
 
-      const userData = userResponse.ok ? await userResponse.json() : null;
-      const workoutData = workoutResponse.ok ? await workoutResponse.json() : null;
-      const nutritionData = nutritionResponse.ok ? await nutritionResponse.json() : null;
-      const statsData = statsResponse.ok ? await statsResponse.json() : null;
-      const progressData = progressResponse.ok ? await progressResponse.json() : null;
-      const classData = classResponse.ok ? await classResponse.json() : null;
-      const appointmentsData = appointmentsResponse.ok ? await appointmentsResponse.json() : null;
+    fetch("/api/nutrition/today", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setDashboardData((p) => ({
+            ...p,
+            todayNutrition: data.todayNutrition,
+            todaysConsumedFoods: data.todaysConsumedFoods,
+          }));
+        }
+      }).catch(console.error);
 
-      if (userData && userData.success) {
-        setUser(userData.user);
-      }
+    fetch("/api/workout/weekly-stats", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, weeklyWorkouts: data.weeklyWorkouts }));
+      }).catch(console.error);
 
-      // Find the next approved appointment with a meet link (for Upcoming Class)
+    fetch("/api/exercise/progress", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, exerciseProgress: data.exerciseProgress }));
+      }).catch(console.error);
+
+    // 3. Class and Appointments depend on each other for comparison
+    Promise.all([
+      fetch("/api/class/upcoming", { headers }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch("/api/user/appointments", { headers }).then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([classData, appointmentsData]) => {
       let approvedSession = null;
       if (appointmentsData?.appointments) {
         const now = new Date();
@@ -121,8 +142,6 @@ const UserDashboard = () => {
         }
       }
 
-      // Use approved appointment as upcoming class if no scheduled class exists,
-      // or if the appointment is sooner than the scheduled class
       const scheduledClass = classData?.success ? classData.upcomingClass : null;
       let finalUpcomingClass = scheduledClass;
       if (approvedSession) {
@@ -131,21 +150,8 @@ const UserDashboard = () => {
         }
       }
 
-      setDashboardData((prev) => ({
-        ...prev,
-        todayWorkout: workoutData?.success ? workoutData : prev.todayWorkout,
-        todayNutrition: nutritionData?.success ? nutritionData.todayNutrition : prev.todayNutrition,
-        todaysConsumedFoods: nutritionData?.success ? nutritionData.todaysConsumedFoods : prev.todaysConsumedFoods,
-        weeklyWorkouts: statsData?.success ? statsData.weeklyWorkouts : prev.weeklyWorkouts,
-        exerciseProgress: progressData?.success ? progressData.exerciseProgress : prev.exerciseProgress,
-        upcomingClass: finalUpcomingClass,
-      }));
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      setError("Failed to load dashboard data");
-    } finally {
-      setLoading(false);
-    }
+      setDashboardData((p) => ({ ...p, upcomingClass: finalUpcomingClass }));
+    });
   };
 
   // Called by TodaysWorkout — surgically patches only todayWorkout, no full re-fetch
