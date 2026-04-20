@@ -100,7 +100,6 @@ const signupTrainer = async (req, res) => {
             parsedSpecializations.length === 0 ||
             !isTermsAgreed
         ) {
-            console.log('Validation failed: Missing fields');
             return res.status(400).json({ error: 'All fields are required, including terms agreement' });
         }
 
@@ -137,28 +136,24 @@ const signupTrainer = async (req, res) => {
             'Flexibility',
             'Bodybuilding'
         ];
-        
+
         if (!Array.isArray(parsedSpecializations) || parsedSpecializations.length === 0) {
-            console.log('Validation failed: No specializations selected');
             return res.status(400).json({ error: 'At least one specialization must be selected' });
         }
-        
+
         for (const spec of parsedSpecializations) {
             if (!validSpecializations.includes(spec)) {
-                console.log('Validation failed: Invalid specialization:', spec);
                 return res.status(400).json({ error: `Invalid specialization: ${spec}` });
             }
         }
 
         const existingApplication = await TrainerApplication.findOne({ email });
         if (existingApplication) {
-            console.log('Validation failed: Email already registered:', email);
             return res.status(400).json({ error: 'Email already registered' });
         }
 
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(password, saltRounds);
-        console.log('Password hashed for:', email);
 
         // Create the resume file path
         const resumePath = `uploads/trainer-resumes/${req.file.filename}`;
@@ -174,11 +169,8 @@ const signupTrainer = async (req, res) => {
             resume: resumePath,
             status: 'Pending'
         });
-        
-        console.log('New trainer application created:', newApplication);
 
         await newApplication.save();
-        console.log('Trainer application saved to MongoDB:', email);
 
         if (req.session) {
             req.session.trainerApplication = {
@@ -187,7 +179,6 @@ const signupTrainer = async (req, res) => {
                 firstName: newApplication.firstName,
                 lastName: newApplication.lastName
             };
-            console.log('Session set for trainer application:', email);
         }
 
         res.status(201).json({ 
@@ -207,13 +198,11 @@ const signupTrainer = async (req, res) => {
         }
         
         if (error.code === 11000) {
-            console.log('MongoDB error: Duplicate email');
             return res.status(400).json({ error: 'Email already registered' });
         }
         
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(err => err.message);
-            console.log('MongoDB validation errors:', messages);
             return res.status(400).json({ error: messages.join(', ') });
         }
         
@@ -475,10 +464,10 @@ const renderEditWorkoutPlan = async (req, res) => {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
-        const currentWorkout = await WorkoutHistory.findOne({
+        const currentWorkout = (await WorkoutHistory.findOne({
             userId: userId,
             date: { $gte: weekStart, $lt: weekEnd }
-        }).lean() || null;
+        }).lean()) || null;
 
         const workoutPlan = currentWorkout ? {
             Monday: currentWorkout.exercises.filter(ex => ex.day === 'Monday'),
@@ -510,16 +499,8 @@ const saveWorkoutPlan = async (req, res) => {
     try {
         // 1. Get Trainer ID using the helper (works for both Session & JWT)
         const trainerId = getTrainerId(req);
-        
-        // Debugging logs to see exactly what is happening
-        console.log('=== SAVE WORKOUT PLAN DEBUG ===');
-        console.log('Request Headers Auth:', req.headers.authorization ? 'Present' : 'Missing');
-        console.log('req.user:', req.user);
-        console.log('req.session.trainer:', req.session ? req.session.trainer : 'No Session');
-        console.log('Resolved Trainer ID:', trainerId);
 
         if (!trainerId) {
-            console.log('❌ Unauthorized: No trainer ID found in request');
             return res.status(401).json({ error: 'Unauthorized: You must be logged in to save plans.' });
         }
 
@@ -535,22 +516,21 @@ const saveWorkoutPlan = async (req, res) => {
             trainer: trainerId,
             membershipType: { $in: ['Platinum', 'Gold', 'Basic'] }
         });
-        
+
         if (!user) {
-            console.log(`❌ Client ${clientId} not found or not assigned to trainer ${trainerId}`);
             return res.status(404).json({ error: 'Client not found or not assigned to you' });
         }
 
         // ... (Rest of your date calculation and saving logic remains exactly the same) ...
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const weekStart = new Date(today);
         const dayOfWeek = today.getDay();
         const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         weekStart.setDate(today.getDate() + diffToMonday);
         weekStart.setHours(0, 0, 0, 0);
-        
+
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
@@ -594,7 +574,7 @@ const saveWorkoutPlan = async (req, res) => {
                 notes: notes || ''
             });
         }
-        
+
         await workout.save();
 
         // Update user workout history if needed
@@ -608,7 +588,6 @@ const saveWorkoutPlan = async (req, res) => {
             message: 'Workout plan saved successfully',  
             redirect: `/trainer?clientId=${clientId}`
         });
-
     } catch (error) {
         console.error('Error saving workout plan:', error);
         res.status(500).json({ error: 'Server error: ' + error.message });
@@ -646,10 +625,10 @@ const renderEditNutritionPlan = async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const latestNutrition = await NutritionHistory.findOne({
+        const latestNutrition = (await NutritionHistory.findOne({
             userId: userId,
             date: { $gte: today, $lt: tomorrow }
-        }).lean() || null;
+        }).lean()) || null;
 
         return res.json({
             success: true,
@@ -673,9 +652,6 @@ const editNutritionPlan = async (req, res) => {
         // 1. Get Trainer ID
         const trainerId = getTrainerId(req);
 
-        console.log('=== SAVE NUTRITION PLAN DEBUG ===');
-        console.log('Resolved Trainer ID:', trainerId);
-        
         if (!trainerId) {
             return res.status(401).json({ error: 'Unauthorized: You must be logged in.' });
         }
@@ -691,7 +667,7 @@ const editNutritionPlan = async (req, res) => {
             trainer: trainerId,
             membershipType: { $in: ['Platinum', 'Gold'] }
         });
-        
+
         if (!user) {
             return res.status(404).json({ error: 'Client not found or not assigned to you' });
         }
@@ -699,13 +675,13 @@ const editNutritionPlan = async (req, res) => {
         // ... (Rest of logic remains the same) ...
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const weekStart = new Date(today);
         const dayOfWeek = today.getDay();
         const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         weekStart.setDate(today.getDate() + diffToMonday);
         weekStart.setHours(0, 0, 0, 0);
-        
+
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 7);
 
@@ -777,7 +753,7 @@ const editNutritionPlan = async (req, res) => {
         // Update user record goals
         user.fitness_goals.protein_goal = parseInt(proteinGoal);
         user.fitness_goals.calorie_goal = parseInt(calorieGoal);
-        
+
         // Link history if not linked
         if (!user.nutrition_history.includes(weeklyNutrition._id)) {
             user.nutrition_history.push(weeklyNutrition._id);
