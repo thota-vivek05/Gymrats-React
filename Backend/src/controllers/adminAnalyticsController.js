@@ -12,6 +12,33 @@ const SUCCESSFUL_PAYMENT_QUERY = {
 const AMOUNT_AS_NUMBER = {
     $convert: { input: "$amount", to: "double", onError: 0, onNull: 0 }
 };
+const parseTimelineDate = (value, endOfDay = false) => {
+    if (!value) return null;
+
+    let parsedDate = null;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        parsedDate = new Date(`${value}T00:00:00.000Z`);
+    } else {
+        const slashMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (slashMatch) {
+            const [, day, month, year] = slashMatch;
+            parsedDate = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+        } else {
+            parsedDate = new Date(value);
+        }
+    }
+
+    if (Number.isNaN(parsedDate?.getTime?.())) {
+        return null;
+    }
+
+    if (endOfDay) {
+        parsedDate.setUTCHours(23, 59, 59, 999);
+    }
+
+    return parsedDate;
+};
 
 /**
  * @desc    Get total revenue from all successful payments
@@ -470,9 +497,15 @@ exports.getTimelineRevenue = async (req, res) => {
             });
         }
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        const start = parseTimelineDate(startDate);
+        const end = parseTimelineDate(endDate, true);
+
+        if (!start || !end) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format. Use YYYY-MM-DD or DD/MM/YYYY."
+            });
+        }
 
         // Core Query Block resolving BSON Date vs BSON String fragmentation
         const matchQuery = {

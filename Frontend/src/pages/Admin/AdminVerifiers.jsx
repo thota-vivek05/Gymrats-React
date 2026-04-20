@@ -31,6 +31,35 @@ const getToneClasses = (tone) => {
   }
 };
 
+const getBackendBaseUrl = () => {
+  const configuredUrl = import.meta.env.VITE_BACKEND_URL?.trim();
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, "");
+  }
+
+  if (window.location.port === "5173") {
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }
+
+  return window.location.origin;
+};
+
+const getResumeLink = (resumePath) => {
+  if (!resumePath) return null;
+
+  if (/^https?:\/\//i.test(resumePath)) {
+    return resumePath;
+  }
+
+  const normalizedPath = resumePath.startsWith("/") ? resumePath : `/${resumePath}`;
+  return `${getBackendBaseUrl()}${normalizedPath}`;
+};
+
+const getResumeLabel = (resumePath) => {
+  if (!resumePath) return "No file uploaded";
+  return resumePath.split("/").pop() || "Uploaded file";
+};
+
 const StatCard = ({ label, value }) => (
   <div className="bg-[#111] rounded-lg p-5 border border-[#8A2BE2] shadow-[0_4px_8px_rgba(138,43,226,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(138,43,226,0.4)]">
     <h3 className="text-[#cccccc] text-sm font-semibold uppercase tracking-wide mb-2">{label}</h3>
@@ -399,6 +428,26 @@ const AdminVerifiers = () => {
                   <div className="text-white bg-[#1a1a1a] p-3 rounded border border-[#333] font-medium text-sm">{new Date(viewingApp.createdAt).toLocaleString()}</div>
                 </div>
               )}
+              <div>
+                <label className="block text-xs font-semibold text-[#8A2BE2] uppercase tracking-widest mb-1">Uploaded File</label>
+                <div className="text-white bg-[#1a1a1a] p-3 rounded border border-[#333]">
+                  {viewingApp.resume ? (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-sm text-gray-300 break-all">{getResumeLabel(viewingApp.resume)}</span>
+                      <a
+                        href={getResumeLink(viewingApp.resume)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex w-fit items-center rounded border border-[#8A2BE2]/50 bg-[#8A2BE2]/15 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-[#c69cff] transition-all hover:bg-[#8A2BE2]/30"
+                      >
+                        Open Uploaded File
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 italic text-sm">No file uploaded with this application</span>
+                  )}
+                </div>
+              </div>
             </div>
             
             <div className="mt-8 flex justify-end gap-3">

@@ -44,6 +44,27 @@ const formatDate = (dateString) => {
   });
 };
 
+const normalizeDateForApi = (value) => {
+  if (!value) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const slashMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, day, month, year] = slashMatch;
+    return `${year}-${month}-${day}`;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 10);
+};
+
 // Growth Indicator Component
 const GrowthIndicator = ({ value }) => {
   if (value > 0) {
@@ -146,12 +167,27 @@ const AdminDashboard = () => {
 
   const handleTimelineSearch = async (e) => {
     e.preventDefault();
-    if (!timelineQuery.start || !timelineQuery.end) return;
+    const normalizedStart = normalizeDateForApi(timelineQuery.start);
+    const normalizedEnd = normalizeDateForApi(timelineQuery.end);
+
+    if (!normalizedStart || !normalizedEnd) {
+      setTimelineData(prev => ({
+        ...prev,
+        loading: false,
+        queried: true,
+        error: "Please choose valid start and end dates."
+      }));
+      return;
+    }
 
     setTimelineData(prev => ({ ...prev, loading: true, error: null, queried: true }));
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`/api/admin/analytics/timeline-revenue?startDate=${timelineQuery.start}&endDate=${timelineQuery.end}`, {
+      const searchParams = new URLSearchParams({
+        startDate: normalizedStart,
+        endDate: normalizedEnd
+      });
+      const res = await fetch(`/api/admin/analytics/timeline-revenue?${searchParams.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const result = await res.json();

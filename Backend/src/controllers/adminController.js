@@ -2068,6 +2068,7 @@ const adminController = {
         status: app.status || "Pending",
         createdAt: app.createdAt,
         verificationNotes: app.verificationNotes || "",
+        resume: app.resume || null,
       }));
 
       res.json({
