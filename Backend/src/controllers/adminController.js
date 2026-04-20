@@ -30,7 +30,6 @@ const seedAdmin = async () => {
         ],
         isActive: true,
       });
-      console.log("Default Admin seeded successfully!");
     }
   } catch (error) {
     console.error("Failed to seed admin:", error);
@@ -886,8 +885,6 @@ const adminController = {
 
   createTrainer: async (req, res) => {
     try {
-      console.log("Create trainer request body:", req.body); // Debug log
-
       const {
         name,
         email,
@@ -900,13 +897,6 @@ const adminController = {
 
       // Validate required fields
       if (!name || !email || !password || !phone || !experience) {
-        console.log("Missing fields:", {
-          name,
-          email,
-          password,
-          phone,
-          experience,
-        });
         return res.status(400).json({
           success: false,
           message: "Missing required fields",
@@ -939,15 +929,6 @@ const adminController = {
         }
       }
 
-      console.log("Creating trainer with data:", {
-        name,
-        email,
-        phone,
-        experience,
-        specializations: specializationsArray,
-        status: status || "Active",
-      });
-
       // Create new trainer
       const newTrainer = new Trainer({
         name,
@@ -966,7 +947,6 @@ const adminController = {
 
       // Save to database
       const savedTrainer = await newTrainer.save();
-      console.log("Trainer saved successfully:", savedTrainer._id);
 
       res.status(201).json({
         success: true,
@@ -1002,10 +982,6 @@ const adminController = {
 
   updateTrainer: async (req, res) => {
     try {
-      console.log("--- DEBUG START ---");
-      console.log("Request Body:", req.body); // Check if meetingLink is here
-      console.log("Trainer ID:", req.params.id);
-
       const {
         name,
         email,
@@ -1015,8 +991,6 @@ const adminController = {
         status,
         meetingLink,
       } = req.body;
-
-      console.log("Extracted meetingLink:", meetingLink);
 
       const updatedTrainer = await Trainer.findByIdAndUpdate(
         req.params.id,
@@ -1035,12 +1009,8 @@ const adminController = {
       );
 
       if (!updatedTrainer) {
-        console.log("Update Failed: Trainer not found");
         return res.status(404).json({ success: false });
       }
-
-      console.log("Updated Trainer from DB:", updatedTrainer);
-      console.log("--- DEBUG END ---");
 
       res.status(200).json({ success: true, trainer: updatedTrainer });
     } catch (error) {
@@ -1421,8 +1391,6 @@ const adminController = {
         }
       }
 
-      console.log("Exercise query:", JSON.stringify(query)); // For debugging
-
       // Fetch exercises with the query
       const exercises = await Exercise.find(query).sort({ name: 1 });
 
@@ -1630,8 +1598,6 @@ const adminController = {
     try {
       const { id } = req.params;
       const { verified } = req.body;
-
-      console.log(`Verifying exercise ${id} to:`, verified);
 
       const exercise = await Exercise.findByIdAndUpdate(
         id,
@@ -2125,7 +2091,6 @@ const adminController = {
   approveTrainerApplication: async (req, res) => {
     try {
       const applicationId = req.params.id;
-      console.log("Approving trainer application:", applicationId);
 
       const application = await TrainerApplication.findById(applicationId);
 
@@ -2134,8 +2099,6 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "Application not found" });
       }
-
-      console.log("Found application:", application);
 
       // Create a new Trainer record from the approved application
       const newTrainer = new Trainer({
@@ -2153,15 +2116,11 @@ const adminController = {
         nutritionPlans: [],
       });
 
-      console.log("Created new trainer object:", newTrainer);
-
       const savedTrainer = await newTrainer.save();
-      console.log("Saved trainer:", savedTrainer);
 
       // Update the application status
       application.status = "Approved";
       const savedApplication = await application.save();
-      console.log("Updated application status:", savedApplication);
 
       res.json({
         success: true,

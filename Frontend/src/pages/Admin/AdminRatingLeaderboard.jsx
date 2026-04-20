@@ -269,7 +269,10 @@ const AdminRatingsLeaderboard = () => {
                 </tbody>
               </table>
             </div>
-        )}      {/* Trainer Reviews Modal */}
+          </div>
+        )}
+
+      {/* Trainer Reviews Modal */}
       {showReviewsModal && selectedTrainer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-[#111] border border-[#8A2BE2] p-6 rounded-lg w-full max-w-3xl max-h-[80vh] overflow-y-auto">
