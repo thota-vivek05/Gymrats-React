@@ -30,8 +30,18 @@ export const loginUser = createAsyncThunk(
 );
 
 // Initial State: Check localStorage immediately (Persistence)
+const getUserFromStorage = () => {
+  try {
+    const userStr = localStorage.getItem("user");
+    return userStr && userStr !== "undefined" ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error("Failed to parse user from localStorage", error);
+    return null;
+  }
+};
+
 const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
+  user: getUserFromStorage(),
   token: localStorage.getItem("token") || null,
   loading: false,
   error: null,

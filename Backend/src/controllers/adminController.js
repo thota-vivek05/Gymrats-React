@@ -383,8 +383,10 @@ const adminController = {
       const { search } = req.query;
       let query = {};
 
-      // Global Search Logic using Optimized MongoDB Text Indexes
+      // Search Logic using Regex for partial matching
       if (search && search.trim() !== "") {
+        const searchRegex = new RegExp(search, "i");
+        
         let dateQuery = {};
         const possibleDate = new Date(search);
         if (!isNaN(possibleDate.getTime())) {
@@ -398,13 +400,16 @@ const adminController = {
           };
         }
 
-        const textSearch = { $text: { $search: search } };
-
-        if (Object.keys(dateQuery).length > 0) {
-          query = { $or: [textSearch, dateQuery] };
-        } else {
-          query = textSearch;
-        }
+        query = {
+          $or: [
+            { full_name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { status: searchRegex },
+            { membershipType: searchRegex },
+            ...(Object.keys(dateQuery).length > 0 ? [dateQuery] : []),
+          ],
+        };
       }
 
       const users = await User.find(query)
@@ -730,14 +735,18 @@ const adminController = {
         query.experience = experience;
       }
 
-      // Apply search using Optimized MongoDB Text Indexes
+      // Apply search using Regex for partial matching
       if (search && search.trim() !== "") {
-        const searchQuery = {
-          $text: { $search: search },
+        const searchRegex = new RegExp(search, "i");
+        query = {
+          ...query,
+          $or: [
+            { name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { specializations: searchRegex },
+          ]
         };
-
-        // Merge with existing query
-        query = { ...query, ...searchQuery };
       }
 
       const trainers = await Trainer.find(query).sort({ createdAt: -1 });
@@ -1343,52 +1352,17 @@ const adminController = {
         query.verified = false;
       }
 
-      // Apply search filter - MORE PRECISE NOW
+      // Apply search filter - Partial Matching
       if (search && search.trim() !== "") {
-        const searchRegex = new RegExp(`^${search}$`, "i"); // Exact match, not partial
-
-        // Define which fields to search based on search term
-        const muscleGroups = [
-          "chest",
-          "back",
-          "shoulders",
-          "triceps",
-          "biceps",
-          "legs",
-          "quadriceps",
-          "hamstrings",
-          "glutes",
-          "abs",
-          "core",
-          "cardio",
+        const searchRegex = new RegExp(search, "i"); 
+        
+        query.$or = [
+          { name: searchRegex },
+          { primaryMuscle: searchRegex },
+          { targetMuscles: { $in: [searchRegex] } },
+          { category: searchRegex },
+          { equipment: { $in: [searchRegex] } }
         ];
-        const categories = [
-          "calisthenics",
-          "weight loss",
-          "hiit",
-          "strength training",
-          "cardio",
-          "flexibility",
-          "bodybuilding",
-          "legs",
-          "full body",
-          "plyometrics",
-        ];
-
-        if (muscleGroups.includes(search.toLowerCase())) {
-          // If searching for a muscle group, ONLY search in muscle fields
-          query.$or = [
-            { primaryMuscle: searchRegex },
-            { targetMuscles: { $in: [searchRegex] } },
-          ];
-        } else if (categories.includes(search.toLowerCase())) {
-          // If searching for a category, ONLY search in category field
-          query.category = searchRegex;
-          // Don't use $or, just set category directly
-        } else {
-          // For general searches, search in name only
-          query.name = searchRegex;
-        }
       }
 
       // Fetch exercises with the query
@@ -2060,6 +2034,7 @@ const adminController = {
         status: app.status || "Pending",
         createdAt: app.createdAt,
         verificationNotes: app.verificationNotes || "",
+        resume: app.resume || null,
       }));
 
       res.json({

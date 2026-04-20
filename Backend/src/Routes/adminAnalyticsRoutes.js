@@ -13,6 +13,7 @@ router.get("/trainer-revenue", admin_Protect, analyticsController.getTrainerReve
 router.get("/membership-revenue", admin_Protect, analyticsController.getMembershipRevenue);
 router.get("/revenue-per-user", admin_Protect, analyticsController.getRevenuePerUser);
 router.get("/revenue-per-user/:userId", admin_Protect, analyticsController.getRevenueForUser);
+router.get("/timeline-revenue", admin_Protect, analyticsController.getTimelineRevenue);
 
 // ===== PHASE 3: TRAINER ANALYTICS ROUTES =====
 router.get("/trainer-performance", admin_Protect, analyticsController.getTrainerPerformance);

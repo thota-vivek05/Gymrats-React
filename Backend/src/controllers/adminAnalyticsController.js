@@ -12,6 +12,33 @@ const SUCCESSFUL_PAYMENT_QUERY = {
 const AMOUNT_AS_NUMBER = {
     $convert: { input: "$amount", to: "double", onError: 0, onNull: 0 }
 };
+const parseTimelineDate = (value, endOfDay = false) => {
+    if (!value) return null;
+
+    let parsedDate = null;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        parsedDate = new Date(`${value}T00:00:00.000Z`);
+    } else {
+        const slashMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (slashMatch) {
+            const [, day, month, year] = slashMatch;
+            parsedDate = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+        } else {
+            parsedDate = new Date(value);
+        }
+    }
+
+    if (Number.isNaN(parsedDate?.getTime?.())) {
+        return null;
+    }
+
+    if (endOfDay) {
+        parsedDate.setUTCHours(23, 59, 59, 999);
+    }
+
+    return parsedDate;
+};
 
 /**
  * @desc    Get total revenue from all successful payments
@@ -454,6 +481,95 @@ exports.getRevenueForUser = async (req, res) => {
     }
 };
 
+/**
+ * @desc    Get total revenue and transaction logs locked within a specific time window
+ * @route   GET /api/admin/analytics/timeline-revenue
+ * @access  Private/Admin
+ */
+exports.getTimelineRevenue = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: "A startDate and endDate must be provided."
+            });
+        }
+
+        const start = parseTimelineDate(startDate);
+        const end = parseTimelineDate(endDate, true);
+
+        if (!start || !end) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format. Use YYYY-MM-DD or DD/MM/YYYY."
+            });
+        }
+
+        // Core Query Block resolving BSON Date vs BSON String fragmentation
+        const matchQuery = {
+            ...SUCCESSFUL_PAYMENT_QUERY,
+            $expr: {
+                $and: [
+                    { $gte: [ { $toDate: "$paymentDate" }, start ] },
+                    { $lte: [ { $toDate: "$paymentDate" }, end ] }
+                ]
+            }
+        };
+
+        const result = await Payment.aggregate([
+            { $match: matchQuery },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$userDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    amount: 1,
+                    currency: 1,
+                    paymentFor: 1,
+                    membershipPlan: 1,
+                    paymentMethod: 1,
+                    paymentDate: 1,
+                    userId: 1,
+                    userName: { $ifNull: ["$userDetails.full_name", "Unknown User"] },
+                    userEmail: { $ifNull: ["$userDetails.email", "N/A"] }
+                }
+            },
+            { $sort: { paymentDate: -1 } }
+        ]);
+
+        const totalRevenue = result.reduce((sum, doc) => sum + (doc.amount || 0), 0);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalRevenue,
+                transactions: result
+            }
+        });
+
+    } catch (error) {
+        console.error("Timeline Query Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to construct Timeline Analytics Data Log",
+            error: error.message
+        });
+    }
+};
 // ==================== PHASE 3: TRAINER ANALYTICS APIS ====================
 
 /**
