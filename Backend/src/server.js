@@ -269,6 +269,8 @@ if (require.main === module) {
     console.log(`Server running on port ${PORT}`);
     console.log(`Backend API: http://localhost:${PORT}/api`);
     console.log(`Frontend: http://localhost:5173`);
+    console.log(`Live Vercel Deployment: https://gymrats-react.vercel.app`);
+    console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
   });
 }
 
