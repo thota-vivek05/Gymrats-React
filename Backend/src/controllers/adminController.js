@@ -30,7 +30,6 @@ const seedAdmin = async () => {
         ],
         isActive: true,
       });
-      console.log("Default Admin seeded successfully!");
     }
   } catch (error) {
     console.error("Failed to seed admin:", error);
@@ -384,8 +383,10 @@ const adminController = {
       const { search } = req.query;
       let query = {};
 
-      // Global Search Logic using Optimized MongoDB Text Indexes
+      // Search Logic using Regex for partial matching
       if (search && search.trim() !== "") {
+        const searchRegex = new RegExp(search, "i");
+        
         let dateQuery = {};
         const possibleDate = new Date(search);
         if (!isNaN(possibleDate.getTime())) {
@@ -399,13 +400,16 @@ const adminController = {
           };
         }
 
-        const textSearch = { $text: { $search: search } };
-
-        if (Object.keys(dateQuery).length > 0) {
-          query = { $or: [textSearch, dateQuery] };
-        } else {
-          query = textSearch;
-        }
+        query = {
+          $or: [
+            { full_name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { status: searchRegex },
+            { membershipType: searchRegex },
+            ...(Object.keys(dateQuery).length > 0 ? [dateQuery] : []),
+          ],
+        };
       }
 
       const users = await User.find(query)
@@ -731,14 +735,18 @@ const adminController = {
         query.experience = experience;
       }
 
-      // Apply search using Optimized MongoDB Text Indexes
+      // Apply search using Regex for partial matching
       if (search && search.trim() !== "") {
-        const searchQuery = {
-          $text: { $search: search },
+        const searchRegex = new RegExp(search, "i");
+        query = {
+          ...query,
+          $or: [
+            { name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { specializations: searchRegex },
+          ]
         };
-
-        // Merge with existing query
-        query = { ...query, ...searchQuery };
       }
 
       const trainers = await Trainer.find(query).sort({ createdAt: -1 });
@@ -886,8 +894,6 @@ const adminController = {
 
   createTrainer: async (req, res) => {
     try {
-      console.log("Create trainer request body:", req.body); // Debug log
-
       const {
         name,
         email,
@@ -900,13 +906,6 @@ const adminController = {
 
       // Validate required fields
       if (!name || !email || !password || !phone || !experience) {
-        console.log("Missing fields:", {
-          name,
-          email,
-          password,
-          phone,
-          experience,
-        });
         return res.status(400).json({
           success: false,
           message: "Missing required fields",
@@ -939,15 +938,6 @@ const adminController = {
         }
       }
 
-      console.log("Creating trainer with data:", {
-        name,
-        email,
-        phone,
-        experience,
-        specializations: specializationsArray,
-        status: status || "Active",
-      });
-
       // Create new trainer
       const newTrainer = new Trainer({
         name,
@@ -966,7 +956,6 @@ const adminController = {
 
       // Save to database
       const savedTrainer = await newTrainer.save();
-      console.log("Trainer saved successfully:", savedTrainer._id);
 
       res.status(201).json({
         success: true,
@@ -1002,10 +991,6 @@ const adminController = {
 
   updateTrainer: async (req, res) => {
     try {
-      console.log("--- DEBUG START ---");
-      console.log("Request Body:", req.body); // Check if meetingLink is here
-      console.log("Trainer ID:", req.params.id);
-
       const {
         name,
         email,
@@ -1015,8 +1000,6 @@ const adminController = {
         status,
         meetingLink,
       } = req.body;
-
-      console.log("Extracted meetingLink:", meetingLink);
 
       const updatedTrainer = await Trainer.findByIdAndUpdate(
         req.params.id,
@@ -1035,12 +1018,8 @@ const adminController = {
       );
 
       if (!updatedTrainer) {
-        console.log("Update Failed: Trainer not found");
         return res.status(404).json({ success: false });
       }
-
-      console.log("Updated Trainer from DB:", updatedTrainer);
-      console.log("--- DEBUG END ---");
 
       res.status(200).json({ success: true, trainer: updatedTrainer });
     } catch (error) {
@@ -1373,55 +1352,18 @@ const adminController = {
         query.verified = false;
       }
 
-      // Apply search filter - MORE PRECISE NOW
+      // Apply search filter - Partial Matching
       if (search && search.trim() !== "") {
-        const searchRegex = new RegExp(`^${search}$`, "i"); // Exact match, not partial
-
-        // Define which fields to search based on search term
-        const muscleGroups = [
-          "chest",
-          "back",
-          "shoulders",
-          "triceps",
-          "biceps",
-          "legs",
-          "quadriceps",
-          "hamstrings",
-          "glutes",
-          "abs",
-          "core",
-          "cardio",
+        const searchRegex = new RegExp(search, "i"); 
+        
+        query.$or = [
+          { name: searchRegex },
+          { primaryMuscle: searchRegex },
+          { targetMuscles: { $in: [searchRegex] } },
+          { category: searchRegex },
+          { equipment: { $in: [searchRegex] } }
         ];
-        const categories = [
-          "calisthenics",
-          "weight loss",
-          "hiit",
-          "strength training",
-          "cardio",
-          "flexibility",
-          "bodybuilding",
-          "legs",
-          "full body",
-          "plyometrics",
-        ];
-
-        if (muscleGroups.includes(search.toLowerCase())) {
-          // If searching for a muscle group, ONLY search in muscle fields
-          query.$or = [
-            { primaryMuscle: searchRegex },
-            { targetMuscles: { $in: [searchRegex] } },
-          ];
-        } else if (categories.includes(search.toLowerCase())) {
-          // If searching for a category, ONLY search in category field
-          query.category = searchRegex;
-          // Don't use $or, just set category directly
-        } else {
-          // For general searches, search in name only
-          query.name = searchRegex;
-        }
       }
-
-      console.log("Exercise query:", JSON.stringify(query)); // For debugging
 
       // Fetch exercises with the query
       const exercises = await Exercise.find(query).sort({ name: 1 });
@@ -1630,8 +1572,6 @@ const adminController = {
     try {
       const { id } = req.params;
       const { verified } = req.body;
-
-      console.log(`Verifying exercise ${id} to:`, verified);
 
       const exercise = await Exercise.findByIdAndUpdate(
         id,
@@ -2094,6 +2034,7 @@ const adminController = {
         status: app.status || "Pending",
         createdAt: app.createdAt,
         verificationNotes: app.verificationNotes || "",
+        resume: app.resume || null,
       }));
 
       res.json({
@@ -2125,7 +2066,6 @@ const adminController = {
   approveTrainerApplication: async (req, res) => {
     try {
       const applicationId = req.params.id;
-      console.log("Approving trainer application:", applicationId);
 
       const application = await TrainerApplication.findById(applicationId);
 
@@ -2134,8 +2074,6 @@ const adminController = {
           .status(404)
           .json({ success: false, message: "Application not found" });
       }
-
-      console.log("Found application:", application);
 
       // Create a new Trainer record from the approved application
       const newTrainer = new Trainer({
@@ -2153,15 +2091,11 @@ const adminController = {
         nutritionPlans: [],
       });
 
-      console.log("Created new trainer object:", newTrainer);
-
       const savedTrainer = await newTrainer.save();
-      console.log("Saved trainer:", savedTrainer);
 
       // Update the application status
       application.status = "Approved";
       const savedApplication = await application.save();
-      console.log("Updated application status:", savedApplication);
 
       res.json({
         success: true,

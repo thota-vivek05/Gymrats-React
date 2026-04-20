@@ -32,6 +32,7 @@ const cacheMiddleware = (duration = 3600) => {
             return next();
         }
 
+        const start = process.hrtime();
         const key = `__express__${req.originalUrl || req.url}`;
         
         try {
@@ -39,13 +40,12 @@ const cacheMiddleware = (duration = 3600) => {
             
             if (cachedResponse) {
                 if (process.env.NODE_ENV !== 'test') {
-                    console.log(`[Cache Hit] Serving from Redis for ${key}`);
+                    const diff = process.hrtime(start);
+                    const time = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3);
+                    console.log(`[Redis HIT] serving ${req.originalUrl} took ${time} ms`);
                 }
                 return res.json(JSON.parse(cachedResponse));
             } else {
-                if (process.env.NODE_ENV !== 'test') {
-                    console.log(`[Cache Miss] Proceeding to route handler for ${key}`);
-                }
                 
                 // Override res.json to capture response data
                 const originalSend = res.json;
@@ -57,6 +57,12 @@ const cacheMiddleware = (duration = 3600) => {
                     if (res.statusCode >= 200 && res.statusCode < 300) {
                         redisClient.setEx(key, duration, JSON.stringify(body))
                             .catch(err => console.error('Redis caching error:', err));
+                    }
+                    
+                    if (process.env.NODE_ENV !== 'test') {
+                        const diff = process.hrtime(start);
+                        const time = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3);
+                        console.log(`[Redis MISS] db query & caching for ${req.originalUrl} took ${time} ms`);
                     }
                     
                     return originalSend.call(this, body);

@@ -78,8 +78,12 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
         
-        if (token && userData) {
-            setUser(JSON.parse(userData));
+        if (token && userData && userData !== "undefined") {
+            try {
+                setUser(JSON.parse(userData));
+            } catch (error) {
+                console.error("Failed to parse user from localStorage in AuthContext", error);
+            }
         }
         setLoading(false);
     }, []);

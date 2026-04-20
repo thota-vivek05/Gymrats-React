@@ -22,7 +22,7 @@ router.get("/login_signup", (req, res) => {
 router.get("/api/user/profile", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-      .populate("trainer", "name email specializations experience clients maxClients status") 
+      .populate("trainer", "name email specializations experience clients maxClients status")
       .select("-password_hash");
 
     res.json({
@@ -49,7 +49,7 @@ router.delete('/api/user/account', protect, userController.deleteAccount);
 // Get today's workout data
 router.get("/api/workout/today", protect, userController.checkMembershipActive, async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
     const todayWorkoutData = await userController.getTodaysWorkout(userId);
 
     res.json({
@@ -77,7 +77,7 @@ router.get("/api/nutrition/today", protect, userController.checkMembershipActive
     const today = new Date();
     const localDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     const todayDayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][localDate.getDay()];
-    
+
     // FETCH LATEST PLAN
     const weeklyNutrition = await NutritionHistory.findOne({
       userId: userId
@@ -119,8 +119,8 @@ router.get("/api/nutrition/today", protect, userController.checkMembershipActive
 // 2. Nutrition mark consumed
 router.post(
   "/api/nutrition/mark-consumed",
-  protect,                                  
-  userController.checkMembershipActive,     
+  protect,
+  userController.checkMembershipActive,
   async (req, res) => {
     try {
       const { foodName, calories, protein, carbs, fats, day } = req.body;
@@ -144,7 +144,7 @@ router.post(
       }
 
       const targetDay = day || currentDayName;
-        
+
       const dayData = nutritionEntry.daily_nutrition[targetDay];
 
       if (!dayData) {
@@ -179,7 +179,7 @@ router.post(
       dayData.protein_consumed = (dayData.protein_consumed || 0) + parsedProtein;
 
       if (!dayData.macros) {
-          dayData.macros = { protein: 0, carbs: 0, fats: 0 };
+        dayData.macros = { protein: 0, carbs: 0, fats: 0 };
       }
 
       dayData.macros.protein = (dayData.macros.protein || 0) + parsedProtein;
@@ -307,20 +307,20 @@ router.get("/api/class/upcoming", protect, userController.checkMembershipActive,
     const upcomingClass =
       user.class_schedules && user.class_schedules.length > 0
         ? user.class_schedules
-            .filter((cls) => {
-              const classDate = new Date(cls.date);
-              const now = new Date();
-              return classDate >= now;
-            })
-            .sort((a, b) => new Date(a.date) - new Date(b.date))[0]
+          .filter((cls) => {
+            const classDate = new Date(cls.date);
+            const now = new Date();
+            return classDate >= now;
+          })
+          .sort((a, b) => new Date(a.date) - new Date(b.date))[0]
         : null;
 
     // Format class data
     const formattedClass = upcomingClass
       ? {
-          ...upcomingClass.toObject(),
-          trainerName: upcomingClass.trainerId?.name || "Coach",
-        }
+        ...upcomingClass.toObject(),
+        trainerName: upcomingClass.trainerId?.name || "Coach",
+      }
       : null;
 
     res.json({
@@ -387,10 +387,10 @@ router.get(
           date: w.date,
           exercises: w.exercises
             ? w.exercises.map((e) => ({
-                name: e.name,
-                day: e.day,
-                completed: e.completed,
-              }))
+              name: e.name,
+              day: e.day,
+              completed: e.completed,
+            }))
             : [],
           exercisesForToday: w.exercises
             ? w.exercises.filter((e) => e.day === todayDayName)
@@ -649,14 +649,14 @@ router.get(
       } else {
         const userWorkoutExercises = userWorkoutType
           ? await Exercise.find({
-              verified: true,
-              category: userWorkoutType,
-            }).limit(4)
+            verified: true,
+            category: userWorkoutType,
+          }).limit(4)
           : [];
 
         const otherCategoriesExercises = await Exercise.find({
           verified: true,
-          category: { $ne: userWorkoutType }, 
+          category: { $ne: userWorkoutType },
         })
           .limit(4)
           .sort({ averageRating: -1, usageCount: -1 });
@@ -665,8 +665,8 @@ router.get(
           ...userWorkoutExercises,
           ...otherCategoriesExercises,
         ]
-          .sort(() => Math.random() - 0.5) 
-          .slice(0, 6); 
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 6);
 
         reason = userWorkoutType
           ? `mix_of_${userWorkoutType.toLowerCase()}_and_popular_exercises`

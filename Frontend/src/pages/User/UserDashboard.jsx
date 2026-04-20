@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Components
-import DashboardHeader from "./components/DashboardHeader";
 import DashboardHero from "./components/DashboardHero";
 import OverviewCards from "./components/OverviewCards";
 import TodaysWorkout from "./components/TodaysWorkout";
@@ -15,7 +14,7 @@ const UserDashboard = () => {
   const { type } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  
+
   const [dashboardData, setDashboardData] = useState({
     todayNutrition: {
       calories_consumed: 0,
@@ -38,7 +37,7 @@ const UserDashboard = () => {
     todaysConsumedFoods: [],
     nutritionChartData: { labels: [], calories: [], protein: [] },
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -47,7 +46,7 @@ const UserDashboard = () => {
     fetchDashboardData();
   }, [type]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showLoading = true) => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -55,60 +54,81 @@ const UserDashboard = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
+    if (showLoading) setLoading(true);
+    setError(null);
 
-      const [
-        userResponse,
-        workoutResponse,
-        nutritionResponse,
-        statsResponse,
-        progressResponse,
-        classResponse,
-        appointmentsResponse,
-      ] = await Promise.all([
-        fetch("/api/user/profile", { headers }),
-        fetch("/api/workout/today", { headers }),
-        fetch("/api/nutrition/today", { headers }),
-        fetch("/api/workout/weekly-stats", { headers }),
-        fetch("/api/exercise/progress", { headers }),
-        fetch("/api/class/upcoming", { headers }),
-        fetch("/api/user/appointments", { headers }),
-      ]);
+    // 1. Fetch User Profile (required for rendering structure)
+    fetch("/api/user/profile", { headers })
+      .then((res) => {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+          throw new Error("Unauthorized");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.success) setUser(data.user);
+        // Turn off global loader immediately once the user is fetched
+        setLoading(false); 
+      })
+      .catch((err) => {
+        if (err.message !== "Unauthorized") {
+          console.error("Error fetching user:", err);
+          setError("Failed to load user profile");
+          setLoading(false);
+        }
+      });
 
-      if (userResponse.status === 401 || userResponse.status === 403) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-        return;
-      }
+    // 2. Fire and Forget the rest! They update local state progressively as they finish.
+    fetch("/api/workout/today", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, todayWorkout: data }));
+      }).catch(console.error);
 
-      const userData = userResponse.ok ? await userResponse.json() : null;
-      const workoutData = workoutResponse.ok ? await workoutResponse.json() : null;
-      const nutritionData = nutritionResponse.ok ? await nutritionResponse.json() : null;
-      const statsData = statsResponse.ok ? await statsResponse.json() : null;
-      const progressData = progressResponse.ok ? await progressResponse.json() : null;
-      const classData = classResponse.ok ? await classResponse.json() : null;
-      const appointmentsData = appointmentsResponse.ok ? await appointmentsResponse.json() : null;
+    fetch("/api/nutrition/today", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setDashboardData((p) => ({
+            ...p,
+            todayNutrition: data.todayNutrition,
+            todaysConsumedFoods: data.todaysConsumedFoods,
+          }));
+        }
+      }).catch(console.error);
 
-      if (userData && userData.success) {
-        setUser(userData.user);
-      }
+    fetch("/api/workout/weekly-stats", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, weeklyWorkouts: data.weeklyWorkouts }));
+      }).catch(console.error);
 
-      // Find the next approved appointment with a meet link (for Upcoming Class)
+    fetch("/api/exercise/progress", { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDashboardData((p) => ({ ...p, exerciseProgress: data.exerciseProgress }));
+      }).catch(console.error);
+
+    // 3. Class and Appointments depend on each other for comparison
+    Promise.all([
+      fetch("/api/class/upcoming", { headers }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch("/api/user/appointments", { headers }).then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([classData, appointmentsData]) => {
       let approvedSession = null;
       if (appointmentsData?.appointments) {
         const now = new Date();
         const futureApproved = appointmentsData.appointments
           .filter((apt) => apt.status === 'approved' && new Date(apt.date) >= new Date(now.toDateString()))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
+
         if (futureApproved.length > 0) {
           const apt = futureApproved[0];
           approvedSession = {
@@ -122,8 +142,6 @@ const UserDashboard = () => {
         }
       }
 
-      // Use approved appointment as upcoming class if no scheduled class exists,
-      // or if the appointment is sooner than the scheduled class
       const scheduledClass = classData?.success ? classData.upcomingClass : null;
       let finalUpcomingClass = scheduledClass;
       if (approvedSession) {
@@ -132,29 +150,39 @@ const UserDashboard = () => {
         }
       }
 
-      setDashboardData((prev) => ({
-        ...prev,
-        todayWorkout: workoutData?.success ? workoutData : prev.todayWorkout,
-        todayNutrition: nutritionData?.success ? nutritionData.todayNutrition : prev.todayNutrition,
-        todaysConsumedFoods: nutritionData?.success ? nutritionData.todaysConsumedFoods : prev.todaysConsumedFoods,
-        weeklyWorkouts: statsData?.success ? statsData.weeklyWorkouts : prev.weeklyWorkouts,
-        exerciseProgress: progressData?.success ? progressData.exerciseProgress : prev.exerciseProgress,
-        upcomingClass: finalUpcomingClass,
-      }));
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      setError("Failed to load dashboard data");
-    } finally {
-      setLoading(false);
-    }
+      setDashboardData((p) => ({ ...p, upcomingClass: finalUpcomingClass }));
+    });
   };
 
-  const handleExerciseComplete = () => {
-    fetchDashboardData(); // Refresh to update progress bar
+  // Called by TodaysWorkout — surgically patches only todayWorkout, no full re-fetch
+  const handleExerciseComplete = ({ progress, completedExercises, totalExercises, exerciseId }) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      todayWorkout: {
+        ...prev.todayWorkout,
+        progress,
+        completedExercises,
+        totalExercises,
+        exercises: prev.todayWorkout.exercises.map((ex) =>
+          ex._id === exerciseId ? { ...ex, completed: true } : ex
+        ),
+      },
+    }));
   };
 
-  const handleFoodComplete = () => {
-    fetchDashboardData(); // Refresh to update nutrition stats
+  // Called by NutritionTracking — surgically patches only todayNutrition, no full re-fetch
+  const handleFoodComplete = ({ calories, protein, foodName }) => {
+    setDashboardData((prev) => ({
+      ...prev,
+      todayNutrition: {
+        ...prev.todayNutrition,
+        calories_consumed: (prev.todayNutrition.calories_consumed || 0) + calories,
+        protein_consumed: (prev.todayNutrition.protein_consumed || 0) + protein,
+      },
+      todaysConsumedFoods: prev.todaysConsumedFoods.map((f) =>
+        f.name === foodName ? { ...f, consumed: true, consumedAt: new Date() } : f
+      ),
+    }));
   };
 
 
@@ -195,8 +223,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans overflow-x-hidden">
-      <DashboardHeader user={user} currentPage="dashboard" />
+    <div className="w-full text-gray-100 font-sans">
       <DashboardHero user={user} />
 
       <div className="max-w-7xl mx-auto px-5 pb-10 overflow-x-hidden">
@@ -217,17 +244,17 @@ const UserDashboard = () => {
 
           {/* 3. Platinum Section (Classes & Trainer) */}
           <div className="flex flex-col gap-6">
-              {hasAccess("Platinum") ? (
-                <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
-              ) : (
-                <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[150px]">
-                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-500 text-xl">
-                    <i className="fas fa-lock"></i>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-300 mb-1">Live Classes Locked</h3>
-                  <p className="text-xs text-gray-500">Upgrade to Platinum to access live classes.</p>
+            {hasAccess("Platinum") ? (
+              <UpcomingClass upcomingClass={dashboardData.upcomingClass} />
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-lg p-5 flex flex-col items-center justify-center text-center h-full min-h-[150px]">
+                <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-500 text-xl">
+                  <i className="fas fa-lock"></i>
                 </div>
-              )}
+                <h3 className="text-lg font-bold text-gray-300 mb-1">Live Classes Locked</h3>
+                <p className="text-xs text-gray-500">Upgrade to Platinum to access live classes.</p>
+              </div>
+            )}
 
 
           </div>

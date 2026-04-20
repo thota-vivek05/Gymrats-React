@@ -63,7 +63,7 @@ const NutritionTracking = ({
           consumedAt: new Date(),
         };
         setConsumedFoods((prev) => [newFood, ...prev]);
-        onFoodComplete();
+        onFoodComplete({ calories, protein, foodName });
       } else {
         alert("Error: " + data.message);
       }
@@ -125,11 +125,10 @@ const NutritionTracking = ({
                   </div>
                 </div>
                 <button
-                  className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                    food.consumed
+                  className={`w-full py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${food.consumed
                       ? "bg-green-600 cursor-not-allowed opacity-80 text-white"
                       : "bg-[#8A2BE2] hover:bg-[#7B1FA2] text-white"
-                  }`}
+                    }`}
                   onClick={() =>
                     markFoodAsConsumed(
                       food.name,
@@ -232,7 +231,7 @@ const NutritionTracking = ({
                     className="hover:bg-white/5 transition-colors border-b border-white/10 last:border-0"
                   >
                     <td className="p-3">{food.name}</td>
-                    
+
                     {/* CHANGED: Conditionally Render Data Cells */}
                     {showCalories && <td className="p-3">{food.calories} kcal</td>}
                     {showProtein && <td className="p-3">{food.protein}g</td>}
@@ -242,9 +241,9 @@ const NutritionTracking = ({
                     <td className="p-3">
                       {food.consumedAt
                         ? new Date(food.consumedAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "Today"}
                     </td>
                     <td className="p-3">

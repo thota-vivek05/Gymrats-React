@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import DashboardHeader from './components/DashboardHeader';
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
@@ -13,7 +12,7 @@ const UserProfile = () => {
     const [dbUser, setDbUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
-    
+
     // NEW STATES: Purchase History & Account Settings
     const [purchaseHistory, setPurchaseHistory] = useState([]);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -45,70 +44,85 @@ const UserProfile = () => {
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // --- DATA FETCHING ---
+    // --- DATA FETCHING (Progressive Loading) ---
     useEffect(() => {
-        const fetchAllData = async () => {
+        const fetchAllData = () => {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            try {
-                const headers = { 'Authorization': `Bearer ${token}` };
-                
-                // Fetch User Profile, Stats, and Purchase History
-                const [userRes, progressRes, statsRes, purchasesRes] = await Promise.all([
-                    fetch('/api/user/profile', { headers }),
-                    fetch('/api/exercise/progress', { headers }), 
-                    fetch('/api/workout/weekly-stats', { headers }),
-                    fetch('/api/user/purchases', { headers })
-                ]);
+            const headers = { 'Authorization': `Bearer ${token}` };
 
-                const userData = await userRes.json();
-                const statsData = await statsRes.json();
-                const purchasesData = purchasesRes.ok ? await purchasesRes.json() : { history: [] };
+            // 1. Fetch User Profile (Main core structure)
+            fetch('/api/user/profile', { headers })
+                .then(r => r.json())
+                .then(userData => {
+                    if (userData.success) {
+                        setDbUser(userData.user);
+                        setFormData({
+                            full_name: userData.user.full_name || '',
+                            email: userData.user.email || '',
+                            phone: userData.user.phone || '',
+                            dob: userData.user.dob ? new Date(userData.user.dob).toISOString().split('T')[0] : '',
+                            height: userData.user.height || '',
+                            weight: userData.user.weight || '',
+                            BMI: userData.user.BMI || '',
+                            weight_goal: userData.user.fitness_goals?.weight_goal || '',
+                            calorie_goal: userData.user.fitness_goals?.calorie_goal || '',
+                            protein_goal: userData.user.fitness_goals?.protein_goal || '',
+                        });
 
-                // 1. Set User Data
-                if (userData.success) {
-                    setDbUser(userData.user);
-                    setFormData({
-                        full_name: userData.user.full_name || '',
-                        email: userData.user.email || '',
-                        phone: userData.user.phone || '',
-                        dob: userData.user.dob ? new Date(userData.user.dob).toISOString().split('T')[0] : '',
-                        height: userData.user.height || '',
-                        weight: userData.user.weight || '',
-                        BMI: userData.user.BMI || '',
-                        weight_goal: userData.user.fitness_goals?.weight_goal || '',
-                        calorie_goal: userData.user.fitness_goals?.calorie_goal || '',
-                        protein_goal: userData.user.fitness_goals?.protein_goal || '',
-                    });
-                }
+                        // Set default single-point weight graph if stats fails or is delayed
+                        setGraphData(prev => ({
+                            ...prev,
+                            weightLabels: prev.weightLabels.length ? prev.weightLabels : ['Current'],
+                            weightValues: prev.weightValues.length ? prev.weightValues : [userData.user?.weight || 0]
+                        }));
+                    }
+                }).catch(err => console.error("Error fetching profile:", err));
 
-                // 2. Set Purchase History
-                if (purchasesData.success) {
-                    setPurchaseHistory(purchasesData.history);
-                }
+            // 2. Fetch Purchases (Independent table)
+            fetch('/api/user/purchases', { headers })
+                .then(r => r.ok ? r.json() : { history: [] })
+                .then(purchasesData => {
+                    if (purchasesData.success) {
+                        setPurchaseHistory(purchasesData.history);
+                    }
+                }).catch(err => console.error("Error fetching purchases:", err));
 
-                // 3. Process Graph Data
+            // 3. Fetch Workout Stats & Exercise Progress (Independent Graphs)
+            Promise.all([
+                fetch('/api/workout/weekly-stats', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch('/api/exercise/progress', { headers }).then(r => r.ok ? r.json() : null).catch(() => null)
+            ]).then(([statsData, progressData]) => {
                 const newGraphData = { workoutLabels: [], workoutValues: [], weightLabels: [], weightValues: [] };
 
-                if (statsData.success && statsData.weeklyStats) {
+                if (statsData && statsData.success && statsData.weeklyStats) {
                     newGraphData.workoutLabels = statsData.weeklyStats.map(d => d.day);
                     newGraphData.workoutValues = statsData.weeklyStats.map(d => d.percentage);
                 }
 
-                if (statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
+                if (statsData && statsData.success && statsData.weightHistory && statsData.weightHistory.length > 0) {
                     newGraphData.weightLabels = statsData.weightHistory.map(w => new Date(w.date).toLocaleDateString());
                     newGraphData.weightValues = statsData.weightHistory.map(w => w.weight);
                 } else {
-                    newGraphData.weightLabels = ['Current'];
-                    newGraphData.weightValues = [userData.user?.weight || 0];
+                    setDbUser(currentDbUser => {
+                        if (currentDbUser) {
+                            newGraphData.weightLabels = ['Current'];
+                            newGraphData.weightValues = [currentDbUser.weight || 0];
+                        }
+                        return currentDbUser;
+                    });
                 }
 
-                setGraphData(newGraphData);
-
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-            }
+                // Preserve existing fallback graph data if dbUser was already populated
+                setGraphData(prev => ({
+                    ...prev,
+                    workoutLabels: newGraphData.workoutLabels.length ? newGraphData.workoutLabels : prev.workoutLabels,
+                    workoutValues: newGraphData.workoutValues.length ? newGraphData.workoutValues : prev.workoutValues,
+                    weightLabels: newGraphData.weightLabels.length ? newGraphData.weightLabels : prev.weightLabels,
+                    weightValues: newGraphData.weightValues.length ? newGraphData.weightValues : prev.weightValues
+                }));
+            });
         };
 
         fetchAllData();
@@ -383,11 +397,11 @@ const UserProfile = () => {
         });
     };
 
-   const handleSaveProfile = async (e) => {
+    const handleSaveProfile = async (e) => {
         if (e) e.preventDefault();
         setLoading(true);
         const token = localStorage.getItem('token');
-        
+
         try {
             // Force strict Number formatting and INCLUDE the email
             const payload = {
@@ -397,38 +411,38 @@ const UserProfile = () => {
                 dob: formData.dob,
                 height: Number(formData.height) || null,
                 weight: Number(formData.weight) || null,
-                fitness_goals: { 
-                    weight_goal: Number(formData.weight_goal) || null, 
-                    calorie_goal: Number(formData.calorie_goal) || null, 
-                    protein_goal: Number(formData.protein_goal) || null 
+                fitness_goals: {
+                    weight_goal: Number(formData.weight_goal) || null,
+                    calorie_goal: Number(formData.calorie_goal) || null,
+                    protein_goal: Number(formData.protein_goal) || null
                 }
             };
 
             // Using the correct backend route
             const res = await fetch('/api/user/profile', {
                 method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}` 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const data = await res.json();
-            
+
             if (data.success || res.ok) {
                 alert('Profile updated successfully!');
                 // Update the UI with the fresh data from the backend
                 if (data.user) setDbUser(data.user);
                 setIsEditing(false);
-            } else { 
-                alert(data.message || data.error || 'Failed to update profile.'); 
+            } else {
+                alert(data.message || data.error || 'Failed to update profile.');
             }
-        } catch (error) { 
+        } catch (error) {
             console.error("Profile Save Error: ", error);
-            alert('Error updating profile. Make sure the backend server is running.'); 
-        } finally { 
-            setLoading(false); 
+            alert('Error updating profile. Make sure the backend server is running.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -441,11 +455,9 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black text-[#f1f1f1] font-sans pb-20">
-            <DashboardHeader user={dbUser || user} currentPage="profile" />
-            
-            <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center" 
-                style={{backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')"}}>
+        <div className="w-full text-[#f1f1f1] font-sans pb-20">
+            <section className="relative h-[250px] flex items-center justify-center text-center px-5 bg-cover bg-center"
+                style={{ backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=2070&auto=format&fit=crop')" }}>
                 <div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">My Profile</h1>
                     <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">View and manage your personal information and statistics</p>
@@ -454,7 +466,7 @@ const UserProfile = () => {
 
             <div className="max-w-[1200px] mx-auto px-5 py-10">
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mb-8">
-                    
+
                     {/* User Info Card */}
                     <div className="bg-[#161616] rounded-xl overflow-hidden shadow-lg border border-[#333]/50">
                         <div className="p-5 flex justify-between items-center border-b border-[#333]">
@@ -465,14 +477,18 @@ const UserProfile = () => {
                                 </button>
                             )}
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="text-center mb-6">
-                                <span className="inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30">
-                                    {dbUser?.status || 'Active Member'}
+                                <span className={`inline-block bg-gradient-to-br from-[#8A2BE2] to-[#9400D3] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-md shadow-purple-900/30 ${!dbUser ? 'min-w-[120px]' : ''}`}>
+                                    {!dbUser ? (
+                                        <div className="h-4 w-24 bg-white/30 rounded-full animate-pulse inline-block align-middle"></div>
+                                    ) : (
+                                        dbUser.status || 'Active Member'
+                                    )}
                                 </span>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[
                                     { label: 'Name', key: 'full_name', type: 'text' },
@@ -491,15 +507,19 @@ const UserProfile = () => {
                                     <div key={field.key} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors duration-300">
                                         <span className="block text-xs uppercase tracking-wider text-[#8A2BE2] font-semibold mb-1">{field.label}:</span>
                                         {!isEditing ? (
-                                            <span className="text-lg font-medium text-gray-100">
-                                                {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')} 
-                                                {formData[field.key] && field.suffix ? ` ${field.suffix}` : ''}
-                                            </span>
+                                            !dbUser ? (
+                                                <div className="h-5 w-2/3 bg-gray-600 rounded animate-pulse mt-1"></div>
+                                            ) : (
+                                                <span className="text-lg font-medium text-gray-100">
+                                                    {field.display ? field.display(formData[field.key]) : (formData[field.key] || 'Not provided')}
+                                                    {formData[field.key] && field.suffix ? ` ${field.suffix}` : ''}
+                                                </span>
+                                            )
                                         ) : (
-                                            <input 
-                                                type={field.type} 
-                                                name={field.key} 
-                                                value={formData[field.key]} 
+                                            <input
+                                                type={field.type}
+                                                name={field.key}
+                                                value={formData[field.key]}
                                                 onChange={handleInputChange}
                                                 readOnly={field.readOnly}
                                                 className={`w-full bg-[#222] border border-[#444] rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#8A2BE2] transition-all ${field.readOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -531,11 +551,15 @@ const UserProfile = () => {
                             </div>
                             <div className="p-6">
                                 <div className="text-center mb-6">
-                                    <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize">
-                                        {dbUser?.membershipType || 'Basic'} Member
+                                    <div className="inline-block bg-gradient-to-r from-[#daa520] to-[#ffd700] text-black px-6 py-2 rounded-lg font-bold text-lg mb-2 shadow-lg shadow-yellow-900/20 capitalize min-w-[200px]">
+                                        {!dbUser ? (
+                                            <div className="h-6 w-32 bg-black/25 rounded animate-pulse mx-auto"></div>
+                                        ) : (
+                                            `${dbUser.membershipType || 'Basic'} Member`
+                                        )}
                                     </div>
-                                    <p className="text-sm text-[#aaa]">
-                                        Expires: {dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}
+                                    <p className="text-sm text-[#aaa] flex items-center justify-center">
+                                        Expires: {!dbUser ? <span className="inline-block h-4 w-24 bg-gray-600 rounded animate-pulse ml-2"></span> : <span className="ml-1">{dbUser?.membershipDuration?.end_date ? new Date(dbUser.membershipDuration.end_date).toLocaleDateString() : 'N/A'}</span>}
                                     </p>
                                 </div>
                                 <button onClick={() => setShowMembershipModal(true)} className="w-full bg-[#8A2BE2] hover:bg-[#7a1bd2] text-white py-2 rounded mt-2 transition">Extend Membership</button>
@@ -625,7 +649,7 @@ const UserProfile = () => {
 
                 {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                    <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Workout Frequency</h3>
                         <div className="h-[250px] w-full">
                             <Bar data={{
@@ -633,8 +657,8 @@ const UserProfile = () => {
                                 datasets: [{ label: 'Completion (%)', data: graphData.workoutValues, backgroundColor: '#8A2BE2', borderRadius: 4 }]
                             }} options={chartOptions} />
                         </div>
-                      </div>
-                      <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
+                    </div>
+                    <div className="bg-[#222] rounded-xl p-6 h-[350px] border border-[#333] shadow-md hover:border-[#8A2BE2]/30 transition-colors">
                         <h3 className="text-center text-lg font-medium mb-4 text-gray-200">Weight Progress</h3>
                         <div className="h-[250px] w-full">
                             <Line data={{
@@ -642,7 +666,7 @@ const UserProfile = () => {
                                 datasets: [{ label: 'Weight (kg)', data: graphData.weightValues, borderColor: '#2ecc71', backgroundColor: 'rgba(46, 204, 113, 0.2)', tension: 0.4, pointBackgroundColor: '#2ecc71' }]
                             }} options={chartOptions} />
                         </div>
-                      </div>
+                    </div>
                 </div>
 
                 {/* Purchase History Table */}
@@ -694,11 +718,11 @@ const UserProfile = () => {
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div>
                                 <label className="block text-gray-400 text-sm mb-1">Current Password</label>
-                                <input type="password" required value={passwords.currentPassword} onChange={e => setPasswords({...passwords, currentPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                                <input type="password" required value={passwords.currentPassword} onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
                             </div>
                             <div>
                                 <label className="block text-gray-400 text-sm mb-1">New Password</label>
-                                <input type="password" required value={passwords.newPassword} onChange={e => setPasswords({...passwords, newPassword: e.target.value})} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
+                                <input type="password" required value={passwords.newPassword} onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })} className="w-full bg-[#222] p-3 rounded border border-[#444] text-white focus:border-[#8A2BE2] focus:outline-none" />
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
                                 <button type="button" onClick={() => setShowPasswordModal(false)} className="px-4 py-2 text-gray-400 hover:text-white transition">Cancel</button>
@@ -711,7 +735,7 @@ const UserProfile = () => {
 
             {/* Membership Extension Modal */}
             {showMembershipModal && (
-                <div 
+                <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
                     onClick={(e) => e.target === e.currentTarget && setShowMembershipModal(false)}
                 >
@@ -720,11 +744,11 @@ const UserProfile = () => {
                             <h2 className="text-2xl font-bold text-white">Change Membership Plan</h2>
                             <button onClick={() => setShowMembershipModal(false)} className="text-[#aaa] hover:text-[#8A2BE2] text-3xl leading-none">&times;</button>
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                                 {['basic', 'gold', 'platinum'].map(plan => (
-                                    <div 
+                                    <div
                                         key={plan}
                                         onClick={() => {
                                             setSelectedPlan(plan);
@@ -742,14 +766,14 @@ const UserProfile = () => {
                                     </div>
                                 ))}
                             </div>
-                            
+
                             {selectedPlan && (
                                 <div className="mb-8 animate-in slide-in-from-bottom-2 duration-300">
                                     <h3 className="text-xl font-semibold mb-4 text-white">Select Duration</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {[1, 3, 6].map(months => (
-                                            <div 
-                                                key={months} 
+                                            <div
+                                                key={months}
                                                 onClick={() => { setSelectedDuration(months); setShowPayment(true); }}
                                                 className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all bg-[#222] hover:border-[#8A2BE2] ${selectedDuration === months ? 'border-[#8A2BE2] bg-[#8A2BE2]/10' : 'border-[#333]'}`}
                                             >
@@ -802,10 +826,9 @@ const UserProfile = () => {
                                         <button
                                             key={star}
                                             type="button"
-                                            onClick={() => setRatingData({...ratingData, rating: star})}
-                                            className={`text-3xl focus:outline-none transition-colors duration-200 ${
-                                                ratingData.rating >= star ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-600 hover:text-gray-400'
-                                            }`}
+                                            onClick={() => setRatingData({ ...ratingData, rating: star })}
+                                            className={`text-3xl focus:outline-none transition-colors duration-200 ${ratingData.rating >= star ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-600 hover:text-gray-400'
+                                                }`}
                                         >
                                             ★
                                         </button>
@@ -819,7 +842,7 @@ const UserProfile = () => {
                                     rows="3"
                                     required
                                     value={ratingData.feedback}
-                                    onChange={(e) => setRatingData({...ratingData, feedback: e.target.value})}
+                                    onChange={(e) => setRatingData({ ...ratingData, feedback: e.target.value })}
                                     className="w-full bg-[#222] border border-[#444] rounded-lg p-3 text-white focus:outline-none focus:border-[#8A2BE2] transition-colors"
                                     placeholder="Tell us about your experience..."
                                 ></textarea>
