@@ -113,6 +113,12 @@ const sessionRedisClient = redis.createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
+sessionRedisClient.on('error', (err) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.warn('Redis Session Client Error:', err.message);
+  }
+});
+
 sessionRedisClient.connect().catch((err) => {
   if (process.env.NODE_ENV !== "test") {
     console.warn("Redis session store connection warning:", err.message);
