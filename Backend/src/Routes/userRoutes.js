@@ -404,6 +404,7 @@ router.get(
 );
 
 // Membership routes
+router.post("/api/payments/razorpay/signup-order", paymentController.createSignupRazorpayOrder);
 router.post("/api/payments/razorpay/order", protect, paymentController.createRazorpayOrder);
 router.post("/api/payments/razorpay/verify", protect, paymentController.verifyRazorpayPayment);
 router.post('/api/membership/extend', protect, membershipController.extendMembership);

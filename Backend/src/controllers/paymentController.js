@@ -148,6 +148,73 @@ const createRazorpayOrder = async (req, res) => {
   }
 };
 
+const createSignupRazorpayOrder = async (req, res) => {
+  try {
+    const { keyId, keySecret } = getRazorpayCredentials();
+    if (!keyId || !keySecret) {
+      return res.status(500).json({
+        success: false,
+        message: "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.",
+      });
+    }
+
+    const normalizedPlan = normalizePlan(req.body?.plan);
+    const normalizedDuration = normalizeDuration(req.body?.duration);
+
+    if (!normalizedPlan || !normalizedDuration) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid plan or duration.",
+      });
+    }
+
+    const billing = calculateMembershipAmount(normalizedPlan, normalizedDuration);
+    if (!billing) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to calculate payment amount.",
+      });
+    }
+
+    const receipt = `gmr_signup_${Date.now()}`.slice(0, 40);
+    const order = await razorpayRequest({
+      method: "POST",
+      path: "/v1/orders",
+      body: {
+        amount: billing.finalAmount * 100,
+        currency: billing.currency,
+        receipt,
+        notes: {
+          flow: "signup",
+          plan: billing.plan,
+          duration: String(billing.duration),
+        },
+      },
+      keyId,
+      keySecret,
+    });
+
+    return res.json({
+      success: true,
+      keyId,
+      order,
+      meta: {
+        plan: billing.plan,
+        duration: billing.duration,
+        amount: billing.finalAmount,
+        currency: billing.currency,
+      },
+    });
+  } catch (error) {
+    console.error("Razorpay signup order error:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Failed to create signup Razorpay order.",
+      details: error.details || null,
+    });
+  }
+};
+
 const verifyRazorpayPayment = async (req, res) => {
   try {
     const { keyId, keySecret } = getRazorpayCredentials();
@@ -283,5 +350,6 @@ const verifyRazorpayPayment = async (req, res) => {
 
 module.exports = {
   createRazorpayOrder,
+  createSignupRazorpayOrder,
   verifyRazorpayPayment,
 };

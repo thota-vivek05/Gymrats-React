@@ -15,10 +15,6 @@ const UserSignup = () => {
     userConfirmPassword: "",
     membershipPlan: "",
     membershipDuration: "1",
-    cardType: "",
-    cardNumber: "",
-    expirationDate: "",
-    cvv: "",
     weight: "",
     height: "",
     workoutType: "",
@@ -94,10 +90,6 @@ const UserSignup = () => {
       "userConfirmPassword",
       "membershipPlan",
       "membershipDuration",
-      "cardType",
-      "cardNumber",
-      "expirationDate",
-      "cvv",
       "weight",
       "workoutType",
       "weightGoal",
@@ -139,26 +131,6 @@ const UserSignup = () => {
       return false;
     }
 
-    const cleanedCard = formData.cardNumber.replace(/\s+/g, "");
-    if (!/^\d{16}$/.test(cleanedCard)) {
-      showModal("error", "Please enter a valid 16-digit card number");
-      return false;
-    }
-
-    if (formData.expirationDate) {
-      const currentDate = new Date();
-      const [year, month] = formData.expirationDate.split("-").map(Number);
-      const expiryDate = new Date(year, month - 1);
-
-      if (expiryDate < currentDate) {
-        showModal(
-          "error",
-          "Please enter a valid expiration date that is not in the past"
-        );
-        return false;
-      }
-    }
-
     if (
       isNaN(formData.weight) ||
       formData.weight < 20 ||
@@ -188,59 +160,142 @@ const UserSignup = () => {
     return true;
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const existingScript = document.querySelector(
+        'script[data-razorpay-checkout="true"]'
+      );
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve(true));
+        existingScript.addEventListener("error", () => resolve(false));
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.dataset.razorpayCheckout = "true";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     if (!validateForm()) {
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+
     try {
-      const response = await fetch("/signup", {
+      const razorpayReady = await loadRazorpayScript();
+      if (!razorpayReady) {
+        throw new Error("Unable to load Razorpay checkout.");
+      }
+
+      const orderResponse = await fetch("/api/payments/razorpay/signup-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...formData,
-          cardNumber: formData.cardNumber.replace(/\s+/g, ""),
-          phoneNumber: formData.phoneNumber.replace(/\D/g, ""),
+          plan: formData.membershipPlan,
+          duration: Number(formData.membershipDuration),
         }),
       });
 
-      const data = await response.json();
+      const orderData = await orderResponse.json();
+      if (!orderResponse.ok || !orderData.success) {
+        throw new Error(orderData.message || "Failed to initiate Razorpay.");
+      }
 
-      if (data.message === "Signup successful") {
-        showModal("success", "Registration successful! Welcome to GymRats!");
-        setTimeout(() => {
-          closeModal();
-          navigate("/login");
-        }, 1000);
-      } else {
+      const cleanedPhone = formData.phoneNumber.replace(/\D/g, "");
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency || "INR",
+        name: "GymRats",
+        description: `${formData.membershipPlan} plan - ${formData.membershipDuration} month(s)`,
+        order_id: orderData.order.id,
+        prefill: {
+          name: formData.userFullName,
+          email: formData.userEmail,
+          contact: cleanedPhone,
+        },
+        notes: {
+          flow: "signup",
+          plan: formData.membershipPlan,
+          duration: String(formData.membershipDuration),
+        },
+        theme: {
+          color: "#8A2BE2",
+        },
+        handler: async (response) => {
+          try {
+            const signupResponse = await fetch("/signup", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...formData,
+                phoneNumber: cleanedPhone,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+
+            const signupData = await signupResponse.json();
+            if (!signupResponse.ok || signupData.message !== "Signup successful") {
+              throw new Error(
+                signupData.error || "Registration failed. Please try again."
+              );
+            }
+
+            showModal("success", "Registration successful! Welcome to GymRats!");
+            setTimeout(() => {
+              closeModal();
+              navigate("/login");
+            }, 1000);
+          } catch (signupError) {
+            showModal(
+              "error",
+              signupError.message ||
+                "Payment completed but signup failed. Please contact support."
+            );
+          } finally {
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", (event) => {
         showModal(
           "error",
-          data.error || "Registration failed. Please try again."
+          event?.error?.description || "Payment failed. Please try again."
         );
-      }
+        setLoading(false);
+      });
+      razorpay.open();
     } catch (error) {
-      showModal("error", "Network error. Please try again.");
-    } finally {
+      showModal("error", error.message || "Unable to start payment.");
       setLoading(false);
     }
-  };
-
-  const formatCardNumber = (value) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length > 16) return value.substring(0, 19);
-
-    let formatted = "";
-    for (let i = 0; i < cleaned.length; i++) {
-      if (i > 0 && i % 4 === 0) formatted += " ";
-      formatted += cleaned[i];
-    }
-    return formatted;
   };
 
   const price = calculatePrice();
@@ -585,7 +640,7 @@ const UserSignup = () => {
             {price > 0 && (
               <div className="bg-white/10 border border-[#333] rounded p-[15px] text-center mt-[10px] mb-[20px] transition-all hover:bg-white/15 hover:border-[#8A2BE2] hover:shadow-[0_0_10px_rgba(138,43,226,0.2)]">
                 <p className="text-[1.5rem] font-bold text-[#8A2BE2] m-0 drop-shadow-[0_0_10px_rgba(138,43,226,0.3)] animate-[priceUpdate_0.3s_ease]">
-                  ₹{price}
+                  Rs. {price}
                 </p>
                 {savePercentage > 0 && (
                   <p className="text-[0.9rem] m-[5px_0_0_0] text-[#4ecdc4] font-semibold">
@@ -595,86 +650,10 @@ const UserSignup = () => {
               </div>
             )}
 
-            <h3 className={sectionTitleClasses}>Payment Information</h3>
-            <div className="mb-[20px]">
-              <label htmlFor="cardType" className={labelClasses}>
-                Card Type *
-              </label>
-              <select
-                id="cardType"
-                name="cardType"
-                className={inputClasses}
-                value={formData.cardType}
-                onChange={handleChange}
-                required
-              >
-                <option value="" className="text-black">
-                  Select card type
-                </option>
-                <option value="visa" className="text-black">
-                  Visa
-                </option>
-                <option value="mastercard" className="text-black">
-                  Mastercard
-                </option>
-                <option value="amex" className="text-black">
-                  American Express
-                </option>
-              </select>
-            </div>
-
-            <div className="mb-[20px]">
-              <label htmlFor="cardNumber" className={labelClasses}>
-                Card Number *
-              </label>
-              <input
-                type="text"
-                id="cardNumber"
-                name="cardNumber"
-                className={inputClasses}
-                value={formData.cardNumber}
-                onChange={(e) => {
-                  const formatted = formatCardNumber(e.target.value);
-                  setFormData((prev) => ({ ...prev, cardNumber: formatted }));
-                }}
-                placeholder="1234 5678 9012 3456"
-                maxLength="19"
-                required
-              />
-            </div>
-
-            <div className="flex gap-4 max-[600px]:flex-col">
-              <div className="mb-[20px] flex-1">
-                <label htmlFor="expirationDate" className={labelClasses}>
-                  Expiration Date *
-                </label>
-                <input
-                  type="month"
-                  id="expirationDate"
-                  name="expirationDate"
-                  className={`${inputClasses} [color-scheme:dark]`}
-                  value={formData.expirationDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="mb-[20px] flex-1">
-                <label htmlFor="cvv" className={labelClasses}>
-                  CVV *
-                </label>
-                <input
-                  type="text"
-                  id="cvv"
-                  name="cvv"
-                  className={inputClasses}
-                  value={formData.cvv}
-                  onChange={handleChange}
-                  placeholder="123"
-                  maxLength="4"
-                  required
-                />
-              </div>
+            <h3 className={sectionTitleClasses}>Payment</h3>
+            <div className="mb-[20px] bg-white/10 border border-[#333] rounded p-[15px] text-[#cccccc]">
+              Payment is completed securely via Razorpay checkout after you click
+              the signup button.
             </div>
 
             <div className="mb-[20px]">
@@ -705,7 +684,9 @@ const UserSignup = () => {
               className="w-full p-[12px] bg-[#8A2BE2] text-white border-none rounded font-bold text-[1rem] cursor-pointer transition-all duration-300 hover:bg-[#7B25C9] disabled:opacity-70 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading
+                ? "Processing Razorpay..."
+                : "Pay With Razorpay & Create Account"}
             </button>
 
             <div className="text-center mt-[20px] text-[#cccccc]">

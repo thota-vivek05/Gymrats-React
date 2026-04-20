@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const https = require('https');
 const User = require('../model/User');
 const WorkoutPlan = require('../model/WorkoutPlan');
 const WorkoutHistory = require('../model/WorkoutHistory');
@@ -10,9 +12,76 @@ const moment = require('moment');
 const TrainerReview = require('../model/TrainerReview');
 const TrainerAvailability = require('../model/TrainerAvailability');
 const Appointment = require('../model/Appointment');
+const { calculateMembershipAmount, normalizePlan, normalizeDuration } = require('../utils/membershipPricing');
+const { normalizePaymentMethod } = require('../services/membershipService');
 //brimstone
 // for membership management           REYNA
 const Trainer = require('../model/Trainer');
+
+const getRazorpayCredentials = () => ({
+    keyId: process.env.RAZORPAY_KEY_ID || process.env.RZP_TEST_KEY,
+    keySecret: process.env.RAZORPAY_KEY_SECRET || process.env.RZP_TEST_SECRET
+});
+
+const buildBasicAuthHeader = (keyId, keySecret) => {
+    const encoded = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+    return `Basic ${encoded}`;
+};
+
+const razorpayRequest = ({ method, path, body, keyId, keySecret }) =>
+    new Promise((resolve, reject) => {
+        const payload = body ? JSON.stringify(body) : null;
+        const options = {
+            hostname: 'api.razorpay.com',
+            port: 443,
+            path,
+            method,
+            headers: {
+                Authorization: buildBasicAuthHeader(keyId, keySecret),
+                'Content-Type': 'application/json'
+            }
+        };
+
+        if (payload) {
+            options.headers['Content-Length'] = Buffer.byteLength(payload);
+        }
+
+        const request = https.request(options, (response) => {
+            let raw = '';
+            response.on('data', (chunk) => {
+                raw += chunk;
+            });
+            response.on('end', () => {
+                let parsed = {};
+                try {
+                    parsed = raw ? JSON.parse(raw) : {};
+                } catch (error) {
+                    parsed = { raw };
+                }
+
+                if (response.statusCode >= 200 && response.statusCode < 300) {
+                    resolve(parsed);
+                    return;
+                }
+
+                const requestError = new Error(parsed.error?.description || 'Razorpay API request failed');
+                requestError.statusCode = response.statusCode;
+                requestError.details = parsed;
+                reject(requestError);
+            });
+        });
+
+        request.on('error', reject);
+        if (payload) request.write(payload);
+        request.end();
+    });
+
+const timingSafeCompare = (left, right) => {
+    const leftBuffer = Buffer.from(String(left || ''), 'utf8');
+    const rightBuffer = Buffer.from(String(right || ''), 'utf8');
+    if (leftBuffer.length !== rightBuffer.length) return false;
+    return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+};
 
 const checkMembershipActive = async (req, res, next) => {
     try {
@@ -482,10 +551,9 @@ const signupUser = async (req, res) => {
         const userConfirmPassword = body.userConfirmPassword || body.confirmPassword || body.password;
         const membershipPlan = body.membershipPlan || body.membershipType;
         const membershipDuration = body.membershipDuration;
-        const cardType = body.cardType;
-        const cardNumber = body.cardNumber;
-        const expirationDate = body.expirationDate;
-        const cvv = body.cvv;
+        const razorpayOrderId = body.razorpayOrderId || body.orderId;
+        const razorpayPaymentId = body.razorpayPaymentId || body.paymentId;
+        const razorpaySignature = body.razorpaySignature || body.signature;
         const terms = body.terms;
         const weight = body.weight;
         const height = body.height;
@@ -506,6 +574,9 @@ const signupUser = async (req, res) => {
         const workoutType = workoutTypeRaw
             ? (workoutTypeMap[String(workoutTypeRaw).trim().toLowerCase()] || workoutTypeRaw)
             : workoutTypeRaw;
+        const normalizedPlan = normalizePlan(membershipPlan);
+        const normalizedDuration = normalizeDuration(membershipDuration);
+        const billing = calculateMembershipAmount(normalizedPlan, normalizedDuration);
 
         const resolvedDob = dateOfBirth
             ? new Date(dateOfBirth)
@@ -536,6 +607,18 @@ const signupUser = async (req, res) => {
         ) {
             //  console.log('Validation failed: Missing fields');
             return res.status(400).json({ error: 'Required fields are missing (name, email, password, phone, gender, dob/age, membership, workout_type, weight, height)' });
+        }
+
+        if (!terms) {
+            return res.status(400).json({ error: 'Please accept terms and conditions' });
+        }
+
+        if (!normalizedPlan || !normalizedDuration || !billing) {
+            return res.status(400).json({ error: 'Invalid membership plan or duration' });
+        }
+
+        if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+            return res.status(400).json({ error: 'Please complete Razorpay payment before signup' });
         }
 
         if (userPassword !== userConfirmPassword) {
@@ -607,6 +690,52 @@ const signupUser = async (req, res) => {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
+        const alreadyProcessedPayment = await Payment.findOne({
+            provider: 'Razorpay',
+            providerPaymentId: razorpayPaymentId,
+            status: 'Success'
+        });
+        if (alreadyProcessedPayment) {
+            return res.status(400).json({ error: 'This payment has already been used for signup' });
+        }
+
+        const { keyId, keySecret } = getRazorpayCredentials();
+        if (!keyId || !keySecret) {
+            return res.status(500).json({
+                error: 'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.'
+            });
+        }
+
+        const expectedSignature = crypto
+            .createHmac('sha256', keySecret)
+            .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+            .digest('hex');
+
+        if (!timingSafeCompare(expectedSignature, razorpaySignature)) {
+            return res.status(400).json({ error: 'Invalid payment signature' });
+        }
+
+        const paymentDetails = await razorpayRequest({
+            method: 'GET',
+            path: `/v1/payments/${razorpayPaymentId}`,
+            keyId,
+            keySecret
+        });
+
+        if (paymentDetails.order_id !== razorpayOrderId) {
+            return res.status(400).json({ error: 'Payment does not belong to the expected order' });
+        }
+
+        const paidAmount = Number(paymentDetails.amount || 0) / 100;
+        if (paidAmount !== billing.finalAmount) {
+            return res.status(400).json({ error: 'Paid amount does not match expected amount' });
+        }
+
+        const razorpayStatus = String(paymentDetails.status || '').toLowerCase();
+        if (!['captured', 'authorized'].includes(razorpayStatus)) {
+            return res.status(400).json({ error: 'Payment is not in a successful state' });
+        }
+
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(userPassword, saltRounds);
         //  console.log('Password hashed for:', userEmail);
@@ -615,7 +744,7 @@ const signupUser = async (req, res) => {
         // Calculate end date based on membership duration           REYNA
         const startDate = new Date();
         const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + parseInt(membershipDuration));
+        endDate.setMonth(endDate.getMonth() + normalizedDuration);
 
 
         const newUser = new User({
@@ -625,7 +754,7 @@ const signupUser = async (req, res) => {
             dob: resolvedDob,
             gender: gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase(),
             phone: phoneNumber,
-            membershipType: membershipPlan.charAt(0).toUpperCase() + membershipPlan.slice(1).toLowerCase(),
+            membershipType: normalizedPlan.charAt(0).toUpperCase() + normalizedPlan.slice(1).toLowerCase(),
            
             // REYNA
             workout_type: workoutType,
@@ -638,7 +767,7 @@ const signupUser = async (req, res) => {
 
             // NEW: Add membership duration data          REYNA
             membershipDuration: {
-                months_remaining: parseInt(membershipDuration),
+                months_remaining: normalizedDuration,
                 start_date: startDate,
                 end_date: endDate,
                 auto_renew: false,
@@ -647,30 +776,27 @@ const signupUser = async (req, res) => {
 
             weight: Number(weight),
             height: height !== undefined ? Number(height) : null,
-            BMI: calculatedBMI,
-        //REYNA
-            workout_type: workoutType
+            BMI: calculatedBMI
         });
         //  console.log('New user object created:', newUser);
 
-        // Calculate price for payment history
-        const durationInt = parseInt(membershipDuration);
-        const planKey = String(membershipPlan).toLowerCase();
-        const priceConfig = {
-            basic: { 1: 299, 3: 750, 6: 1350, 12: 2400 },
-            gold: { 1: 599, 3: 1550, 6: 2700, 12: 4800 },
-            platinum: { 1: 999, 3: 2500, 6: 4500, 12: 8000 },
-        };
-        const amount = priceConfig[planKey] && priceConfig[planKey][durationInt] ? priceConfig[planKey][durationInt] : 0;
-
-        const Payment = require('../model/Payment');
+        // Store verified Razorpay payment in purchase history
         const newPayment = new Payment({
             userId: newUser._id,
-            amount: amount,
+            amount: billing.finalAmount,
+            currency: billing.currency,
             paymentFor: 'Membership',
-            paymentMethod: 'Card', // Defaulted to Card since signup captures card info
-            membershipPlan: planKey,
-            status: 'Success'
+            paymentMethod: normalizePaymentMethod(paymentDetails.method),
+            membershipPlan: normalizedPlan,
+            status: 'Success',
+            provider: 'Razorpay',
+            providerOrderId: razorpayOrderId,
+            providerPaymentId: razorpayPaymentId,
+            providerSignature: razorpaySignature,
+            receipt: paymentDetails.notes?.receipt || null,
+            gatewayStatus: paymentDetails.status || null,
+            verifiedAt: new Date(),
+            gatewayPayload: paymentDetails
         });
         await newPayment.save();
         
