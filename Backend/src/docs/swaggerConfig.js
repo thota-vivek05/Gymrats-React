@@ -63,9 +63,7 @@ function setupSwagger(app) {
     })
   );
 
-  if (process.env.NODE_ENV !== 'test') {
-    console.log("Swagger docs available at http://localhost:3000/api-docs");
-  }
+  if (process.env.NODE_ENV !== 'test') {}
 }
 
 module.exports = setupSwagger;

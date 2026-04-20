@@ -463,8 +463,6 @@ exports.getRevenueForUser = async (req, res) => {
  */
 exports.getTrainerPerformance = async (req, res) => {
     try {
-        console.log('📊 Fetching trainer performance...');
-
         const trainers = await Trainer.find({})
             .select("name email specializations rating experience status maxClients totalClients joined_users_count dropped_users_count monthly_revenue clients")
             .lean();
@@ -590,13 +588,10 @@ exports.getTrainerPerformance = async (req, res) => {
             })
             .sort((a, b) => b.totalRevenue - a.totalRevenue);
 
-        console.log(`✅ Found performance data for ${result.length} trainers`);
-
         res.status(200).json({
             success: true,
             data: result
         });
-
     } catch (error) {
         console.error("❌ Trainer Performance Error:", error);
         res.status(500).json({
@@ -615,7 +610,6 @@ exports.getTrainerPerformance = async (req, res) => {
 exports.getTrainerUserRevenue = async (req, res) => {
     try {
         const { trainerId } = req.params;
-        console.log(`📊 Fetching user revenue for trainer: ${trainerId}`);
 
         // FIX: Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(trainerId)) {
@@ -758,7 +752,6 @@ exports.getTrainerUserRevenue = async (req, res) => {
                 users: enrichedResult
             }
         });
-
     } catch (error) {
         console.error("❌ Trainer User Revenue Error:", error);
         res.status(500).json({
@@ -777,7 +770,6 @@ exports.getTrainerUserRevenue = async (req, res) => {
 exports.getTrainerMonthlyTrend = async (req, res) => {
     try {
         const { trainerId } = req.params;
-        console.log(`📊 Fetching monthly trend for trainer: ${trainerId}`);
 
         // FIX: Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(trainerId)) {
@@ -917,7 +909,6 @@ exports.getTrainerMonthlyTrend = async (req, res) => {
                 trend
             }
         });
-
     } catch (error) {
         console.error("❌ Trainer Monthly Trend Error:", error);
         res.status(500).json({
@@ -937,8 +928,6 @@ exports.getTrainerMonthlyTrend = async (req, res) => {
  */
 exports.getActiveUsers = async (req, res) => {
     try {
-        console.log('📊 Fetching active users...');
-        
         const activeUsers = await User.find({
             status: "Active",
             isDeleted: { $ne: true }
@@ -994,7 +983,6 @@ exports.getActiveUsers = async (req, res) => {
             data: enrichedUsers,
             total: enrichedUsers.length
         });
-
     } catch (error) {
         console.error("❌ Active Users Error:", error);
         res.status(500).json({
@@ -1012,8 +1000,6 @@ exports.getActiveUsers = async (req, res) => {
  */
 exports.getExpiredUsers = async (req, res) => {
     try {
-        console.log('📊 Fetching expired users...');
-        
         const expiredUsers = await User.find({
             $or: [
                 { status: "Expired" },
@@ -1075,7 +1061,6 @@ exports.getExpiredUsers = async (req, res) => {
             data: enrichedUsers,
             total: enrichedUsers.length
         });
-
     } catch (error) {
         console.error("❌ Expired Users Error:", error);
         res.status(500).json({
@@ -1093,8 +1078,6 @@ exports.getExpiredUsers = async (req, res) => {
  */
 exports.getDroppedUsers = async (req, res) => {
     try {
-        console.log('📊 Fetching dropped users...');
-        
         // Find users who are deleted or inactive
         const droppedUsers = await User.find({
             $or: [
@@ -1153,7 +1136,6 @@ exports.getDroppedUsers = async (req, res) => {
             data: enrichedUsers,
             total: enrichedUsers.length
         });
-
     } catch (error) {
         console.error("❌ Dropped Users Error:", error);
         res.status(500).json({
@@ -1171,8 +1153,6 @@ exports.getDroppedUsers = async (req, res) => {
  */
 exports.getRenewalTracking = async (req, res) => {
     try {
-        console.log('📊 Fetching renewal tracking...');
-        
         // Get upcoming renewals (next 30 days)
         const thirtyDaysFromNow = new Date();
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
@@ -1261,7 +1241,6 @@ exports.getRenewalTracking = async (req, res) => {
                 recentRenewals: formattedRecent
             }
         });
-
     } catch (error) {
         console.error("❌ Renewal Tracking Error:", error);
         res.status(500).json({
