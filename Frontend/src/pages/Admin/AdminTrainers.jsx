@@ -53,20 +53,11 @@ const AdminTrainers = () => {
     status: "Active"
   });
 
-// Initial load effect - only runs once
+// Single effect safely handles both initial load and debounced search
 useEffect(() => {
-  const loadInitial = async () => {
-    setLoading(true);
-    await fetchTrainers();
-    setLoading(false);
-  };
-  loadInitial();
-}, []);
-
-// Debounced search effect - doesn't trigger loading spinner
-useEffect(() => {
+  setLoading(true);
   const timer = setTimeout(() => {
-    fetchTrainers(searchTerm);
+    fetchTrainers(searchTerm).finally(() => setLoading(false));
   }, 500);
   return () => clearTimeout(timer);
 }, [searchTerm]);

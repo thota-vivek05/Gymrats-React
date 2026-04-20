@@ -106,20 +106,7 @@ if (!isTest) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Execution timer middleware for analytics
-app.use((req, res, next) => {
-  const start = process.hrtime();
-  res.on("finish", () => {
-    const diff = process.hrtime(start);
-    const time = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3); // ms
-    if (process.env.NODE_ENV !== "test") {
-      console.log(
-        `[API Timer] ${req.method} ${req.originalUrl} took ${time} ms`,
-      );
-    }
-  });
-  next();
-});
+// Global API Timer removed to avoid log clutter. Timer moved to Redis middleware.
 
 // Redis client for sessions
 const sessionRedisClient = redis.createClient({
