@@ -29,13 +29,13 @@ const ContactPage = () => {
     },
     {
       title: "Phone",
-      info: ["+91 7654321890", "Mon-Fri: 8am - 8pm"],
+      info: ["+91 7013716285", "Mon-Fri: 8am - 8pm"],
       icon: "fas fa-phone-volume",
       color: "text-green-500",
     },
     {
       title: "Email",
-      info: ["info@gymrats.com", "support@gymrats.com"],
+      info: ["gymratsweb@gmail.com", "cheelaancesh@gmail.com"],
       icon: "fas fa-envelope-open-text",
       color: "text-blue-500",
     },

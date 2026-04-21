@@ -14,10 +14,10 @@ const Footer = () => {
         <div className={columnClasses}>
           <h3 className={headingClasses}>GymRats</h3>
           <ul className="list-none p-0">
-            <li className="mb-3"><a href="/about" className={linkClasses}>About Us</a></li>
-            <li className="mb-3"><a href="/trainers" className={linkClasses}>Our Trainers</a></li>
-            {/* <li className="mb-3"><a href="/testimonial" className={linkClasses}>Testimonials</a></li>
-            <li className="mb-3"><a href="/blog" className={linkClasses}>Blog</a></li> */}
+            <li className="mb-3"><Link to="/about" className={linkClasses}>About Us</Link></li>
+            <li className="mb-3"><Link to="/trainers" className={linkClasses}>Our Trainers</Link></li>
+            {/* <li className="mb-3"><Link to="/testimonial" className={linkClasses}>Testimonials</Link></li>
+            <li className="mb-3"><Link to="/blog" className={linkClasses}>Blog</Link></li> */}
           </ul>
         </div>
 
@@ -25,10 +25,8 @@ const Footer = () => {
         <div className={columnClasses}>
           <h3 className={headingClasses}>Resources</h3>
           <ul className="list-none p-0">
-            <li className="mb-3"><a href="/isolation" className={linkClasses}>Exercise Guide</a></li>
-            <li className="mb-3"><a href="/nutrition" className={linkClasses}>Nutrition Tips</a></li>
-            {/* <li className="mb-3"><a href="/workout_plans" className={linkClasses}>Workout Plans</a></li> */}
-            <li className="mb-3"><a href="/calculators" className={linkClasses}>Calculators</a></li>
+            <li className="mb-3"><Link to="/isolation" className={linkClasses}>Exercise Guide</Link></li>
+            <li className="mb-3"><Link to="/nutrition" className={linkClasses}>Nutrition Tips</Link></li>
           </ul>
         </div>
 
@@ -36,10 +34,8 @@ const Footer = () => {
         <div className={columnClasses}>
           <h3 className={headingClasses}>Support</h3>
           <ul className="list-none p-0">
-            <li className="mb-3"><a href="/about" className={linkClasses}>About us</a></li>
-            <li className="mb-3"><a href="/contact" className={linkClasses}>Contact Us</a></li>
-            <li className="mb-3"><a href="/terms" className={linkClasses}>Terms of Service</a></li>
-            <li className="mb-3"><a href="/privacy_policy" className={linkClasses}>Privacy Policy</a></li>
+            <li className="mb-3"><Link to="/about" className={linkClasses}>About us</Link></li>
+            <li className="mb-3"><Link to="/contact" className={linkClasses}>Contact Us</Link></li>
           </ul>
         </div>
 

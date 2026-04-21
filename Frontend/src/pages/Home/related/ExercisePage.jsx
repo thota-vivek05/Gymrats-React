@@ -26,7 +26,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Pectorals, Triceps",
     instructions: "1. Start in a plank position.\n2. Lower chest to floor.\n3. Push back up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Pushups/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -36,7 +36,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Pectorals, Triceps",
     instructions: "1. Lie on bench.\n2. Lower bar to chest.\n3. Press up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Lying_Triceps_Press/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Triceps_Press/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -46,7 +46,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Upper Chest",
     instructions: "1. Set bench to 30°.\n2. Press dumbbells up.\n3. Lower with control.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Incline_Dumbbell_Press/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
     equipment: "Dumbbells"
   },
   {
@@ -56,7 +56,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Inner Chest",
     instructions: "1. Pull handles across body.\n2. Squeeze chest.\n3. Return.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Cable_Crossover/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crossover/0.jpg",
     equipment: "Cable Machine"
   },
   {
@@ -66,7 +66,7 @@ const exercisesData = [
     difficulty: "Advanced",
     target: "Lower Chest",
     instructions: "1. Lower body on dip bars.\n2. Push back up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Dips_-_Chest_Version/1.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dips_-_Chest_Version/1.jpg",
     equipment: "Dip Station"
   },
 
@@ -78,7 +78,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Lats",
     instructions: "1. Hang from bar.\n2. Pull chin over bar.\n3. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Pullups/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg",
     equipment: "Pull-up Bar"
   },
   {
@@ -88,7 +88,7 @@ const exercisesData = [
     difficulty: "Advanced",
     target: "Posterior Chain",
     instructions: "1. Lift bar from ground extending hips.\n2. Stand tall.\n3. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Deadlift_with_Chains/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Deadlift_with_Chains/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -98,7 +98,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Mid-Back",
     instructions: "1. Hinge at hips.\n2. Pull bar to waist.\n3. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Reverse_Grip_Bent-Over_Rows/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Grip_Bent-Over_Rows/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -108,7 +108,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Lats",
     instructions: "1. Pull bar down to chest.\n2. Return up slowly.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
     equipment: "Cable Machine"
   },
   {
@@ -118,7 +118,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Lats",
     instructions: "1. Knee on bench.\n2. Pull dumbbell to hip.\n3. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Kneeling_Single-Arm_High_Pulley_Row/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kneeling_Single-Arm_High_Pulley_Row/0.jpg",
     equipment: "Dumbbell"
   },
 
@@ -130,7 +130,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Quads, Glutes",
     instructions: "1. Bar on back.\n2. Squat down.\n3. Drive up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Barbell_Squat/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -140,7 +140,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Legs",
     instructions: "1. Step forward.\n2. Drop back knee.\n3. Push back.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Dumbbell_Lunges/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lunges/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -150,7 +150,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Quads",
     instructions: "1. Push weight sled away.\n2. Lower slowly.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Leg_Press/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg",
     equipment: "Machine"
   },
   {
@@ -160,7 +160,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Hamstrings",
     instructions: "1. Hinge hips back.\n2. Lower bar to shins.\n3. Stand up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Romanian_Deadlift/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -170,7 +170,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Calves",
     instructions: "1. Raise heels up.\n2. Lower down.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Calf_Raises_-_With_Bands/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Calf_Raises_-_With_Bands/0.jpg",
     equipment: "Step"
   },
 
@@ -182,7 +182,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Deltoids",
     instructions: "1. Press bar overhead.\n2. Lower to collarbone.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Smith_Machine_Overhead_Shoulder_Press/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Smith_Machine_Overhead_Shoulder_Press/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -192,7 +192,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Side Delts",
     instructions: "1. Raise arms to sides.\n2. Lower slowly.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Lateral_Raise_-_With_Bands/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Raise_-_With_Bands/0.jpg",
     equipment: "Dumbbells"
   },
   {
@@ -202,7 +202,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Rear Delts",
     instructions: "1. Pull rope to face.\n2. Squeeze rear shoulders.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Face_Pull/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Face_Pull/0.jpg",
     equipment: "Cable"
   },
   {
@@ -212,7 +212,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Deltoids",
     instructions: "1. Press up twisting palms.\n2. Reverse down.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Arnold_Dumbbell_Press/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Arnold_Dumbbell_Press/0.jpg",
     equipment: "Dumbbells"
   },
   {
@@ -222,7 +222,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Front Delts",
     instructions: "1. Raise weight forward.\n2. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Front_Leg_Raises/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Front_Leg_Raises/0.jpg",
     equipment: "Dumbbells"
   },
 
@@ -234,7 +234,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Biceps",
     instructions: "1. Curl weight up.\n2. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Machine_Bicep_Curl/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Machine_Bicep_Curl/0.jpg",
     equipment: "Barbell"
   },
   {
@@ -244,7 +244,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Triceps",
     instructions: "1. Push cable down.\n2. Return to 90 degrees.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Triceps_Pushdown/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
     equipment: "Cable"
   },
   {
@@ -254,7 +254,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Brachialis",
     instructions: "1. Curl with palms inward.\n2. Lower.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Hammer_Curls/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hammer_Curls/0.jpg",
     equipment: "Dumbbells"
   },
   {
@@ -264,7 +264,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Triceps",
     instructions: "1. Lower bar to forehead.\n2. Extend arms.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Band_Skull_Crusher/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Skull_Crusher/0.jpg",
     equipment: "EZ Bar"
   },
   {
@@ -274,7 +274,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Biceps",
     instructions: "1. Curl on bench pad.\n2. Extend fully.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Preacher_Curl/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Curl/0.jpg",
     equipment: "EZ Bar"
   },
 
@@ -286,7 +286,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Abs",
     instructions: "1. Hold straight body position on forearms.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Plank/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -296,7 +296,7 @@ const exercisesData = [
     difficulty: "Advanced",
     target: "Lower Abs",
     instructions: "1. Raise legs while hanging.\n2. Lower slowly.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Rear_Leg_Raises/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rear_Leg_Raises/0.jpg",
     equipment: "Pull-up Bar"
   },
   {
@@ -306,7 +306,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Obliques",
     instructions: "1. Twist torso side to side seated.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Cable_Russian_Twists/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Russian_Twists/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -316,7 +316,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Obliques",
     instructions: "1. Pull cable diagonally.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Standing_Cable_Wood_Chop/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Cable_Wood_Chop/0.jpg",
     equipment: "Cable"
   },
   {
@@ -326,7 +326,7 @@ const exercisesData = [
     difficulty: "Advanced",
     target: "Core",
     instructions: "1. Roll wheel forward.\n2. Pull back.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Barbell_Ab_Rollout/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Ab_Rollout/0.jpg",
     equipment: "Ab Wheel"
   },
 
@@ -338,7 +338,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Full Body",
     instructions: "1. Drop to floor.\n2. Jump up.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -348,7 +348,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Cardio",
     instructions: "1. Jump continuously.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Stride_Jump_Crossover/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Stride_Jump_Crossover/0.jpg",
     equipment: "Rope"
   },
   {
@@ -358,7 +358,7 @@ const exercisesData = [
     difficulty: "Beginner",
     target: "Core/Cardio",
     instructions: "1. Run knees to chest in plank.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Mountain_Climbers/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Mountain_Climbers/0.jpg",
     equipment: "Body Weight"
   },
   {
@@ -368,7 +368,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Legs",
     instructions: "1. Jump onto box.\n2. Step down.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/Front_Box_Jump/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Front_Box_Jump/0.jpg",
     equipment: "Box"
   },
   {
@@ -378,7 +378,7 @@ const exercisesData = [
     difficulty: "Intermediate",
     target: "Posterior Chain",
     instructions: "1. Swing bell with hips.",
-    image: "https://github.com/yuhonas/free-exercise-db/blob/main/exercises/One-Arm_Kettlebell_Swings/0.jpg?raw=true",
+    image: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Swings/0.jpg",
     equipment: "Kettlebell"
   }
 ];
@@ -468,12 +468,13 @@ const ExercisePage = () => {
                     <div className="flex flex-col md:flex-row gap-8">
                         {/* Image */}
                         <div className="w-full md:w-1/3">
-                            <div className="aspect-square bg-[#222] rounded-lg border border-[#333] overflow-hidden">
-                                <img 
-                                    src={selectedExercise.image} 
-                                    alt={selectedExercise.name} 
-                                    className="w-full h-full object-cover"
-                                />
+                            <div 
+                                className="aspect-square bg-[#222] rounded-lg border border-[#333] overflow-hidden bg-cover bg-center"
+                                style={{ backgroundImage: `url('${selectedExercise.image || categoryImages[selectedExercise.category] || "https://images.pexels.com/photos/3837781/pexels-photo-3837781.jpeg?auto=compress&cs=tinysrgb&w=800"}')` }}
+                            >
+                                {!selectedExercise.image && (
+                                    <div className="h-full flex items-center justify-center text-gray-500">No Image Available</div>
+                                )}
                             </div>
                         </div>
 
@@ -484,7 +485,7 @@ const ExercisePage = () => {
                                     <h2 className="text-3xl font-bold text-white mb-2">
                                         {selectedExercise.name}
                                     </h2>
-                                    <span className="inline-block px-3 py-1 bg-[#8A2BE2] bg-opacity-20 text-[#8A2BE2] rounded-full text-sm font-medium border border-[#8A2BE2]">
+                                    <span className="inline-block px-3 py-1 bg-[#8A2BE2] text-white rounded-full text-sm font-bold border border-[#8A2BE2]">
                                         {selectedExercise.category}
                                     </span>
                                 </div>
@@ -564,17 +565,10 @@ const ExercisePage = () => {
                                     onClick={() => handleCardClick(exercise)}
                                     className="bg-[#111] border border-[#333] rounded-xl overflow-hidden hover:border-[#8A2BE2] transition-all duration-300 cursor-pointer group flex flex-col h-full"
                                 >
-                                    {/* Card Image Area */}
-                                    <div className="h-48 bg-[#222] relative overflow-hidden border-b border-[#333]">
-                                        <img 
-                                            src={exercise.image} 
-                                            alt={exercise.name} 
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://placehold.co/600x400/111/8A2BE2?text=Image+Not+Found";
-                                            }}
-                                        />
+                                    <div
+                                        className="h-40 w-full bg-cover bg-center bg-gray-900 relative border-b border-[#333] group-hover:scale-105 transition-transform duration-500"
+                                        style={{ backgroundImage: `url('${exercise.image || categoryImages[exercise.category]}')` }}
+                                    >
                                         {/* Overlay on hover */}
                                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
                                     </div>
@@ -582,7 +576,7 @@ const ExercisePage = () => {
                                     {/* Card Content */}
                                     <div className="p-5 flex flex-col flex-1">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-xs font-semibold text-[#8A2BE2] uppercase tracking-wider">
+                                            <span className="text-xs font-bold text-white bg-[#8A2BE2]/80 px-2 py-1 rounded-md uppercase tracking-wider backdrop-blur-sm">
                                                 {exercise.category}
                                             </span>
                                             <span className={`text-[10px] px-2 py-0.5 rounded border ${
