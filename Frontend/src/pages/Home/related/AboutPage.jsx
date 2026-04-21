@@ -95,7 +95,7 @@ const AboutPage = () => {
         {/* Our Values Section */}
         <section className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Our Values</h2>
+            <h2 className="text-4xl font-bold mb-4">Our core Values</h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               At GymRats, our core values guide everything we do. They reflect our commitment to providing exceptional fitness resources and fostering a supportive community.
             </p>
